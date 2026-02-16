@@ -342,7 +342,7 @@ export function DashboardLayout() {
           </TabsContent>
 
           <TabsContent value="cashflow" className="mt-0">
-            <CashflowTab cashflow={filteredCashflow} currency={currency} />
+            <CashflowTab cashflow={filteredCashflow} currency={currency} projection={filter.projection} />
           </TabsContent>
 
           <TabsContent value="forecast" className="mt-0">

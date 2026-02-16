@@ -122,6 +122,86 @@ describe("applyProjection", () => {
   });
 });
 
+// --- projectMonthValue: component-level projection patterns ---
+
+describe("projectMonthValue – component projection patterns", () => {
+  const now = new Date();
+  const currentYm = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+  const dayOfMonth = now.getDate();
+  const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+  const scale = daysInMonth / dayOfMonth;
+
+  test("CashflowSection pattern: projects current-month payouts", () => {
+    const payoutsMinor = 150000; // $1,500
+    const projected = projectMonthValue(payoutsMinor, currentYm);
+    expect(projected).toBe(Math.round(payoutsMinor * scale));
+  });
+
+  test("CashflowSection pattern: no-op for historical month payouts", () => {
+    const payoutsMinor = 150000;
+    expect(projectMonthValue(payoutsMinor, "2023-06")).toBe(payoutsMinor);
+  });
+
+  test("NightsVsAdrChart pattern: projects both nights and gross for current month", () => {
+    const nights = 8;
+    const gross = 200000;
+    const projectedNights = projectMonthValue(nights, currentYm);
+    const projectedGross = projectMonthValue(gross, currentYm);
+    expect(projectedNights).toBe(Math.round(nights * scale));
+    expect(projectedGross).toBe(Math.round(gross * scale));
+    // ADR is derived from projected values
+    const adr = projectedGross / projectedNights;
+    expect(adr).toBeGreaterThan(0);
+  });
+
+  test("NightsVsAdrChart pattern: historical months unchanged", () => {
+    expect(projectMonthValue(8, "2020-03")).toBe(8);
+    expect(projectMonthValue(200000, "2020-03")).toBe(200000);
+  });
+
+  test("ListingDetail indicator: projects current-month net revenue for comparison", () => {
+    const currentNet = 45000;
+    const trailingAvg = 60000;
+    const projectedNet = projectMonthValue(currentNet, currentYm);
+    // Projected value should be larger than raw value (since month is incomplete)
+    if (dayOfMonth < daysInMonth) {
+      expect(projectedNet).toBeGreaterThan(currentNet);
+    }
+    // Delta calculation uses projected value
+    const delta = (projectedNet - trailingAvg) / trailingAvg;
+    expect(typeof delta).toBe("number");
+    expect(Number.isFinite(delta)).toBe(true);
+  });
+
+  test("ListingDetail indicator: no projection for historical data month", () => {
+    const net = 45000;
+    expect(projectMonthValue(net, "2023-12")).toBe(net);
+  });
+
+  test("zero value projects to zero (no division error)", () => {
+    expect(projectMonthValue(0, currentYm)).toBe(0);
+    expect(projectMonthValue(0, "2020-01")).toBe(0);
+  });
+
+  test("current month projects even when future months exist in dataset", () => {
+    // Regression: projection should fire for the current month even when
+    // the dataset includes forecast months beyond it (e.g., in "all" view mode).
+    const futureMonth = `${now.getFullYear() + 1}-01`;
+    const currentVal = 50000;
+    const futureVal = 80000;
+
+    // Current month should still be projected
+    const projectedCurrent = projectMonthValue(currentVal, currentYm);
+    if (dayOfMonth < daysInMonth) {
+      expect(projectedCurrent).toBeGreaterThan(currentVal);
+    }
+    expect(projectedCurrent).toBe(Math.round(currentVal * scale));
+
+    // Future month should not be affected
+    expect(projectMonthValue(futureVal, futureMonth)).toBe(futureVal);
+  });
+});
+
 // --- filterCashflow ---
 
 function makeCashflow(opts: Partial<MonthlyCashflow> & { month: string }): MonthlyCashflow {

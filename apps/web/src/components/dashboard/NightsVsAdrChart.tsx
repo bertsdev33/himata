@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import {
   ComposedChart,
   Bar,
+  Cell,
   Line,
   XAxis,
   YAxis,
@@ -18,10 +19,17 @@ import type { MonthlyListingPerformance, YearMonth } from "@rental-analytics/cor
 interface NightsVsAdrChartProps {
   data: MonthlyListingPerformance[];
   currency: string;
+  projection?: boolean;
 }
 
-export function NightsVsAdrChart({ data, currency }: NightsVsAdrChartProps) {
-  const chartData = useMemo(() => {
+export function NightsVsAdrChart({ data, currency, projection = false }: NightsVsAdrChartProps) {
+  const { chartData, hasProjection } = useMemo(() => {
+    const now = new Date();
+    const currentYm = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+    const dayOfMonth = now.getDate();
+    const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+    const scale = dayOfMonth > 0 ? daysInMonth / dayOfMonth : 1;
+
     // Aggregate by month (single listing data expected but handle multiple)
     const monthMap = new Map<string, { nights: number; gross: number }>();
     for (const lp of data) {
@@ -31,14 +39,25 @@ export function NightsVsAdrChart({ data, currency }: NightsVsAdrChartProps) {
       monthMap.set(lp.month, existing);
     }
 
-    return [...monthMap.entries()]
-      .sort(([a], [b]) => a.localeCompare(b))
-      .map(([month, values]) => ({
+    const entries = [...monthMap.entries()].sort(([a], [b]) => a.localeCompare(b));
+    const hasCurrentMonth = monthMap.has(currentYm);
+    const showProjection = projection && hasCurrentMonth && scale > 1;
+
+    const rows = entries.map(([month, values]) => {
+      const isProjected = showProjection && month === currentYm;
+      const nights = isProjected ? Math.round(values.nights * scale) : values.nights;
+      const gross = isProjected ? Math.round(values.gross * scale) : values.gross;
+      return {
+        month,
         label: formatMonth(month as YearMonth),
-        nights: values.nights,
-        adr: values.nights > 0 ? values.gross / values.nights / 100 : 0,
-      }));
-  }, [data]);
+        nights,
+        adr: nights > 0 ? gross / nights / 100 : 0,
+        isProjected,
+      };
+    });
+
+    return { chartData: rows, hasProjection: showProjection };
+  }, [data, projection]);
 
   return (
     <Card>
@@ -72,7 +91,17 @@ export function NightsVsAdrChart({ data, currency }: NightsVsAdrChartProps) {
               fill={CHART_COLORS.gross}
               fillOpacity={0.7}
               radius={[4, 4, 0, 0]}
-            />
+            >
+              {chartData.map((entry) => (
+                <Cell
+                  key={entry.month}
+                  fill={CHART_COLORS.gross}
+                  fillOpacity={entry.isProjected ? 0.35 : 0.7}
+                  stroke={entry.isProjected ? CHART_COLORS.gross : undefined}
+                  strokeDasharray={entry.isProjected ? "4 4" : undefined}
+                />
+              ))}
+            </Bar>
             <Line
               yAxisId="right"
               type="monotone"
@@ -84,6 +113,12 @@ export function NightsVsAdrChart({ data, currency }: NightsVsAdrChartProps) {
             />
           </ComposedChart>
         </ResponsiveContainer>
+        {hasProjection && (
+          <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1.5">
+            <span className="inline-block w-4 border-t-2 border-dashed" style={{ borderColor: CHART_COLORS.gross }} />
+            Last bar shows projected month-end values
+          </p>
+        )}
       </CardContent>
     </Card>
   );

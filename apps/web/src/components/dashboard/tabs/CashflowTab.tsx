@@ -15,9 +15,10 @@ import type { MonthlyCashflow, YearMonth } from "@rental-analytics/core";
 interface CashflowTabProps {
   cashflow: MonthlyCashflow[];
   currency: string;
+  projection?: boolean;
 }
 
-export function CashflowTab({ cashflow, currency }: CashflowTabProps) {
+export function CashflowTab({ cashflow, currency, projection = false }: CashflowTabProps) {
   const payoutSummary = useMemo(() => {
     const monthMap = new Map<string, { totalPaid: number; eventCount: number }>();
     for (const cf of cashflow) {
@@ -38,7 +39,7 @@ export function CashflowTab({ cashflow, currency }: CashflowTabProps) {
 
   return (
     <div className="space-y-6">
-      <CashflowSection data={cashflow} currency={currency} />
+      <CashflowSection data={cashflow} currency={currency} projection={projection} />
 
       {payoutSummary.length > 0 && (
         <Card>

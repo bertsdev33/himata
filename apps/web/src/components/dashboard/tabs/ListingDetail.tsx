@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { RevenueTrendChart } from "../RevenueTrendChart";
 import { NightsVsAdrChart } from "../NightsVsAdrChart";
 import { formatMoney, formatDeltaPercent } from "@/lib/format";
+import { projectMonthValue } from "@/lib/dashboard-utils";
 import {
   computeMonthlyPortfolioPerformance,
 } from "@rental-analytics/core";
@@ -27,17 +28,38 @@ export function ListingDetail({
 
   const listingName = listingPerf.length > 0 ? listingPerf[0].listingName : "Listing";
 
-  // Under/Over indicator
+  // Under/Over indicator: compare the most recent month against trailing average.
+  // When projection is enabled and the current calendar month is in the data,
+  // use the current calendar month (with projection) for comparison — this
+  // correctly handles datasets that include future/forecast months.
   const indicator = useMemo(() => {
     const months = [...new Set(listingPerf.map((lp) => lp.month))].sort();
     if (months.length < 2) return null;
 
-    const currentMonth = months[months.length - 1];
-    const previousMonths = months.slice(0, -1);
+    const now = new Date();
+    const currentCalendarYm = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+    const monthSet = new Set<string>(months);
 
-    const currentVal = listingPerf
-      .filter((lp) => lp.month === currentMonth)
+    // Pick the comparison month: prefer current calendar month when projecting
+    // and it exists in the data; otherwise fall back to the most recent month.
+    const comparisonMonth =
+      projection && monthSet.has(currentCalendarYm)
+        ? currentCalendarYm
+        : months[months.length - 1];
+
+    const previousMonths = months.filter((m) => m < comparisonMonth);
+    if (previousMonths.length === 0) return null;
+
+    let currentVal = listingPerf
+      .filter((lp) => lp.month === comparisonMonth)
       .reduce((s, lp) => s + lp.netRevenueMinor, 0);
+
+    const isCurrentMonth = comparisonMonth === currentCalendarYm;
+
+    // Apply projection to the current month value
+    if (projection && isCurrentMonth) {
+      currentVal = projectMonthValue(currentVal, comparisonMonth);
+    }
 
     const trailingVals = previousMonths.map((m) =>
       listingPerf
@@ -54,8 +76,9 @@ export function ListingDetail({
       trailingAvg,
       delta,
       isOver: delta >= 0,
+      isProjected: projection && isCurrentMonth,
     };
-  }, [listingPerf]);
+  }, [listingPerf, projection]);
 
   return (
     <div className="space-y-6">
@@ -67,7 +90,7 @@ export function ListingDetail({
         projection={projection}
       />
 
-      <NightsVsAdrChart data={listingPerf} currency={currency} />
+      <NightsVsAdrChart data={listingPerf} currency={currency} projection={projection} />
 
       {indicator && (
         <Card>
@@ -101,6 +124,9 @@ export function ListingDetail({
               <div className="text-sm text-muted-foreground space-y-1">
                 <p>
                   Current: {formatMoney(indicator.currentVal, currency)}
+                  {indicator.isProjected && (
+                    <span className="ml-1 text-xs text-yellow-600">(projected)</span>
+                  )}
                 </p>
                 <p>
                   Trailing Avg: {formatMoney(Math.round(indicator.trailingAvg), currency)}
