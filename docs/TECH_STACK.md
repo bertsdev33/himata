@@ -69,14 +69,13 @@ Even if the product is mostly frontend, **AI integration requires a backend** (t
 
 **Charts**
 
-- **Chart.js** (Alpha)
-  - Upgrade path: consider ECharts / Visx / Recharts if needs outgrow Chart.js
+- **Recharts** (React-native, composable)
+  - Used for area charts, bar charts, and all dashboard visualizations
 
 **Spreadsheet Parsing**
 
-- Client-side parsing in a Web Worker:
-  - CSV: PapaParse (or equivalent)
-  - XLSX: SheetJS (or equivalent)
+- Client-side CSV parsing via `@rental-analytics/importer-airbnb-v1` (built-in parser, no external dependency)
+- XLSX support deferred to post-alpha (will use SheetJS or equivalent when added)
 
 **Why client-side parsing**
 

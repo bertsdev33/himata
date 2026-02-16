@@ -4,7 +4,7 @@ A web application to analyze rental platform exports (Airbnb first) and present 
 
 ## What this does (Alpha)
 
-- Upload a daily report spreadsheet (CSV/XLSX) from a supported format (Airbnb v1).
+- Upload Airbnb transaction CSV exports (XLSX support planned post-alpha).
 - Parse and normalize data client-side.
 - Compute KPIs per listing and per month:
   - Total revenue / net payout per listing
@@ -25,11 +25,11 @@ Frontend:
 - Astro + React islands
 - TypeScript
 - Tailwind CSS + shadcn/ui
-- Chart.js
+- Recharts
 
 Core data processing:
 
-- Client-side parsing (CSV/XLSX) in a Web Worker
+- Client-side CSV parsing via @rental-analytics/importer-airbnb-v1
 - Canonical schema normalization + metrics engine
 
 Analytics:
@@ -199,7 +199,7 @@ Feature branches:
 
 ### Import + Normalize
 
-- [ ] Support Airbnb export format v1 (CSV/XLSX)
+- [x] Support Airbnb export format v1 (CSV; XLSX deferred)
 - [ ] Validate required columns and data types
 - [ ] Normalize to `DailyListingMetric[]`
 
