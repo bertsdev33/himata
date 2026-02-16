@@ -42,7 +42,6 @@ export interface FilterState {
   viewMode: ViewMode;
   currency: string | null;
   projection: boolean;
-  revenueBasis: RevenueBasis;
   activeTab: DashboardTab;
 }
 

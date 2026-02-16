@@ -32,7 +32,6 @@ export const initialFilter: FilterState = {
   viewMode: "realized",
   currency: null,
   projection: false,
-  revenueBasis: "both",
   activeTab: "portfolio-overview",
 };
 

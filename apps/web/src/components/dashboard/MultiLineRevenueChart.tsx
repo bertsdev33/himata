@@ -19,13 +19,13 @@ import type { RevenueBasis } from "@/app/types";
 interface MultiLineRevenueChartProps {
   data: MonthlyListingPerformance[];
   currency: string;
-  revenueBasis: RevenueBasis;
+  revenueBasis?: RevenueBasis;
 }
 
 export function MultiLineRevenueChart({
   data,
   currency,
-  revenueBasis,
+  revenueBasis = "net",
 }: MultiLineRevenueChartProps) {
   const [showAll, setShowAll] = useState(false);
 

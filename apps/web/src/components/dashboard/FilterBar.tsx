@@ -5,7 +5,7 @@ import { Select } from "@/components/ui/select";
 import { MultiSelect } from "@/components/ui/multi-select";
 import { Button } from "@/components/ui/button";
 import { RotateCcw } from "lucide-react";
-import type { ViewMode, RevenueBasis } from "@/app/types";
+import type { ViewMode } from "@/app/types";
 import { getPresetRange, type DatePreset } from "@/lib/dashboard-utils";
 
 export function FilterBar() {
@@ -44,6 +44,31 @@ export function FilterBar() {
       max: allMonths[allMonths.length - 1],
     };
   }, [analytics]);
+
+  // Last realized month = boundary between real and forecast data
+  const lastRealizedMonth = useMemo(() => {
+    const realizedMonths = analytics.views.realized.portfolioPerformance.map((p) => p.month);
+    return realizedMonths.length > 0 ? realizedMonths[realizedMonths.length - 1] : "";
+  }, [analytics]);
+
+  // Effective max month for the active view mode
+  const activeViewMax = useMemo(() => {
+    const months = analytics.views[filter.viewMode].portfolioPerformance.map((p) => p.month);
+    return months.length > 0 ? months[months.length - 1] : "";
+  }, [analytics, filter.viewMode]);
+
+  // Check if the selected end date extends into forecast territory
+  const endInForecast = filter.dateRange.end
+    ? filter.dateRange.end > lastRealizedMonth && lastRealizedMonth !== ""
+    : activeViewMax > lastRealizedMonth && lastRealizedMonth !== "";
+
+  // Check if individual date inputs are in the future
+  const startIsForecast = filter.dateRange.start
+    ? filter.dateRange.start > lastRealizedMonth && lastRealizedMonth !== ""
+    : false;
+  const endIsForecast = filter.dateRange.end
+    ? filter.dateRange.end > lastRealizedMonth && lastRealizedMonth !== ""
+    : false;
 
   const hasActiveFilters =
     filter.selectedAccountIds.length > 0 ||
@@ -120,7 +145,11 @@ export function FilterBar() {
               },
             })
           }
-          className="h-8 rounded-md border border-input bg-background px-2 text-xs"
+          className={`h-8 rounded-md border px-2 text-xs ${
+            startIsForecast
+              ? "border-yellow-400 bg-yellow-50 text-yellow-800"
+              : "border-input bg-background"
+          }`}
         />
         <span className="text-xs text-muted-foreground">—</span>
         <input
@@ -136,8 +165,17 @@ export function FilterBar() {
               },
             })
           }
-          className="h-8 rounded-md border border-input bg-background px-2 text-xs"
+          className={`h-8 rounded-md border px-2 text-xs ${
+            endIsForecast
+              ? "border-yellow-400 bg-yellow-50 text-yellow-800"
+              : "border-input bg-background"
+          }`}
         />
+        {endInForecast && (
+          <span className="text-[10px] font-medium text-yellow-600 whitespace-nowrap">
+            Includes forecast
+          </span>
+        )}
       </div>
 
       {/* Account multi-select */}
@@ -205,23 +243,6 @@ export function FilterBar() {
           className="w-24"
         />
       )}
-
-      {/* Revenue basis toggle */}
-      <Tabs
-        value={filter.revenueBasis}
-        onValueChange={(v) =>
-          dispatch({
-            type: "SET_FILTER",
-            filter: { revenueBasis: v as RevenueBasis },
-          })
-        }
-      >
-        <TabsList>
-          <TabsTrigger value="both">Both</TabsTrigger>
-          <TabsTrigger value="net">Net</TabsTrigger>
-          <TabsTrigger value="gross">Gross</TabsTrigger>
-        </TabsList>
-      </Tabs>
 
       {/* Projection toggle */}
       <label className="flex items-center gap-2 text-sm cursor-pointer">

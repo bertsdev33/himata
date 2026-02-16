@@ -1,19 +1,16 @@
 import { ListingsTable } from "../ListingsTable";
 import { MultiLineRevenueChart } from "../MultiLineRevenueChart";
 import type { MonthlyListingPerformance } from "@rental-analytics/core";
-import type { RevenueBasis } from "@/app/types";
 
 interface ListingComparisonProps {
   listingPerf: MonthlyListingPerformance[];
   currency: string;
-  revenueBasis: RevenueBasis;
   onSelectListing: (listingId: string) => void;
 }
 
 export function ListingComparison({
   listingPerf,
   currency,
-  revenueBasis,
   onSelectListing,
 }: ListingComparisonProps) {
   return (
@@ -21,7 +18,6 @@ export function ListingComparison({
       <MultiLineRevenueChart
         data={listingPerf}
         currency={currency}
-        revenueBasis={revenueBasis}
       />
       <ListingsTable
         data={listingPerf}

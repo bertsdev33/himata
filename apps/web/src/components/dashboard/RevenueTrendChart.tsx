@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import {
   AreaChart,
   Area,
@@ -19,16 +19,21 @@ import type { RevenueBasis } from "@/app/types";
 interface RevenueTrendChartProps {
   data: MonthlyPortfolioPerformance[];
   currency: string;
-  revenueBasis?: RevenueBasis;
   projection?: boolean;
 }
+
+const BASIS_OPTIONS: { value: RevenueBasis; label: string }[] = [
+  { value: "both", label: "Both" },
+  { value: "net", label: "Net" },
+  { value: "gross", label: "Gross" },
+];
 
 export function RevenueTrendChart({
   data,
   currency,
-  revenueBasis = "both",
   projection = false,
 }: RevenueTrendChartProps) {
+  const [revenueBasis, setRevenueBasis] = useState<RevenueBasis>("both");
   const isBoth = revenueBasis === "both";
 
   const chartData = useMemo(() => {
@@ -56,8 +61,24 @@ export function RevenueTrendChart({
 
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-base">Revenue Trend</CardTitle>
+        <div className="flex items-center gap-0.5 rounded-lg border p-0.5">
+          {BASIS_OPTIONS.map((opt) => (
+            <button
+              key={opt.value}
+              type="button"
+              onClick={() => setRevenueBasis(opt.value)}
+              className={`px-2 py-0.5 text-xs font-medium rounded-md transition-colors ${
+                revenueBasis === opt.value
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={300}>

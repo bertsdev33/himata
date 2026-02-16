@@ -314,7 +314,6 @@ export function DashboardLayout() {
               occupancy={filteredOccupancy}
               transactions={filteredTransactions}
               currency={currency}
-              revenueBasis={filter.revenueBasis}
               projection={filter.projection}
               hasProjection={hasProjection}
             />
@@ -324,7 +323,6 @@ export function DashboardLayout() {
             <ListingComparison
               listingPerf={filteredListingPerf}
               currency={currency}
-              revenueBasis={filter.revenueBasis}
               onSelectListing={handleSelectListing}
             />
           </TabsContent>
@@ -333,7 +331,6 @@ export function DashboardLayout() {
             <ListingDetail
               listingPerf={filteredListingPerf}
               currency={currency}
-              revenueBasis={filter.revenueBasis}
               projection={filter.projection}
             />
           </TabsContent>

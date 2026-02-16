@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import {
   BarChart,
   Bar,
@@ -16,38 +17,65 @@ import type { MonthlyListingPerformance, YearMonth } from "@rental-analytics/cor
 interface RevenueBreakdownChartProps {
   data: MonthlyListingPerformance[];
   currency: string;
+  projection?: boolean;
 }
 
-export function RevenueBreakdownChart({ data, currency }: RevenueBreakdownChartProps) {
-  // Aggregate by month across all listings
-  const monthMap = new Map<
-    string,
-    { reservation: number; adjustment: number; resolution: number; cancellation: number }
-  >();
+export function RevenueBreakdownChart({ data, currency, projection = false }: RevenueBreakdownChartProps) {
+  const chartData = useMemo(() => {
+    // Aggregate by month across all listings
+    const monthMap = new Map<
+      string,
+      { reservation: number; adjustment: number; resolution: number; cancellation: number }
+    >();
 
-  for (const lp of data) {
-    const existing = monthMap.get(lp.month) ?? {
-      reservation: 0,
-      adjustment: 0,
-      resolution: 0,
-      cancellation: 0,
-    };
-    existing.reservation += lp.reservationRevenueMinor;
-    existing.adjustment += lp.adjustmentRevenueMinor;
-    existing.resolution += lp.resolutionAdjustmentRevenueMinor;
-    existing.cancellation += lp.cancellationFeeRevenueMinor;
-    monthMap.set(lp.month, existing);
-  }
+    for (const lp of data) {
+      const existing = monthMap.get(lp.month) ?? {
+        reservation: 0,
+        adjustment: 0,
+        resolution: 0,
+        cancellation: 0,
+      };
+      existing.reservation += lp.reservationRevenueMinor;
+      existing.adjustment += lp.adjustmentRevenueMinor;
+      existing.resolution += lp.resolutionAdjustmentRevenueMinor;
+      existing.cancellation += lp.cancellationFeeRevenueMinor;
+      monthMap.set(lp.month, existing);
+    }
 
-  const chartData = [...monthMap.entries()]
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([month, values]) => ({
-      label: formatMonth(month as YearMonth),
-      Reservations: values.reservation / 100,
-      Adjustments: values.adjustment / 100,
-      Resolutions: values.resolution / 100,
-      Cancellations: values.cancellation / 100,
-    }));
+    const now = new Date();
+    const currentYm = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+    const dayOfMonth = now.getDate();
+    const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+    const scale = dayOfMonth > 0 ? daysInMonth / dayOfMonth : 1;
+
+    return [...monthMap.entries()]
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([month, values]) => {
+        const isCurrentMonth = month === currentYm;
+        const showProjection = projection && isCurrentMonth && scale > 1;
+
+        // Actual values (always shown)
+        const entry: Record<string, string | number> = {
+          label: formatMonth(month as YearMonth),
+          Reservations: values.reservation / 100,
+          Adjustments: values.adjustment / 100,
+          Resolutions: values.resolution / 100,
+          Cancellations: values.cancellation / 100,
+          Projected: 0,
+        };
+
+        if (showProjection) {
+          // Projected = (scaled total) - actual total
+          const actualTotal = values.reservation + values.adjustment + values.resolution + values.cancellation;
+          const projectedTotal = Math.round(actualTotal * scale);
+          entry.Projected = (projectedTotal - actualTotal) / 100;
+        }
+
+        return entry;
+      });
+  }, [data, projection]);
+
+  const hasProjection = chartData.some((d) => (d.Projected as number) > 0);
 
   return (
     <Card>
@@ -76,6 +104,16 @@ export function RevenueBreakdownChart({ data, currency }: RevenueBreakdownChartP
             <Bar dataKey="Adjustments" stackId="a" fill={CHART_COLORS.adjustment} />
             <Bar dataKey="Resolutions" stackId="a" fill={CHART_COLORS.resolution} />
             <Bar dataKey="Cancellations" stackId="a" fill={CHART_COLORS.cancellation} />
+            {hasProjection && (
+              <Bar
+                dataKey="Projected"
+                stackId="a"
+                fill={CHART_COLORS.forecast}
+                fillOpacity={0.6}
+                strokeDasharray="4 4"
+                stroke={CHART_COLORS.forecast}
+              />
+            )}
           </BarChart>
         </ResponsiveContainer>
       </CardContent>

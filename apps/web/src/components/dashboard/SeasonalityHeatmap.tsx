@@ -7,12 +7,12 @@ import type { RevenueBasis } from "@/app/types";
 interface SeasonalityHeatmapProps {
   data: MonthlyPortfolioPerformance[];
   currency: string;
-  revenueBasis: RevenueBasis;
+  revenueBasis?: RevenueBasis;
 }
 
 const MONTH_LABELS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
-export function SeasonalityHeatmap({ data, currency, revenueBasis }: SeasonalityHeatmapProps) {
+export function SeasonalityHeatmap({ data, currency, revenueBasis = "net" }: SeasonalityHeatmapProps) {
   const { grid, years, minVal, maxVal } = useMemo(() => {
     // Build year-month grid
     const map = new Map<string, number>(); // "YYYY-MM" -> revenue

@@ -12,7 +12,6 @@ import type {
   EstimatedOccupancy,
   CanonicalTransaction,
 } from "@rental-analytics/core";
-import type { RevenueBasis } from "@/app/types";
 
 interface PortfolioOverviewProps {
   portfolioPerf: MonthlyPortfolioPerformance[];
@@ -21,7 +20,6 @@ interface PortfolioOverviewProps {
   occupancy: EstimatedOccupancy[];
   transactions: CanonicalTransaction[];
   currency: string;
-  revenueBasis: RevenueBasis;
   projection: boolean;
   hasProjection: boolean;
 }
@@ -33,7 +31,6 @@ export function PortfolioOverview({
   occupancy,
   transactions,
   currency,
-  revenueBasis,
   projection,
   hasProjection,
 }: PortfolioOverviewProps) {
@@ -43,7 +40,6 @@ export function PortfolioOverview({
         portfolioPerf={portfolioPerf}
         occupancy={occupancy}
         currency={currency}
-        revenueBasis={revenueBasis}
         hasProjection={hasProjection}
       />
 
@@ -51,15 +47,14 @@ export function PortfolioOverview({
         <RevenueTrendChart
           data={portfolioPerf}
           currency={currency}
-          revenueBasis={revenueBasis}
           projection={projection}
         />
-        <RevenueBreakdownChart data={listingPerf} currency={currency} />
+        <RevenueBreakdownChart data={listingPerf} currency={currency} projection={projection} />
       </div>
 
       <TopMoversTable listingPerf={listingPerf} currency={currency} projection={projection} />
 
-      <SeasonalityHeatmap data={portfolioPerf} currency={currency} revenueBasis={revenueBasis} />
+      <SeasonalityHeatmap data={portfolioPerf} currency={currency} />
 
       <OccupancyHeatmaps transactions={transactions} />
 

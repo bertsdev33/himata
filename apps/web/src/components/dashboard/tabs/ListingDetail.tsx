@@ -7,19 +7,16 @@ import {
   computeMonthlyPortfolioPerformance,
 } from "@rental-analytics/core";
 import type { MonthlyListingPerformance } from "@rental-analytics/core";
-import type { RevenueBasis } from "@/app/types";
 
 interface ListingDetailProps {
   listingPerf: MonthlyListingPerformance[];
   currency: string;
-  revenueBasis: RevenueBasis;
   projection: boolean;
 }
 
 export function ListingDetail({
   listingPerf,
   currency,
-  revenueBasis,
   projection,
 }: ListingDetailProps) {
   // Convert listing perf to portfolio perf for RevenueTrendChart
@@ -35,18 +32,17 @@ export function ListingDetail({
     const months = [...new Set(listingPerf.map((lp) => lp.month))].sort();
     if (months.length < 2) return null;
 
-    const isNet = revenueBasis === "net";
     const currentMonth = months[months.length - 1];
     const previousMonths = months.slice(0, -1);
 
     const currentVal = listingPerf
       .filter((lp) => lp.month === currentMonth)
-      .reduce((s, lp) => s + (isNet ? lp.netRevenueMinor : lp.grossRevenueMinor), 0);
+      .reduce((s, lp) => s + lp.netRevenueMinor, 0);
 
     const trailingVals = previousMonths.map((m) =>
       listingPerf
         .filter((lp) => lp.month === m)
-        .reduce((s, lp) => s + (isNet ? lp.netRevenueMinor : lp.grossRevenueMinor), 0),
+        .reduce((s, lp) => s + lp.netRevenueMinor, 0),
     );
     const trailingAvg = trailingVals.reduce((a, b) => a + b, 0) / trailingVals.length;
 
@@ -59,7 +55,7 @@ export function ListingDetail({
       delta,
       isOver: delta >= 0,
     };
-  }, [listingPerf, revenueBasis]);
+  }, [listingPerf]);
 
   return (
     <div className="space-y-6">
@@ -68,7 +64,6 @@ export function ListingDetail({
       <RevenueTrendChart
         data={portfolioPerf}
         currency={currency}
-        revenueBasis={revenueBasis}
         projection={projection}
       />
 
