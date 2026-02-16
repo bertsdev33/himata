@@ -11,6 +11,7 @@ interface SeasonalityHeatmapProps {
 }
 
 const MONTH_LABELS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const LEGEND_STEPS = [0, 0.2, 0.4, 0.6, 0.8, 1];
 
 export function SeasonalityHeatmap({ data, currency, revenueBasis = "net" }: SeasonalityHeatmapProps) {
   const { grid, years, minVal, maxVal } = useMemo(() => {
@@ -111,6 +112,26 @@ export function SeasonalityHeatmap({ data, currency, revenueBasis = "net" }: Sea
               })}
             </tbody>
           </table>
+        </div>
+
+        {/* Color legend */}
+        <div className="flex items-center gap-2 mt-4 pt-3 border-t">
+          <span className="text-xs text-muted-foreground">Low</span>
+          <div className="flex gap-0.5">
+            {LEGEND_STEPS.map((ratio) => (
+              <div
+                key={ratio}
+                className="w-8 h-4 rounded-sm"
+                style={{
+                  backgroundColor: `hsl(172, ${30 + ratio * 36}%, ${25 + ratio * 25}%)`,
+                }}
+              />
+            ))}
+          </div>
+          <span className="text-xs text-muted-foreground">High</span>
+          <span className="text-xs text-muted-foreground ml-2">
+            {formatMoneyCompact(minVal, currency)} — {formatMoneyCompact(maxVal, currency)}
+          </span>
         </div>
       </CardContent>
     </Card>

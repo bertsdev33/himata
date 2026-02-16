@@ -110,172 +110,308 @@ export function FilterBar() {
     { value: "all", label: "All" },
   ];
 
+  // Quick action: compute "last month" and "current month" ranges
+  const currentYm = useMemo(() => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+  }, []);
+
+  const lastMonthYm = useMemo(() => {
+    const now = new Date();
+    const d = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+  }, []);
+
+  // Check if a quick action for time is active
+  const activeQuickTime = useMemo(() => {
+    const { start, end } = filter.dateRange;
+    if (start === lastMonthYm && end === lastMonthYm) return "last-month";
+    if (start === currentYm && end === currentYm) return "current-month";
+    // Check named presets
+    for (const p of ["3m", "12m", "ytd"] as DatePreset[]) {
+      const range = getPresetRange(p, monthBounds.max);
+      if (range.start === start && range.end === end) return p;
+    }
+    return null;
+  }, [filter.dateRange, lastMonthYm, currentYm, monthBounds.max]);
+
+  const handleQuickTime = (key: string) => {
+    if (key === "last-month") {
+      dispatch({ type: "SET_FILTER", filter: { dateRange: { start: lastMonthYm, end: lastMonthYm } } });
+    } else if (key === "current-month") {
+      dispatch({ type: "SET_FILTER", filter: { dateRange: { start: currentYm, end: currentYm } } });
+    } else {
+      const range = getPresetRange(key as DatePreset, monthBounds.max);
+      dispatch({ type: "SET_FILTER", filter: { dateRange: range } });
+    }
+  };
+
+  const quickTimeOptions = [
+    { key: "3m", label: "Last 3 Months" },
+    { key: "last-month", label: "Last Month" },
+    { key: "current-month", label: "Current Month" },
+    { key: "ytd", label: "YTD" },
+    { key: "12m", label: "12M" },
+  ];
+
   return (
-    <div className="sticky top-0 z-40 bg-background flex flex-wrap items-center gap-3 border-b px-6 py-3">
-      {/* Date range presets */}
-      <div className="flex items-center gap-1">
-        {presets.map((p) => (
-          <button
-            key={p.value}
-            type="button"
-            onClick={() => handlePreset(p.value)}
-            className={`px-2.5 py-1 text-xs font-medium rounded-md transition-colors ${
-              activePreset === p.value
-                ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-            }`}
-          >
-            {p.label}
-          </button>
-        ))}
-      </div>
+    <div className="sticky top-0 z-40 bg-background border-b px-6 py-3 space-y-2">
+      {/* Row 1: Main filters */}
+      <div className="flex flex-wrap items-center gap-3">
+        {/* Date range presets */}
+        <div className="flex items-center gap-1">
+          {presets.map((p) => (
+            <button
+              key={p.value}
+              type="button"
+              onClick={() => handlePreset(p.value)}
+              className={`px-2.5 py-1 text-xs font-medium rounded-md transition-colors ${
+                activePreset === p.value
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+              }`}
+            >
+              {p.label}
+            </button>
+          ))}
+        </div>
 
-      {/* Custom date range */}
-      <div className="flex items-center gap-1.5">
-        <input
-          type="month"
-          value={filter.dateRange.start ?? ""}
-          min={monthBounds.min}
-          max={filter.dateRange.end ?? monthBounds.max}
-          onChange={(e) =>
-            dispatch({
-              type: "SET_FILTER",
-              filter: {
-                dateRange: { ...filter.dateRange, start: e.target.value || null },
-              },
-            })
-          }
-          className={`h-8 rounded-md border px-2 text-xs ${
-            startIsForecast
-              ? "border-yellow-400 bg-yellow-50 text-yellow-800"
-              : "border-input bg-background"
-          }`}
-        />
-        <span className="text-xs text-muted-foreground">—</span>
-        <input
-          type="month"
-          value={filter.dateRange.end ?? ""}
-          min={filter.dateRange.start ?? monthBounds.min}
-          max={monthBounds.max}
-          onChange={(e) =>
-            dispatch({
-              type: "SET_FILTER",
-              filter: {
-                dateRange: { ...filter.dateRange, end: e.target.value || null },
-              },
-            })
-          }
-          className={`h-8 rounded-md border px-2 text-xs ${
-            endIsForecast
-              ? "border-yellow-400 bg-yellow-50 text-yellow-800"
-              : "border-input bg-background"
-          }`}
-        />
-        {endInForecast && (
-          <span className="text-[10px] font-medium text-yellow-600 whitespace-nowrap">
-            Includes forecast
-          </span>
-        )}
-      </div>
-
-      {/* Account multi-select */}
-      {analytics.accountIds.length > 1 && (
-        <div className="w-48">
-          <MultiSelect
-            options={accountOptions}
-            selected={filter.selectedAccountIds}
-            onChange={(ids) =>
+        {/* Custom date range */}
+        <div className="flex items-center gap-1.5">
+          <input
+            type="month"
+            value={filter.dateRange.start ?? ""}
+            min={monthBounds.min}
+            max={filter.dateRange.end ?? monthBounds.max}
+            onChange={(e) =>
               dispatch({
                 type: "SET_FILTER",
                 filter: {
-                  selectedAccountIds: ids,
-                  selectedListingIds: [],
+                  dateRange: { ...filter.dateRange, start: e.target.value || null },
                 },
               })
             }
-            placeholder="Accounts"
+            className={`h-8 rounded-md border px-2 text-xs ${
+              startIsForecast
+                ? "border-yellow-400 bg-yellow-50 text-yellow-800"
+                : "border-input bg-background"
+            }`}
           />
-        </div>
-      )}
-
-      {/* Listing multi-select */}
-      {listingOptions.length > 1 && (
-        <div className="w-64">
-          <MultiSelect
-            options={listingOptions}
-            selected={filter.selectedListingIds}
-            onChange={(ids) =>
+          <span className="text-xs text-muted-foreground">—</span>
+          <input
+            type="month"
+            value={filter.dateRange.end ?? ""}
+            min={filter.dateRange.start ?? monthBounds.min}
+            max={monthBounds.max}
+            onChange={(e) =>
               dispatch({
                 type: "SET_FILTER",
-                filter: { selectedListingIds: ids },
+                filter: {
+                  dateRange: { ...filter.dateRange, end: e.target.value || null },
+                },
               })
             }
-            placeholder="Listings"
-            searchable
+            className={`h-8 rounded-md border px-2 text-xs ${
+              endIsForecast
+                ? "border-yellow-400 bg-yellow-50 text-yellow-800"
+                : "border-input bg-background"
+            }`}
           />
+          {endInForecast && (
+            <span className="text-[10px] font-medium text-yellow-600 whitespace-nowrap">
+              Includes forecast
+            </span>
+          )}
         </div>
-      )}
 
-      {/* Clear all filters */}
-      {hasActiveFilters && (
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={handleClearAll}
-          className="text-muted-foreground"
-        >
-          <RotateCcw className="mr-1 h-3.5 w-3.5" />
-          Clear
-        </Button>
-      )}
+        {/* Account multi-select */}
+        {analytics.accountIds.length > 1 && (
+          <div className="w-48">
+            <MultiSelect
+              options={accountOptions}
+              selected={filter.selectedAccountIds}
+              onChange={(ids) =>
+                dispatch({
+                  type: "SET_FILTER",
+                  filter: {
+                    selectedAccountIds: ids,
+                    selectedListingIds: [],
+                  },
+                })
+              }
+              placeholder="Accounts"
+            />
+          </div>
+        )}
 
-      {/* Currency selector */}
-      {analytics.currencies.length > 1 && (
-        <Select
-          value={filter.currency ?? analytics.currency}
-          onChange={(e) =>
-            dispatch({
-              type: "SET_FILTER",
-              filter: { currency: e.target.value },
-            })
-          }
-          options={analytics.currencies.map((c) => ({ value: c, label: c }))}
-          className="w-24"
-        />
-      )}
+        {/* Listing multi-select */}
+        {listingOptions.length > 1 && (
+          <div className="w-64">
+            <MultiSelect
+              options={listingOptions}
+              selected={filter.selectedListingIds}
+              onChange={(ids) =>
+                dispatch({
+                  type: "SET_FILTER",
+                  filter: { selectedListingIds: ids },
+                })
+              }
+              placeholder="Listings"
+              searchable
+            />
+          </div>
+        )}
 
-      {/* Projection toggle */}
-      <label className="flex items-center gap-2 text-sm cursor-pointer">
-        <input
-          type="checkbox"
-          checked={filter.projection}
-          onChange={(e) =>
-            dispatch({
-              type: "SET_FILTER",
-              filter: { projection: e.target.checked },
-            })
-          }
-          className="h-4 w-4 rounded border-input"
-        />
-        <span className="text-muted-foreground whitespace-nowrap">Project this Month</span>
-      </label>
+        {/* Clear all filters */}
+        {hasActiveFilters && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleClearAll}
+            className="text-muted-foreground"
+          >
+            <RotateCcw className="mr-1 h-3.5 w-3.5" />
+            Clear
+          </Button>
+        )}
 
-      {/* View mode (pushed right) */}
-      <div className="ml-auto">
-        <Tabs
-          value={filter.viewMode}
-          onValueChange={(v) =>
-            dispatch({ type: "SET_FILTER", filter: { viewMode: v as ViewMode } })
-          }
-        >
-          <TabsList>
-            {viewOptions.map((opt) => (
-              <TabsTrigger key={opt.value} value={opt.value}>
-                {opt.label}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-        </Tabs>
+        {/* Currency selector */}
+        {analytics.currencies.length > 1 && (
+          <Select
+            value={filter.currency ?? analytics.currency}
+            onChange={(e) =>
+              dispatch({
+                type: "SET_FILTER",
+                filter: { currency: e.target.value },
+              })
+            }
+            options={analytics.currencies.map((c) => ({ value: c, label: c }))}
+            className="w-24"
+          />
+        )}
+
+        {/* Projection toggle */}
+        <label className="flex items-center gap-2 text-sm cursor-pointer">
+          <input
+            type="checkbox"
+            checked={filter.projection}
+            onChange={(e) =>
+              dispatch({
+                type: "SET_FILTER",
+                filter: { projection: e.target.checked },
+              })
+            }
+            className="h-4 w-4 rounded border-input"
+          />
+          <span className="text-muted-foreground whitespace-nowrap">Project this Month</span>
+        </label>
+
+        {/* View mode (pushed right) */}
+        <div className="ml-auto">
+          <Tabs
+            value={filter.viewMode}
+            onValueChange={(v) =>
+              dispatch({ type: "SET_FILTER", filter: { viewMode: v as ViewMode } })
+            }
+          >
+            <TabsList>
+              {viewOptions.map((opt) => (
+                <TabsTrigger key={opt.value} value={opt.value}>
+                  {opt.label}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </Tabs>
+        </div>
+      </div>
+
+      {/* Row 2: Quick actions */}
+      <div className="flex flex-wrap items-center gap-1.5 text-xs">
+        {/* Time quick actions */}
+        <div className="flex items-center gap-1">
+          {quickTimeOptions.map((opt) => (
+            <button
+              key={opt.key}
+              type="button"
+              onClick={() => handleQuickTime(opt.key)}
+              className={`px-2 py-0.5 rounded-md border transition-colors ${
+                activeQuickTime === opt.key
+                  ? "bg-primary text-primary-foreground border-primary"
+                  : "border-border text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+              }`}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Account quick actions */}
+        {analytics.accountIds.length > 1 && (
+          <>
+            <span className="text-muted-foreground mx-0.5">|</span>
+            <div className="flex items-center gap-1">
+              {analytics.accountIds.map((id) => (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() =>
+                    dispatch({
+                      type: "SET_FILTER",
+                      filter: {
+                        selectedAccountIds:
+                          filter.selectedAccountIds.length === 1 && filter.selectedAccountIds[0] === id
+                            ? []
+                            : [id],
+                        selectedListingIds: [],
+                      },
+                    })
+                  }
+                  className={`px-2 py-0.5 rounded-md border transition-colors ${
+                    filter.selectedAccountIds.length === 1 && filter.selectedAccountIds[0] === id
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "border-border text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                  }`}
+                >
+                  {id}
+                </button>
+              ))}
+            </div>
+          </>
+        )}
+
+        {/* Listing quick actions */}
+        {listingOptions.length > 1 && (
+          <>
+            <span className="text-muted-foreground mx-0.5">|</span>
+            <div className="flex items-center gap-1 flex-wrap">
+              {listingOptions.map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() =>
+                    dispatch({
+                      type: "SET_FILTER",
+                      filter: {
+                        selectedListingIds:
+                          filter.selectedListingIds.length === 1 && filter.selectedListingIds[0] === opt.value
+                            ? []
+                            : [opt.value],
+                      },
+                    })
+                  }
+                  className={`px-2 py-0.5 rounded-md border transition-colors max-w-[200px] truncate ${
+                    filter.selectedListingIds.length === 1 && filter.selectedListingIds[0] === opt.value
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "border-border text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                  }`}
+                  title={opt.label}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
