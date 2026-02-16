@@ -21,7 +21,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { GripVertical, RotateCcw } from "lucide-react";
+import { GripVertical, RotateCcw, X } from "lucide-react";
 
 interface SortableItemProps {
   id: string;
@@ -42,7 +42,7 @@ function SortableItem({ id, originalName, customName, onNameChange }: SortableIt
     <div
       ref={setNodeRef}
       style={style}
-      className="flex items-center gap-3 rounded-md border bg-background px-3 py-2"
+      className="grid grid-cols-[auto_1fr_1fr_auto] items-center gap-3 rounded-md border bg-background px-3 py-2"
     >
       <button
         type="button"
@@ -52,15 +52,28 @@ function SortableItem({ id, originalName, customName, onNameChange }: SortableIt
       >
         <GripVertical className="h-4 w-4" />
       </button>
-      <span className="text-sm text-muted-foreground min-w-[120px] truncate shrink-0" title={originalName}>
+      <span className="text-sm text-muted-foreground truncate" title={originalName}>
         {originalName}
       </span>
       <Input
         value={customName}
         onChange={(e) => onNameChange(e.target.value)}
-        placeholder={originalName}
+        placeholder="Custom alias..."
         className="h-8 text-sm"
       />
+      <button
+        type="button"
+        onClick={() => onNameChange("")}
+        className={`text-muted-foreground hover:text-foreground transition-opacity ${
+          customName ? "opacity-100" : "opacity-0 pointer-events-none"
+        }`}
+        tabIndex={customName ? 0 : -1}
+        aria-hidden={!customName}
+        aria-label="Clear alias"
+        title="Clear alias"
+      >
+        <X className="h-3.5 w-3.5" />
+      </button>
     </div>
   );
 }
@@ -150,7 +163,7 @@ export function SettingsTab() {
   };
 
   return (
-    <div className="space-y-6 max-w-2xl">
+    <div className="space-y-6 max-w-4xl">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold">Settings</h2>
         <Button variant="outline" size="sm" onClick={resetAll}>
@@ -168,6 +181,12 @@ export function SettingsTab() {
           <p className="text-sm text-muted-foreground mb-3">
             Drag to reorder. Custom names appear everywhere in the dashboard.
           </p>
+          <div className="grid grid-cols-[auto_1fr_1fr_auto] gap-3 px-3 pb-1 text-xs font-medium text-muted-foreground">
+            <span />
+            <span>Original Name</span>
+            <span>Custom Alias</span>
+            <span />
+          </div>
           <DndContext
             sensors={sensors}
             collisionDetection={closestCenter}
@@ -204,6 +223,12 @@ export function SettingsTab() {
           <p className="text-sm text-muted-foreground mb-3">
             Drag to reorder. Custom names appear in filters and tables.
           </p>
+          <div className="grid grid-cols-[auto_1fr_1fr_auto] gap-3 px-3 pb-1 text-xs font-medium text-muted-foreground">
+            <span />
+            <span>Account ID</span>
+            <span>Custom Alias</span>
+            <span />
+          </div>
           <DndContext
             sensors={sensors}
             collisionDetection={closestCenter}
