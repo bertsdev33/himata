@@ -17,6 +17,7 @@ import { CashflowTab } from "./tabs/CashflowTab";
 import { ForecastTab } from "./tabs/ForecastTab";
 import { TransactionsExplorer } from "./tabs/TransactionsExplorer";
 import { DataQualityTab } from "./tabs/DataQualityTab";
+import { SettingsTab } from "./tabs/SettingsTab";
 import { applyProjection, filterCashflow } from "@/lib/dashboard-utils";
 import type { DashboardTab } from "@/app/types";
 
@@ -209,6 +210,11 @@ export function DashboardLayout() {
         label: "Data Quality",
         enabled: true,
       },
+      {
+        id: "settings",
+        label: "Settings",
+        enabled: true,
+      },
     ];
   }, [
     filteredListingPerf,
@@ -365,6 +371,10 @@ export function DashboardLayout() {
               transactions={analytics.transactions}
               warnings={analytics.warnings}
             />
+          </TabsContent>
+
+          <TabsContent value="settings" className="mt-0">
+            <SettingsTab />
           </TabsContent>
         </main>
       </Tabs>

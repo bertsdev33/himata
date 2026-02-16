@@ -32,7 +32,8 @@ export type DashboardTab =
   | "cashflow"
   | "forecast"
   | "transactions"
-  | "data-quality";
+  | "data-quality"
+  | "settings";
 
 /** Dashboard filter state */
 export interface FilterState {
@@ -67,12 +68,22 @@ export interface AnalyticsData {
   accountIds: string[];
   /** Map of listingId -> listingName */
   listingNames: Map<string, string>;
-  /** All unique listing IDs with their account */
-  listings: { listingId: string; listingName: string; accountId: string }[];
+  /** All unique listing IDs with their account, sorted by transaction count DESC */
+  listings: { listingId: string; listingName: string; accountId: string; transactionCount: number }[];
   /** Pre-computed analytics partitioned by view mode */
   views: {
     all: ViewData;
     realized: ViewData;
     forecast: ViewData;
   };
+}
+
+/** Persisted user settings for the dashboard */
+export interface SettingsData {
+  version: 1;
+  listingNames: Record<string, string>;  // listingId -> custom name
+  accountNames: Record<string, string>;  // accountId -> custom name
+  listingOrder: string[] | null;         // custom order, null = default (by txCount)
+  accountOrder: string[] | null;         // custom order, null = default
+  filterBarExpanded: boolean;
 }

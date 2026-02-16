@@ -55,11 +55,13 @@ export function computeAnalyticsFromInputs(inputs: ImportAirbnbV1Input[]): Analy
   const listingSet = new Map<string, { listingId: string; listingName: string; accountId: string }>();
   const accountIdSet = new Set<string>();
   const currencyCounts = new Map<string, number>();
+  const txCountMap = new Map<string, number>();
 
   for (const tx of transactions) {
     if (tx.listing) {
       listingNames.set(tx.listing.listingId, tx.listing.listingName);
       accountIdSet.add(tx.listing.accountId);
+      txCountMap.set(tx.listing.listingId, (txCountMap.get(tx.listing.listingId) ?? 0) + 1);
       if (!listingSet.has(tx.listing.listingId)) {
         listingSet.set(tx.listing.listingId, {
           listingId: tx.listing.listingId,
@@ -97,7 +99,9 @@ export function computeAnalyticsFromInputs(inputs: ImportAirbnbV1Input[]): Analy
     currencies,
     accountIds: [...accountIdSet].sort(),
     listingNames,
-    listings: [...listingSet.values()].sort((a, b) => a.listingName.localeCompare(b.listingName)),
+    listings: [...listingSet.values()]
+      .map((l) => ({ ...l, transactionCount: txCountMap.get(l.listingId) ?? 0 }))
+      .sort((a, b) => b.transactionCount - a.transactionCount || a.listingName.localeCompare(b.listingName)),
     views: {
       all: allView,
       realized: realizedView,

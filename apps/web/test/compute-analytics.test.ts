@@ -179,4 +179,42 @@ describe("computeAnalyticsFromInputs", () => {
       expect(result.warnings).toBeInstanceOf(Array);
     });
   });
+
+  describe("listing priority (transaction count)", () => {
+    test("listings include transactionCount field", () => {
+      const result = computeAnalyticsFromInputs([paid]);
+
+      for (const listing of result.listings) {
+        expect(typeof listing.transactionCount).toBe("number");
+        expect(listing.transactionCount).toBeGreaterThan(0);
+      }
+    });
+
+    test("listings are sorted by transactionCount DESC", () => {
+      const result = computeAnalyticsFromInputs([paid]);
+
+      for (let i = 1; i < result.listings.length; i++) {
+        const prev = result.listings[i - 1];
+        const curr = result.listings[i];
+        // Higher or equal count should come first
+        expect(prev.transactionCount).toBeGreaterThanOrEqual(curr.transactionCount);
+      }
+    });
+
+    test("multi-account listings are sorted by transactionCount DESC", () => {
+      const paidB = loadFixture("paid_b.csv", "account-b", "paid");
+      const result = computeAnalyticsFromInputs([paid, paidB]);
+
+      for (let i = 1; i < result.listings.length; i++) {
+        const prev = result.listings[i - 1];
+        const curr = result.listings[i];
+        if (prev.transactionCount === curr.transactionCount) {
+          // Alphabetical tiebreaker
+          expect(prev.listingName.localeCompare(curr.listingName)).toBeLessThanOrEqual(0);
+        } else {
+          expect(prev.transactionCount).toBeGreaterThan(curr.transactionCount);
+        }
+      }
+    });
+  });
 });

@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useSettingsContext } from "@/app/settings-context";
 import {
   LineChart,
   Line,
@@ -29,6 +30,7 @@ export function MultiLineRevenueChart({
   revenueBasis = "net",
   projection = false,
 }: MultiLineRevenueChartProps) {
+  const { getListingName } = useSettingsContext();
   const [topOnly, setTopOnly] = useState(false);
 
   const totalListings = new Set(data.map((lp) => lp.listingId)).size;
@@ -118,6 +120,7 @@ export function MultiLineRevenueChart({
             <YAxis
               tickFormatter={(v) => formatMoneyCompact(v * 100, currency)}
               className="text-xs"
+              domain={[(dataMin: number) => Math.min(0, dataMin), "auto"]}
             />
             <Tooltip
               formatter={(value: number) =>
@@ -133,7 +136,7 @@ export function MultiLineRevenueChart({
                 key={id}
                 type="monotone"
                 dataKey={id}
-                name={listingNames.get(id) ?? id}
+                name={getListingName(id, listingNames.get(id) ?? id)}
                 stroke={MULTI_LINE_COLORS[i % MULTI_LINE_COLORS.length]}
                 strokeWidth={2}
                 dot={false}
@@ -145,7 +148,7 @@ export function MultiLineRevenueChart({
                 key={`${id}_projected`}
                 type="monotone"
                 dataKey={`${id}_projected`}
-                name={`${listingNames.get(id) ?? id} (proj.)`}
+                name={`${getListingName(id, listingNames.get(id) ?? id)} (proj.)`}
                 stroke={MULTI_LINE_COLORS[i % MULTI_LINE_COLORS.length]}
                 strokeWidth={1.5}
                 strokeDasharray="4 4"

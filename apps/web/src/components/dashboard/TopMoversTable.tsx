@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { useSettingsContext } from "@/app/settings-context";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import {
   Table,
@@ -30,6 +31,8 @@ interface MoverRow {
 }
 
 export function TopMoversTable({ listingPerf, currency, projection = false }: TopMoversTableProps) {
+  const { getListingName } = useSettingsContext();
+
   const movers = useMemo(() => {
     if (listingPerf.length === 0) return [];
 
@@ -147,7 +150,7 @@ export function TopMoversTable({ listingPerf, currency, projection = false }: To
               return (
                 <TableRow key={m.listingId}>
                   <TableCell className="font-medium max-w-[200px] truncate">
-                    {m.listingName}
+                    {getListingName(m.listingId, m.listingName)}
                   </TableCell>
                   <TableCell className="text-right">
                     {formatMoney(m.currentRevenue, currency)}

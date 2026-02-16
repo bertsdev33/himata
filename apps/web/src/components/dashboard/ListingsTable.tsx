@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useSettingsContext } from "@/app/settings-context";
 import { ArrowUpDown, Eye } from "lucide-react";
 import {
   Table,
@@ -47,6 +48,7 @@ interface ListingSummary {
 }
 
 export function ListingsTable({ data, currency, onSelectListing }: ListingsTableProps) {
+  const { getListingName, getAccountName } = useSettingsContext();
   const [sortKey, setSortKey] = useState<SortKey>("netRevenue");
   const [sortAsc, setSortAsc] = useState(false);
 
@@ -222,11 +224,11 @@ export function ListingsTable({ data, currency, onSelectListing }: ListingsTable
             {sorted.map((s) => (
               <TableRow key={s.listingId}>
                 <TableCell className="font-medium max-w-[250px] truncate">
-                  {s.listingName}
+                  {getListingName(s.listingId, s.listingName)}
                 </TableCell>
                 <TableCell>
                   <Badge variant="outline" className="text-xs">
-                    {s.accountId}
+                    {getAccountName(s.accountId)}
                   </Badge>
                 </TableCell>
                 <TableCell>{s.bookedNights}</TableCell>

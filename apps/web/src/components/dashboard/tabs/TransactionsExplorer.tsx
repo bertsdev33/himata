@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useSettingsContext } from "@/app/settings-context";
 import { ArrowUpDown, ChevronLeft, ChevronRight } from "lucide-react";
 import {
   Table,
@@ -24,6 +25,7 @@ type SortKey = "date" | "kind" | "accountId" | "listingName" | "nights" | "netAm
 const PAGE_SIZE = 25;
 
 export function TransactionsExplorer({ transactions, currency }: TransactionsExplorerProps) {
+  const { getListingName, getAccountName } = useSettingsContext();
   const [search, setSearch] = useState("");
   const [sortKey, setSortKey] = useState<SortKey>("date");
   const [sortAsc, setSortAsc] = useState(false);
@@ -133,9 +135,9 @@ export function TransactionsExplorer({ transactions, currency }: TransactionsExp
                 <TableCell className="text-xs capitalize">
                   {tx.kind.replace(/_/g, " ")}
                 </TableCell>
-                <TableCell className="text-xs">{tx.listing?.accountId ?? "—"}</TableCell>
+                <TableCell className="text-xs">{tx.listing ? getAccountName(tx.listing.accountId) : "—"}</TableCell>
                 <TableCell className="max-w-[200px] truncate">
-                  {tx.listing?.listingName ?? "—"}
+                  {tx.listing ? getListingName(tx.listing.listingId, tx.listing.listingName) : "—"}
                 </TableCell>
                 <TableCell>{tx.stay?.nights ?? "—"}</TableCell>
                 <TableCell className={tx.netAmount.amountMinor >= 0 ? "text-green-600" : "text-red-600"}>

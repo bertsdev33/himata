@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { useSettingsContext } from "@/app/settings-context";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { RevenueTrendChart } from "../RevenueTrendChart";
 import { NightsVsAdrChart } from "../NightsVsAdrChart";
@@ -26,7 +27,11 @@ export function ListingDetail({
     [listingPerf],
   );
 
-  const listingName = listingPerf.length > 0 ? listingPerf[0].listingName : "Listing";
+  const { getListingName } = useSettingsContext();
+
+  const rawListingName = listingPerf.length > 0 ? listingPerf[0].listingName : "Listing";
+  const listingId = listingPerf.length > 0 ? listingPerf[0].listingId : "";
+  const listingName = listingId ? getListingName(listingId, rawListingName) : rawListingName;
 
   // Under/Over indicator: compare the most recent month against trailing average.
   // When projection is enabled and the current calendar month is in the data,
