@@ -54,9 +54,10 @@ export function PortfolioOverview({
 
       <TopMoversTable listingPerf={listingPerf} currency={currency} projection={projection} />
 
-      <SeasonalityHeatmap data={portfolioPerf} currency={currency} />
-
-      <OccupancyHeatmaps transactions={transactions} />
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <SeasonalityHeatmap data={portfolioPerf} currency={currency} />
+        <OccupancyHeatmaps transactions={transactions} />
+      </div>
 
       <TrailingComparisons data={trailing} currency={currency} />
     </div>

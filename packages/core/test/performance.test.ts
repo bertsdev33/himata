@@ -77,6 +77,22 @@ describe("computeMonthlyListingPerformance", () => {
     // ADR calculation happens outside; just verify nights is 0
     expect(result[0].bookedNights).toBe(0);
   });
+
+  it("only counts nights from reservation slices, not adjustments or cancellations", () => {
+    const slices = [
+      makeSlice({ transactionId: "tx-res", kind: "reservation", nights: 5, allocatedNetMinor: 50000 }),
+      makeSlice({ transactionId: "tx-adj", kind: "adjustment", nights: 5, allocatedNetMinor: -5000 }),
+      makeSlice({ transactionId: "tx-res-adj", kind: "resolution_adjustment", nights: 5, allocatedNetMinor: 2000 }),
+      makeSlice({ transactionId: "tx-cancel", kind: "cancellation_fee", nights: 5, allocatedNetMinor: 3000 }),
+    ];
+
+    const result = computeMonthlyListingPerformance(slices);
+    expect(result).toHaveLength(1);
+    // Only the reservation's 5 nights should count
+    expect(result[0].bookedNights).toBe(5);
+    // But all revenue should still be summed
+    expect(result[0].netRevenueMinor).toBe(50000);
+  });
 });
 
 describe("computeMonthlyPortfolioPerformance", () => {

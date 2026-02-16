@@ -56,6 +56,9 @@ export function ListingsTable({ data, currency, onSelectListing }: ListingsTable
 
     // Compute trailing averages per listing
     const monthsByListing = new Map<string, Map<string, number>>();
+    // Track booked nights per (listingId, month) for occupancy — avoids double-counting
+    // when multiple MonthlyListingPerformance records exist for the same listing+month
+    const nightsByListingMonth = new Map<string, Map<string, number>>();
 
     for (const lp of data) {
       const existing = map.get(lp.listingId);
@@ -87,11 +90,36 @@ export function ListingsTable({ data, currency, onSelectListing }: ListingsTable
       }
       const monthMap = monthsByListing.get(lp.listingId)!;
       monthMap.set(lp.month, (monthMap.get(lp.month) ?? 0) + lp.netRevenueMinor);
+
+      // Accumulate nights per (listing, month)
+      if (!nightsByListingMonth.has(lp.listingId)) {
+        nightsByListingMonth.set(lp.listingId, new Map());
+      }
+      const nlm = nightsByListingMonth.get(lp.listingId)!;
+      nlm.set(lp.month, (nlm.get(lp.month) ?? 0) + lp.bookedNights);
     }
 
     for (const s of map.values()) {
       s.adr = s.bookedNights > 0 ? Math.round(s.grossRevenue / s.bookedNights) : 0;
       s.portfolioShare = totalPortfolioNet > 0 ? s.netRevenue / totalPortfolioNet : 0;
+
+      // Compute estimated occupancy per (listing, month), capping each month
+      // at its calendar day count so overlapping/duplicate transactions can't
+      // push occupancy above 100%. Only include months with actual booked nights
+      // in the denominator — adjustment-only months (0 nights) shouldn't dilute.
+      const nightsMap = nightsByListingMonth.get(s.listingId);
+      if (nightsMap && nightsMap.size > 0) {
+        let cappedNights = 0;
+        let totalDays = 0;
+        for (const [ym, nights] of nightsMap) {
+          if (nights <= 0) continue;
+          const [y, m] = ym.split("-").map(Number);
+          const dim = new Date(y, m, 0).getDate();
+          totalDays += dim;
+          cappedNights += Math.min(nights, dim);
+        }
+        s.occupancy = totalDays > 0 ? cappedNights / totalDays : null;
+      }
 
       // Compute % vs trailing average
       const months = monthsByListing.get(s.listingId);
@@ -184,6 +212,7 @@ export function ListingsTable({ data, currency, onSelectListing }: ListingsTable
               <SortHeader label="Gross Revenue" col="grossRevenue" />
               <SortHeader label="Net Revenue" col="netRevenue" />
               <SortHeader label="ADR" col="adr" />
+              <SortHeader label="Occupancy" col="occupancy" />
               <SortHeader label="vs Trailing" col="vsTrailing" />
               <SortHeader label="Share" col="portfolioShare" />
               {onSelectListing && <TableHead />}
@@ -204,6 +233,13 @@ export function ListingsTable({ data, currency, onSelectListing }: ListingsTable
                 <TableCell>{formatMoney(s.grossRevenue, currency)}</TableCell>
                 <TableCell>{formatMoney(s.netRevenue, currency)}</TableCell>
                 <TableCell>{formatMoney(s.adr, currency)}</TableCell>
+                <TableCell>
+                  {s.occupancy !== null ? (
+                    formatPercent(s.occupancy)
+                  ) : (
+                    <span className="text-muted-foreground">—</span>
+                  )}
+                </TableCell>
                 <TableCell>
                   {s.vsTrailing !== null ? (
                     <span className={s.vsTrailing >= 0 ? "text-green-600" : "text-red-600"}>

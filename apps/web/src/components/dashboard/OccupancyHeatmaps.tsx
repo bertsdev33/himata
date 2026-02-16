@@ -99,14 +99,17 @@ function computeHeatmapData(transactions: CanonicalTransaction[]): HeatmapData {
 }
 
 /**
- * Alpha-based heatmap color using --heatmap CSS variable.
- * 0% occupancy = transparent (blends into card background).
- * 100% occupancy = fully saturated accent color.
+ * Heatmap background style using HSL lightness interpolation.
+ * Hue 180, saturation 75% fixed. Lightness via CSS calc()
+ * from --hm-l-0 (ratio=0) to --hm-l-1 (ratio=1).
  */
-function getOccupancyAlpha(rate: number | null): number {
-  if (rate === null) return 0;
-  const ratio = Math.min(rate, 1);
-  return Math.round(Math.pow(ratio, 0.8) * 85) / 100;
+function heatmapBg(ratio: number): string {
+  const r = Math.min(Math.max(ratio, 0), 1);
+  return `hsl(180 75% calc(var(--hm-l-0) * ${+(1 - r).toFixed(4)} * 1% + var(--hm-l-1) * ${+r.toFixed(4)} * 1%))`;
+}
+
+function heatmapText(ratio: number): string {
+  return ratio > 0.45 ? "text-white dark:text-gray-900" : "text-foreground";
 }
 
 export function OccupancyHeatmaps({ transactions }: OccupancyHeatmapsProps) {
@@ -124,7 +127,7 @@ export function OccupancyHeatmaps({ transactions }: OccupancyHeatmapsProps) {
   if (!hasData) return null;
 
   return (
-    <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+    <div className="grid grid-cols-1 gap-6">
       {/* Day-of-Week Heatmap */}
       <Card>
         <CardHeader>
@@ -135,15 +138,13 @@ export function OccupancyHeatmaps({ transactions }: OccupancyHeatmapsProps) {
           <div className="flex gap-2">
             {DOW_LABELS.map((label, i) => {
               const rate = dowRates[i];
-              const alpha = getOccupancyAlpha(rate);
+              const r = rate !== null ? Math.min(rate, 1) : 0;
               return (
                 <div key={label} className="flex-1 text-center">
                   <div className="text-xs text-muted-foreground mb-1">{label}</div>
                   <div
-                    className={`rounded-md py-3 text-xs font-medium transition-colors ${
-                      alpha > 0.45 ? "text-white" : "text-foreground"
-                    }`}
-                    style={{ backgroundColor: `hsl(var(--heatmap) / ${alpha})` }}
+                    className={`rounded-md py-3 text-xs font-medium transition-all duration-150 cursor-default hover:ring-2 hover:ring-foreground/25 hover:brightness-110 hover:scale-[1.06] ${heatmapText(r)}`}
+                    style={{ backgroundColor: rate !== null ? heatmapBg(r) : undefined }}
                   >
                     {formatPercent(rate)}
                   </div>
@@ -164,15 +165,13 @@ export function OccupancyHeatmaps({ transactions }: OccupancyHeatmapsProps) {
           <div className="grid grid-cols-7 gap-1">
             {DOM_LABELS.map((day, i) => {
               const rate = domRates[i];
-              const alpha = getOccupancyAlpha(rate);
+              const r = rate !== null ? Math.min(rate, 1) : 0;
               return (
                 <div key={day} className="text-center">
                   <div className="text-[10px] text-muted-foreground mb-0.5">{day}</div>
                   <div
-                    className={`rounded py-1.5 text-[10px] font-medium transition-colors ${
-                      alpha > 0.45 ? "text-white" : "text-foreground"
-                    }`}
-                    style={{ backgroundColor: `hsl(var(--heatmap) / ${alpha})` }}
+                    className={`rounded py-1.5 text-[10px] font-medium transition-all duration-150 cursor-default hover:ring-2 hover:ring-foreground/25 hover:brightness-110 hover:scale-105 ${heatmapText(r)}`}
+                    style={{ backgroundColor: rate !== null ? heatmapBg(r) : undefined }}
                   >
                     {formatPercent(rate)}
                   </div>

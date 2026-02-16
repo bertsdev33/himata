@@ -58,7 +58,11 @@ export function computeMonthlyListingPerformance(
       groups.set(key, group);
     }
 
-    group.bookedNights += slice.nights;
+    // Only count nights from reservations — adjustments, resolutions, and
+    // cancellation fees reference the same stay but don't represent new nights.
+    if (slice.kind === "reservation") {
+      group.bookedNights += slice.nights;
+    }
     group.grossRevenueMinor += slice.allocatedGrossMinor;
     group.netRevenueMinor += slice.allocatedNetMinor;
     group.cleaningFeesMinor += slice.allocatedCleaningFeeMinor;

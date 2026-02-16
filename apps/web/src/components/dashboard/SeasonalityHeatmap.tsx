@@ -11,17 +11,22 @@ interface SeasonalityHeatmapProps {
 }
 
 const MONTH_LABELS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-const LEGEND_STEPS = [0, 0.15, 0.3, 0.5, 0.7, 0.85, 1];
+const LEGEND_STEPS = [0, 0.1, 0.2, 0.35, 0.5, 0.65, 0.8, 1];
 
 /**
- * Alpha-based heatmap color using the --heatmap CSS variable.
- * Low values = transparent (blends into card background).
- * High values = fully saturated accent color.
- * Works correctly in both light and dark mode.
+ * Heatmap background style using HSL lightness interpolation.
+ * Hue 180, saturation 75% fixed. Lightness interpolated via CSS calc()
+ * between --hm-l-0 (ratio=0, blends with card bg) and --hm-l-1 (ratio=1).
+ * Light mode: 92% → 14%  |  Dark mode: 10% → 67%
  */
-function heatmapAlpha(ratio: number): number {
-  // Use a slightly curved ramp so low values stay subtle
-  return Math.round(Math.pow(ratio, 0.8) * 85) / 100;
+function heatmapBg(ratio: number): string {
+  const r = Math.min(Math.max(ratio, 0), 1);
+  return `hsl(180 75% calc(var(--hm-l-0) * ${+(1 - r).toFixed(4)} * 1% + var(--hm-l-1) * ${+r.toFixed(4)} * 1%))`;
+}
+
+/** Text class: white on dark cells, dark on light cells, adapts to dark mode */
+function heatmapText(ratio: number): string {
+  return ratio > 0.45 ? "text-white dark:text-gray-900" : "text-foreground";
 }
 
 export function SeasonalityHeatmap({ data, currency, revenueBasis = "net" }: SeasonalityHeatmapProps) {
@@ -97,15 +102,12 @@ export function SeasonalityHeatmap({ data, currency, revenueBasis = "net" }: Sea
                     <td className="font-semibold text-sm pr-4 py-1">{year}</td>
                     {row.map((val, i) => {
                       const ratio = getRatio(val);
-                      const alpha = ratio >= 0 ? heatmapAlpha(ratio) : 0;
                       return (
                         <td key={i} className="px-1 py-1">
-                          {val !== null ? (
+                          {val !== null && ratio >= 0 ? (
                             <div
-                              className={`rounded-md px-2 py-2 text-center text-xs font-medium transition-colors ${
-                                alpha > 0.45 ? "text-white" : "text-foreground"
-                              }`}
-                              style={{ backgroundColor: `hsl(var(--heatmap) / ${alpha})` }}
+                              className={`rounded-md px-2 py-2 text-center text-xs font-medium transition-all duration-150 cursor-default hover:ring-2 hover:ring-foreground/25 hover:brightness-110 hover:scale-[1.04] ${heatmapText(ratio)}`}
+                              style={{ backgroundColor: heatmapBg(ratio) }}
                             >
                               {formatMoneyCompact(val, currency)}
                             </div>
@@ -132,9 +134,7 @@ export function SeasonalityHeatmap({ data, currency, revenueBasis = "net" }: Sea
               <div
                 key={ratio}
                 className="w-8 h-4 rounded-sm border border-border/30"
-                style={{
-                  backgroundColor: `hsl(var(--heatmap) / ${heatmapAlpha(ratio)})`,
-                }}
+                style={{ backgroundColor: heatmapBg(ratio) }}
               />
             ))}
           </div>
