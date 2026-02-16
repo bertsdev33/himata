@@ -328,6 +328,7 @@ export function DashboardLayout() {
             <ListingComparison
               listingPerf={filteredListingPerf}
               currency={currency}
+              projection={filter.projection}
               onSelectListing={handleSelectListing}
             />
           </TabsContent>

@@ -394,6 +394,22 @@ export function FilterBar() {
               <>
                 <div className="h-5 w-px bg-border mx-1" />
                 <div className="flex items-center gap-1.5 flex-wrap">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      dispatch({
+                        type: "SET_FILTER",
+                        filter: { selectedListingIds: [] },
+                      })
+                    }
+                    className={`px-3 py-1 rounded-md border transition-colors ${
+                      filter.selectedListingIds.length === 0
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "border-border text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                    }`}
+                  >
+                    All Listings
+                  </button>
                   {listingOptions.map((opt) => (
                     <button
                       key={opt.value}

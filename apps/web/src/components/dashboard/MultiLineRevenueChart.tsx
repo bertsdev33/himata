@@ -11,7 +11,7 @@ import {
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { MULTI_LINE_COLORS } from "@/lib/chart-colors";
+import { CHART_COLORS, MULTI_LINE_COLORS } from "@/lib/chart-colors";
 import { formatMonth, formatMoneyCompact } from "@/lib/format";
 import type { MonthlyListingPerformance, YearMonth } from "@rental-analytics/core";
 import type { RevenueBasis } from "@/app/types";
@@ -20,16 +20,20 @@ interface MultiLineRevenueChartProps {
   data: MonthlyListingPerformance[];
   currency: string;
   revenueBasis?: RevenueBasis;
+  projection?: boolean;
 }
 
 export function MultiLineRevenueChart({
   data,
   currency,
   revenueBasis = "net",
+  projection = false,
 }: MultiLineRevenueChartProps) {
-  const [showAll, setShowAll] = useState(false);
+  const [topOnly, setTopOnly] = useState(false);
 
-  const { chartData, listingIds, listingNames } = useMemo(() => {
+  const totalListings = new Set(data.map((lp) => lp.listingId)).size;
+
+  const { chartData, listingIds, listingNames, hasProjection } = useMemo(() => {
     const isNet = revenueBasis === "net";
 
     // Compute total revenue per listing for ranking
@@ -45,10 +49,17 @@ export function MultiLineRevenueChart({
     // Sort by total revenue, take top 5 or all
     const ranked = [...totals.entries()]
       .sort(([, a], [, b]) => b - a);
-    const selectedIds = showAll
-      ? ranked.map(([id]) => id)
-      : ranked.slice(0, 5).map(([id]) => id);
+    const selectedIds = topOnly && totalListings > 5
+      ? ranked.slice(0, 5).map(([id]) => id)
+      : ranked.map(([id]) => id);
     const selectedSet = new Set(selectedIds);
+
+    // Projection: scale current month
+    const now = new Date();
+    const currentYm = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+    const dayOfMonth = now.getDate();
+    const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+    const scale = dayOfMonth > 0 ? daysInMonth / dayOfMonth : 1;
 
     // Build chart data: one row per month with a key per listing
     const monthMap = new Map<string, Record<string, number>>();
@@ -60,17 +71,30 @@ export function MultiLineRevenueChart({
       monthMap.set(lp.month, row);
     }
 
-    const rows = [...monthMap.entries()]
-      .sort(([a], [b]) => a.localeCompare(b))
-      .map(([month, values]) => ({
+    const months = [...monthMap.keys()].sort();
+    const lastMonth = months[months.length - 1];
+    const showProjection = projection && lastMonth === currentYm && scale > 1;
+
+    const rows = months.map((month) => {
+      const values = monthMap.get(month)!;
+      const entry: Record<string, string | number> = {
         label: formatMonth(month as YearMonth),
-        ...values,
-      }));
+      };
+      for (const id of selectedIds) {
+        entry[id] = values[id] ?? 0;
+      }
+      // Add projected values for current month
+      if (showProjection && month === currentYm) {
+        for (const id of selectedIds) {
+          const actual = (values[id] ?? 0);
+          entry[`${id}_projected`] = Math.round(actual * scale * 100) / 100;
+        }
+      }
+      return entry;
+    });
 
-    return { chartData: rows, listingIds: selectedIds, listingNames: names };
-  }, [data, revenueBasis, showAll]);
-
-  const totalListings = new Set(data.map((lp) => lp.listingId)).size;
+    return { chartData: rows, listingIds: selectedIds, listingNames: names, hasProjection: showProjection };
+  }, [data, revenueBasis, topOnly, totalListings, projection]);
 
   return (
     <Card>
@@ -80,9 +104,9 @@ export function MultiLineRevenueChart({
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => setShowAll(!showAll)}
+            onClick={() => setTopOnly(!topOnly)}
           >
-            {showAll ? "Top 5" : `Show All (${totalListings})`}
+            {topOnly ? `Show All (${totalListings})` : "Top 5"}
           </Button>
         )}
       </CardHeader>
@@ -116,8 +140,28 @@ export function MultiLineRevenueChart({
                 connectNulls
               />
             ))}
+            {hasProjection && listingIds.map((id, i) => (
+              <Line
+                key={`${id}_projected`}
+                type="monotone"
+                dataKey={`${id}_projected`}
+                name={`${listingNames.get(id) ?? id} (proj.)`}
+                stroke={MULTI_LINE_COLORS[i % MULTI_LINE_COLORS.length]}
+                strokeWidth={1.5}
+                strokeDasharray="4 4"
+                dot={false}
+                connectNulls
+                legendType="none"
+              />
+            ))}
           </LineChart>
         </ResponsiveContainer>
+        {hasProjection && (
+          <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1.5">
+            <span className="inline-block w-4 border-t-2 border-dashed" style={{ borderColor: CHART_COLORS.forecast }} />
+            Dashed lines show projected month-end values
+          </p>
+        )}
       </CardContent>
     </Card>
   );
