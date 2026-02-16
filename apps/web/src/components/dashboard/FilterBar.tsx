@@ -1,10 +1,10 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useAppContext, initialFilter } from "@/app/state";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select } from "@/components/ui/select";
 import { MultiSelect } from "@/components/ui/multi-select";
 import { Button } from "@/components/ui/button";
-import { RotateCcw } from "lucide-react";
+import { RotateCcw, ChevronDown, ChevronRight, SlidersHorizontal } from "lucide-react";
 import type { ViewMode } from "@/app/types";
 import { getPresetRange, type DatePreset } from "@/lib/dashboard-utils";
 
@@ -12,6 +12,8 @@ export function FilterBar() {
   const { state, dispatch } = useAppContext();
   const { filter, analytics } = state;
   if (!analytics) return null;
+
+  const [isExpanded, setIsExpanded] = useState(true);
 
   const accountOptions = useMemo(
     () => analytics.accountIds.map((id) => ({ value: id, label: id })),
@@ -135,141 +137,50 @@ export function FilterBar() {
     { key: "current-month", label: "Current Month" },
   ];
 
+  // Build collapsed summary chips
+  const filterSummary = useMemo(() => {
+    const parts: string[] = [];
+    const qt = quickTimeOptions.find((o) => o.key === activeQuickTime);
+    if (qt) parts.push(qt.label);
+    else if (filter.dateRange.start || filter.dateRange.end)
+      parts.push(`${filter.dateRange.start ?? "..."} — ${filter.dateRange.end ?? "..."}`);
+    if (filter.selectedAccountIds.length > 0)
+      parts.push(`${filter.selectedAccountIds.length} account${filter.selectedAccountIds.length > 1 ? "s" : ""}`);
+    if (filter.selectedListingIds.length > 0)
+      parts.push(`${filter.selectedListingIds.length} listing${filter.selectedListingIds.length > 1 ? "s" : ""}`);
+    if (filter.projection) parts.push("Projected");
+    return parts;
+  }, [activeQuickTime, quickTimeOptions, filter]);
+
   return (
-    <div className="sticky top-0 z-40 bg-background border-b px-6 py-3 space-y-2">
-      {/* Row 1: Main filters */}
-      <div className="flex flex-wrap items-center gap-3">
-        {/* Custom date range */}
-        <div className="flex items-center gap-1.5">
-          <input
-            type="month"
-            value={filter.dateRange.start ?? ""}
-            min={monthBounds.min}
-            max={filter.dateRange.end ?? monthBounds.max}
-            onChange={(e) =>
-              dispatch({
-                type: "SET_FILTER",
-                filter: {
-                  dateRange: { ...filter.dateRange, start: e.target.value || null },
-                },
-              })
-            }
-            className={`h-8 rounded-md border px-2 text-xs ${
-              startIsForecast
-                ? "border-yellow-400 bg-yellow-50 text-yellow-800"
-                : "border-input bg-background"
-            }`}
-          />
-          <span className="text-xs text-muted-foreground">—</span>
-          <input
-            type="month"
-            value={filter.dateRange.end ?? ""}
-            min={filter.dateRange.start ?? monthBounds.min}
-            max={monthBounds.max}
-            onChange={(e) =>
-              dispatch({
-                type: "SET_FILTER",
-                filter: {
-                  dateRange: { ...filter.dateRange, end: e.target.value || null },
-                },
-              })
-            }
-            className={`h-8 rounded-md border px-2 text-xs ${
-              endIsForecast
-                ? "border-yellow-400 bg-yellow-50 text-yellow-800"
-                : "border-input bg-background"
-            }`}
-          />
-          {endInForecast && (
-            <span className="text-[10px] font-medium text-yellow-600 whitespace-nowrap">
-              Includes forecast
-            </span>
-          )}
-        </div>
+    <div className="bg-background border-b px-6 py-2">
+      {/* Collapse toggle row */}
+      <div className="flex items-center gap-3">
+        <button
+          type="button"
+          onClick={() => setIsExpanded(!isExpanded)}
+          className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <SlidersHorizontal className="h-4 w-4" />
+          <span className="font-medium">Filters</span>
+          {isExpanded
+            ? <ChevronDown className="h-3.5 w-3.5" />
+            : <ChevronRight className="h-3.5 w-3.5" />
+          }
+        </button>
 
-        {/* Account multi-select */}
-        {analytics.accountIds.length > 1 && (
-          <div className="w-48">
-            <MultiSelect
-              options={accountOptions}
-              selected={filter.selectedAccountIds}
-              onChange={(ids) =>
-                dispatch({
-                  type: "SET_FILTER",
-                  filter: {
-                    selectedAccountIds: ids,
-                    selectedListingIds: [],
-                  },
-                })
-              }
-              placeholder="Accounts"
-            />
+        {/* Show summary chips when collapsed */}
+        {!isExpanded && filterSummary.length > 0 && (
+          <div className="flex items-center gap-1.5 flex-wrap">
+            {filterSummary.map((s) => (
+              <span key={s} className="px-2 py-0.5 text-xs rounded-md bg-accent text-accent-foreground">
+                {s}
+              </span>
+            ))}
           </div>
         )}
 
-        {/* Listing multi-select */}
-        {listingOptions.length > 1 && (
-          <div className="w-64">
-            <MultiSelect
-              options={listingOptions}
-              selected={filter.selectedListingIds}
-              onChange={(ids) =>
-                dispatch({
-                  type: "SET_FILTER",
-                  filter: { selectedListingIds: ids },
-                })
-              }
-              placeholder="Listings"
-              searchable
-            />
-          </div>
-        )}
-
-        {/* Clear all filters */}
-        {hasActiveFilters && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleClearAll}
-            className="text-muted-foreground"
-          >
-            <RotateCcw className="mr-1 h-3.5 w-3.5" />
-            Clear
-          </Button>
-        )}
-
-        {/* Currency selector */}
-        {analytics.currencies.length > 1 && (
-          <Select
-            value={filter.currency ?? analytics.currency}
-            onChange={(e) =>
-              dispatch({
-                type: "SET_FILTER",
-                filter: { currency: e.target.value },
-              })
-            }
-            options={analytics.currencies.map((c) => ({ value: c, label: c }))}
-            className="w-24"
-          />
-        )}
-
-        {/* Projection toggle */}
-        <label className="flex items-center gap-2 text-sm cursor-pointer">
-          <input
-            type="checkbox"
-            checked={filter.projection}
-            onChange={(e) =>
-              dispatch({
-                type: "SET_FILTER",
-                filter: { projection: e.target.checked },
-              })
-            }
-            className="h-4 w-4 rounded border-input"
-          />
-          <span className="text-muted-foreground whitespace-nowrap">Project this Month</span>
-        </label>
-
-        {/* View mode (pushed right) */}
+        {/* View mode always visible, pushed right */}
         <div className="ml-auto">
           <Tabs
             value={filter.viewMode}
@@ -288,94 +199,232 @@ export function FilterBar() {
         </div>
       </div>
 
-      {/* Row 2: Quick actions */}
-      <div className="flex flex-wrap items-center gap-2 text-sm">
-        {/* Time quick actions */}
-        <div className="flex items-center gap-1.5">
-          {quickTimeOptions.map((opt) => (
-            <button
-              key={opt.key}
-              type="button"
-              onClick={() => handleQuickTime(opt.key)}
-              className={`px-3 py-1 rounded-md border transition-colors ${
-                activeQuickTime === opt.key
-                  ? "bg-primary text-primary-foreground border-primary"
-                  : "border-border text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-              }`}
-            >
-              {opt.label}
-            </button>
-          ))}
-        </div>
-
-        {/* Account quick actions */}
-        {analytics.accountIds.length > 1 && (
-          <>
-            <div className="h-5 w-px bg-border mx-1" />
+      {/* Expanded filter content */}
+      {isExpanded && (
+        <div className="mt-2 space-y-2">
+          {/* Row 1: Main filters */}
+          <div className="flex flex-wrap items-center gap-3">
+            {/* Custom date range */}
             <div className="flex items-center gap-1.5">
-              {analytics.accountIds.map((id) => (
-                <button
-                  key={id}
-                  type="button"
-                  onClick={() =>
+              <input
+                type="month"
+                value={filter.dateRange.start ?? ""}
+                min={monthBounds.min}
+                max={filter.dateRange.end ?? monthBounds.max}
+                onChange={(e) =>
+                  dispatch({
+                    type: "SET_FILTER",
+                    filter: {
+                      dateRange: { ...filter.dateRange, start: e.target.value || null },
+                    },
+                  })
+                }
+                className={`h-8 rounded-md border px-2 text-xs ${
+                  startIsForecast
+                    ? "border-yellow-400 bg-yellow-50 text-yellow-800"
+                    : "border-input bg-background"
+                }`}
+              />
+              <span className="text-xs text-muted-foreground">—</span>
+              <input
+                type="month"
+                value={filter.dateRange.end ?? ""}
+                min={filter.dateRange.start ?? monthBounds.min}
+                max={monthBounds.max}
+                onChange={(e) =>
+                  dispatch({
+                    type: "SET_FILTER",
+                    filter: {
+                      dateRange: { ...filter.dateRange, end: e.target.value || null },
+                    },
+                  })
+                }
+                className={`h-8 rounded-md border px-2 text-xs ${
+                  endIsForecast
+                    ? "border-yellow-400 bg-yellow-50 text-yellow-800"
+                    : "border-input bg-background"
+                }`}
+              />
+              {endInForecast && (
+                <span className="text-[10px] font-medium text-yellow-600 whitespace-nowrap">
+                  Includes forecast
+                </span>
+              )}
+            </div>
+
+            {/* Account multi-select */}
+            {analytics.accountIds.length > 1 && (
+              <div className="w-48">
+                <MultiSelect
+                  options={accountOptions}
+                  selected={filter.selectedAccountIds}
+                  onChange={(ids) =>
                     dispatch({
                       type: "SET_FILTER",
                       filter: {
-                        selectedAccountIds:
-                          filter.selectedAccountIds.length === 1 && filter.selectedAccountIds[0] === id
-                            ? []
-                            : [id],
+                        selectedAccountIds: ids,
                         selectedListingIds: [],
                       },
                     })
                   }
-                  className={`px-3 py-1 rounded-md border transition-colors ${
-                    filter.selectedAccountIds.length === 1 && filter.selectedAccountIds[0] === id
-                      ? "bg-primary text-primary-foreground border-primary"
-                      : "border-border text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-                  }`}
-                >
-                  {id}
-                </button>
-              ))}
-            </div>
-          </>
-        )}
+                  placeholder="Accounts"
+                />
+              </div>
+            )}
 
-        {/* Listing quick actions */}
-        {listingOptions.length > 1 && (
-          <>
-            <div className="h-5 w-px bg-border mx-1" />
-            <div className="flex items-center gap-1.5 flex-wrap">
-              {listingOptions.map((opt) => (
-                <button
-                  key={opt.value}
-                  type="button"
-                  onClick={() =>
+            {/* Listing multi-select */}
+            {listingOptions.length > 1 && (
+              <div className="w-64">
+                <MultiSelect
+                  options={listingOptions}
+                  selected={filter.selectedListingIds}
+                  onChange={(ids) =>
                     dispatch({
                       type: "SET_FILTER",
-                      filter: {
-                        selectedListingIds:
-                          filter.selectedListingIds.length === 1 && filter.selectedListingIds[0] === opt.value
-                            ? []
-                            : [opt.value],
-                      },
+                      filter: { selectedListingIds: ids },
                     })
                   }
-                  className={`px-3 py-1 rounded-md border transition-colors max-w-[240px] truncate ${
-                    filter.selectedListingIds.length === 1 && filter.selectedListingIds[0] === opt.value
+                  placeholder="Listings"
+                  searchable
+                />
+              </div>
+            )}
+
+            {/* Clear all filters */}
+            {hasActiveFilters && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleClearAll}
+                className="text-muted-foreground"
+              >
+                <RotateCcw className="mr-1 h-3.5 w-3.5" />
+                Clear
+              </Button>
+            )}
+
+            {/* Currency selector */}
+            {analytics.currencies.length > 1 && (
+              <Select
+                value={filter.currency ?? analytics.currency}
+                onChange={(e) =>
+                  dispatch({
+                    type: "SET_FILTER",
+                    filter: { currency: e.target.value },
+                  })
+                }
+                options={analytics.currencies.map((c) => ({ value: c, label: c }))}
+                className="w-24"
+              />
+            )}
+
+            {/* Projection toggle */}
+            <label className="flex items-center gap-2 text-sm cursor-pointer">
+              <input
+                type="checkbox"
+                checked={filter.projection}
+                onChange={(e) =>
+                  dispatch({
+                    type: "SET_FILTER",
+                    filter: { projection: e.target.checked },
+                  })
+                }
+                className="h-4 w-4 rounded border-input"
+              />
+              <span className="text-muted-foreground whitespace-nowrap">Project this Month</span>
+            </label>
+          </div>
+
+          {/* Row 2: Quick actions */}
+          <div className="flex flex-wrap items-center gap-2 text-sm">
+            {/* Time quick actions */}
+            <div className="flex items-center gap-1.5">
+              {quickTimeOptions.map((opt) => (
+                <button
+                  key={opt.key}
+                  type="button"
+                  onClick={() => handleQuickTime(opt.key)}
+                  className={`px-3 py-1 rounded-md border transition-colors ${
+                    activeQuickTime === opt.key
                       ? "bg-primary text-primary-foreground border-primary"
                       : "border-border text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                   }`}
-                  title={opt.label}
                 >
                   {opt.label}
                 </button>
               ))}
             </div>
-          </>
-        )}
-      </div>
+
+            {/* Account quick actions */}
+            {analytics.accountIds.length > 1 && (
+              <>
+                <div className="h-5 w-px bg-border mx-1" />
+                <div className="flex items-center gap-1.5">
+                  {analytics.accountIds.map((id) => (
+                    <button
+                      key={id}
+                      type="button"
+                      onClick={() =>
+                        dispatch({
+                          type: "SET_FILTER",
+                          filter: {
+                            selectedAccountIds:
+                              filter.selectedAccountIds.length === 1 && filter.selectedAccountIds[0] === id
+                                ? []
+                                : [id],
+                            selectedListingIds: [],
+                          },
+                        })
+                      }
+                      className={`px-3 py-1 rounded-md border transition-colors ${
+                        filter.selectedAccountIds.length === 1 && filter.selectedAccountIds[0] === id
+                          ? "bg-primary text-primary-foreground border-primary"
+                          : "border-border text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                      }`}
+                    >
+                      {id}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+
+            {/* Listing quick actions */}
+            {listingOptions.length > 1 && (
+              <>
+                <div className="h-5 w-px bg-border mx-1" />
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  {listingOptions.map((opt) => (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() =>
+                        dispatch({
+                          type: "SET_FILTER",
+                          filter: {
+                            selectedListingIds:
+                              filter.selectedListingIds.length === 1 && filter.selectedListingIds[0] === opt.value
+                                ? []
+                                : [opt.value],
+                          },
+                        })
+                      }
+                      className={`px-3 py-1 rounded-md border transition-colors max-w-[240px] truncate ${
+                        filter.selectedListingIds.length === 1 && filter.selectedListingIds[0] === opt.value
+                          ? "bg-primary text-primary-foreground border-primary"
+                          : "border-border text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                      }`}
+                      title={opt.label}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

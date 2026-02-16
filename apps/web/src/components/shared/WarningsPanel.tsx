@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { AlertTriangle, ChevronDown, ChevronRight } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { AlertTriangle, ChevronDown, ChevronRight, X } from "lucide-react";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import type { ImportWarning } from "@rental-analytics/core";
 
@@ -9,8 +9,18 @@ interface WarningsPanelProps {
 
 export function WarningsPanel({ warnings }: WarningsPanelProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [isDismissed, setIsDismissed] = useState(false);
+  const prevWarningsRef = useRef(warnings);
 
-  if (warnings.length === 0) return null;
+  // Reset dismissed state when warnings array changes (new import produces new array)
+  useEffect(() => {
+    if (warnings !== prevWarningsRef.current) {
+      prevWarningsRef.current = warnings;
+      setIsDismissed(false);
+    }
+  }, [warnings]);
+
+  if (warnings.length === 0 || isDismissed) return null;
 
   // Group warnings by code
   const grouped = new Map<string, ImportWarning[]>();
@@ -21,15 +31,23 @@ export function WarningsPanel({ warnings }: WarningsPanelProps) {
   }
 
   return (
-    <Alert className="mt-4">
+    <Alert className="mt-4 relative">
       <AlertTriangle className="h-4 w-4" />
       <AlertTitle
-        className="cursor-pointer flex items-center gap-1"
+        className="cursor-pointer flex items-center gap-1 pr-8"
         onClick={() => setIsOpen(!isOpen)}
       >
         {isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
         Import Warnings ({warnings.length})
       </AlertTitle>
+      <button
+        type="button"
+        onClick={() => setIsDismissed(true)}
+        className="absolute top-3 right-3 text-muted-foreground hover:text-foreground transition-colors"
+        aria-label="Dismiss warnings"
+      >
+        <X className="h-4 w-4" />
+      </button>
       {isOpen && (
         <AlertDescription>
           <div className="mt-2 space-y-3">

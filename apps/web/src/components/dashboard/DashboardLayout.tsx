@@ -275,38 +275,43 @@ export function DashboardLayout() {
   return (
     <div className="min-h-screen flex flex-col">
       <DashboardHeader />
-      <FilterBar />
 
-      <main className="flex-1 p-6">
-        <WarningsPanel warnings={analytics.warnings} />
-
-        <Tabs
-          value={activeTab}
-          onValueChange={(v) =>
-            dispatch({
-              type: "SET_FILTER",
-              filter: { activeTab: v as DashboardTab },
-            })
-          }
-          className="mt-4"
-        >
-          <TabsList className="flex-wrap h-auto gap-1 mb-6">
-            {tabs.map((tab) =>
-              tab.enabled ? (
-                <TabsTrigger key={tab.id} value={tab.id}>
-                  {tab.label}
-                </TabsTrigger>
-              ) : (
-                <Tooltip key={tab.id} content={tab.reason ?? "Not available"}>
-                  <TabsTrigger value={tab.id} disabled className="opacity-50">
+      <Tabs
+        value={activeTab}
+        onValueChange={(v) =>
+          dispatch({
+            type: "SET_FILTER",
+            filter: { activeTab: v as DashboardTab },
+          })
+        }
+        className="flex-1 flex flex-col"
+      >
+        {/* Sticky header: filters + tabs */}
+        <div className="sticky top-0 z-40">
+          <FilterBar />
+          <div className="bg-background border-b px-6 py-2">
+            <TabsList className="flex-wrap h-auto gap-1">
+              {tabs.map((tab) =>
+                tab.enabled ? (
+                  <TabsTrigger key={tab.id} value={tab.id}>
                     {tab.label}
                   </TabsTrigger>
-                </Tooltip>
-              ),
-            )}
-          </TabsList>
+                ) : (
+                  <Tooltip key={tab.id} content={tab.reason ?? "Not available"}>
+                    <TabsTrigger value={tab.id} disabled className="opacity-50">
+                      {tab.label}
+                    </TabsTrigger>
+                  </Tooltip>
+                ),
+              )}
+            </TabsList>
+          </div>
+        </div>
 
-          <TabsContent value="portfolio-overview">
+        <main className="flex-1 p-6">
+          <WarningsPanel warnings={analytics.warnings} />
+
+          <TabsContent value="portfolio-overview" className="mt-0">
             <PortfolioOverview
               portfolioPerf={filteredPortfolioPerf}
               listingPerf={filteredListingPerf}
@@ -319,7 +324,7 @@ export function DashboardLayout() {
             />
           </TabsContent>
 
-          <TabsContent value="listing-comparison">
+          <TabsContent value="listing-comparison" className="mt-0">
             <ListingComparison
               listingPerf={filteredListingPerf}
               currency={currency}
@@ -327,7 +332,7 @@ export function DashboardLayout() {
             />
           </TabsContent>
 
-          <TabsContent value="listing-detail">
+          <TabsContent value="listing-detail" className="mt-0">
             <ListingDetail
               listingPerf={filteredListingPerf}
               currency={currency}
@@ -335,11 +340,11 @@ export function DashboardLayout() {
             />
           </TabsContent>
 
-          <TabsContent value="cashflow">
+          <TabsContent value="cashflow" className="mt-0">
             <CashflowTab cashflow={filteredCashflow} currency={currency} />
           </TabsContent>
 
-          <TabsContent value="forecast">
+          <TabsContent value="forecast" className="mt-0">
             <ForecastTab
               portfolioPerf={filteredForecastPortfolioPerf}
               listingPerf={filteredForecastListingPerf}
@@ -347,21 +352,21 @@ export function DashboardLayout() {
             />
           </TabsContent>
 
-          <TabsContent value="transactions">
+          <TabsContent value="transactions" className="mt-0">
             <TransactionsExplorer
               transactions={filteredTransactions}
               currency={currency}
             />
           </TabsContent>
 
-          <TabsContent value="data-quality">
+          <TabsContent value="data-quality" className="mt-0">
             <DataQualityTab
               transactions={analytics.transactions}
               warnings={analytics.warnings}
             />
           </TabsContent>
-        </Tabs>
-      </main>
+        </main>
+      </Tabs>
     </div>
   );
 }
