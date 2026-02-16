@@ -1,23 +1,34 @@
-import { useMemo } from "react";
+import { useMemo, useEffect } from "react";
 import { useAppContext } from "@/app/state";
 import {
   computeMonthlyPortfolioPerformance,
   computeTrailingComparisons,
   computeEstimatedOccupancy,
 } from "@rental-analytics/core";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Tooltip } from "@/components/ui/tooltip";
 import { DashboardHeader } from "./DashboardHeader";
 import { FilterBar } from "./FilterBar";
-import { KPISummaryCards } from "./KPISummaryCards";
-import { RevenueTrendChart } from "./RevenueTrendChart";
-import { RevenueBreakdownChart } from "./RevenueBreakdownChart";
-import { CashflowSection } from "./CashflowSection";
-import { ListingsTable } from "./ListingsTable";
-import { TrailingComparisons } from "./TrailingComparisons";
-import { OccupancyDisplay } from "./OccupancyDisplay";
 import { WarningsPanel } from "@/components/shared/WarningsPanel";
+import { PortfolioOverview } from "./tabs/PortfolioOverview";
+import { ListingComparison } from "./tabs/ListingComparison";
+import { ListingDetail } from "./tabs/ListingDetail";
+import { CashflowTab } from "./tabs/CashflowTab";
+import { ForecastTab } from "./tabs/ForecastTab";
+import { TransactionsExplorer } from "./tabs/TransactionsExplorer";
+import { DataQualityTab } from "./tabs/DataQualityTab";
+import { applyProjection, filterCashflow } from "@/lib/dashboard-utils";
+import type { DashboardTab } from "@/app/types";
+
+interface TabDef {
+  id: DashboardTab;
+  label: string;
+  enabled: boolean;
+  reason?: string;
+}
 
 export function DashboardLayout() {
-  const { state } = useAppContext();
+  const { state, dispatch } = useAppContext();
   const { analytics, filter } = state;
 
   if (!analytics) return null;
@@ -27,91 +38,332 @@ export function DashboardLayout() {
   // Select pre-computed view data based on viewMode
   const viewData = analytics.views[filter.viewMode];
 
-  // Filter listing performance by scope and currency
+  // Filter listing performance by multi-select filters and currency
   const filteredListingPerf = useMemo(() => {
     let data = viewData.listingPerformance.filter((lp) => lp.currency === currency);
 
-    if (filter.scope === "account" && filter.accountId) {
-      data = data.filter((lp) => lp.accountId === filter.accountId);
-    } else if (filter.scope === "listing" && filter.listingId) {
-      data = data.filter((lp) => lp.listingId === filter.listingId);
-    } else if (filter.scope === "listing" && filter.accountId) {
-      data = data.filter((lp) => lp.accountId === filter.accountId);
+    // Account filter (empty = all)
+    if (filter.selectedAccountIds.length > 0) {
+      const accountSet = new Set(filter.selectedAccountIds);
+      data = data.filter((lp) => accountSet.has(lp.accountId));
+    }
+
+    // Listing filter (empty = all)
+    if (filter.selectedListingIds.length > 0) {
+      const listingSet = new Set(filter.selectedListingIds);
+      data = data.filter((lp) => listingSet.has(lp.listingId));
+    }
+
+    // Date range filter
+    if (filter.dateRange.start) {
+      data = data.filter((lp) => lp.month >= filter.dateRange.start!);
+    }
+    if (filter.dateRange.end) {
+      data = data.filter((lp) => lp.month <= filter.dateRange.end!);
     }
 
     return data;
   }, [viewData, filter, currency]);
+
+  // Filtered transactions for TransactionsExplorer
+  const filteredTransactions = useMemo(() => {
+    let txs = analytics.transactions.filter(
+      (tx) => tx.netAmount.currency === currency,
+    );
+
+    if (filter.selectedAccountIds.length > 0) {
+      const accountSet = new Set(filter.selectedAccountIds);
+      txs = txs.filter((tx) => tx.listing && accountSet.has(tx.listing.accountId));
+    }
+
+    if (filter.selectedListingIds.length > 0) {
+      const listingSet = new Set(filter.selectedListingIds);
+      txs = txs.filter((tx) => tx.listing && listingSet.has(tx.listing.listingId));
+    }
+
+    if (filter.dateRange.start) {
+      txs = txs.filter((tx) => tx.occurredDate >= filter.dateRange.start!);
+    }
+    if (filter.dateRange.end) {
+      // End of month: filter by year-month prefix
+      txs = txs.filter((tx) => tx.occurredDate.slice(0, 7) <= filter.dateRange.end!);
+    }
+
+    return txs;
+  }, [analytics.transactions, filter, currency]);
 
   // Compute portfolio performance from filtered listing data
-  const filteredPortfolioPerf = useMemo(() => {
-    return computeMonthlyPortfolioPerformance(filteredListingPerf);
-  }, [filteredListingPerf]);
+  const rawPortfolioPerf = useMemo(
+    () => computeMonthlyPortfolioPerformance(filteredListingPerf),
+    [filteredListingPerf],
+  );
+
+  // Apply projection math: scale the current incomplete month to full month estimate
+  const filteredPortfolioPerf = useMemo(
+    () => (filter.projection ? applyProjection(rawPortfolioPerf) : rawPortfolioPerf),
+    [rawPortfolioPerf, filter.projection],
+  );
 
   // Compute trailing comparisons from filtered listing data
-  const filteredTrailing = useMemo(() => {
-    return computeTrailingComparisons(filteredListingPerf);
-  }, [filteredListingPerf]);
+  const filteredTrailing = useMemo(
+    () => computeTrailingComparisons(filteredListingPerf),
+    [filteredListingPerf],
+  );
 
-  // Filter cashflow by scope and currency
-  const filteredCashflow = useMemo(() => {
-    let data = viewData.cashflow.filter((cf) => cf.currency === currency);
+  // Filter cashflow by multi-select and currency
+  const filteredCashflow = useMemo(
+    () =>
+      filterCashflow(viewData.cashflow, {
+        currency,
+        selectedAccountIds: filter.selectedAccountIds,
+        selectedListingIds: filter.selectedListingIds,
+        dateRange: filter.dateRange,
+      }),
+    [viewData, filter, currency],
+  );
 
-    if (filter.scope === "account" && filter.accountId) {
-      data = data.filter((cf) => cf.accountId === filter.accountId);
-    } else if (filter.scope === "listing" && filter.listingId) {
-      data = data.filter((cf) => cf.listingId === filter.listingId);
-    } else if (filter.scope === "listing" && filter.accountId) {
-      // Listing scope with account selected but no specific listing
-      data = data.filter((cf) => cf.accountId === filter.accountId);
-    }
-
-    return data;
-  }, [viewData, filter, currency]);
-
-  // Recompute occupancy from scope-filtered listing perf and service ranges
+  // Recompute occupancy from filtered listing perf and service ranges
   const filteredOccupancy = useMemo(() => {
     const listingIds = new Set(filteredListingPerf.map((lp) => lp.listingId));
     const filteredRanges = analytics.serviceRanges.filter(
-      (r) => r.currency === currency && listingIds.has(r.listingId)
+      (r) => r.currency === currency && listingIds.has(r.listingId),
     );
     return computeEstimatedOccupancy(filteredListingPerf, filteredRanges);
   }, [filteredListingPerf, analytics.serviceRanges, currency]);
 
-  const showCashflow = filter.viewMode !== "forecast";
+  // Distinct listing IDs in filtered set
+  const distinctListingIds = useMemo(
+    () => [...new Set(filteredListingPerf.map((lp) => lp.listingId))],
+    [filteredListingPerf],
+  );
+
+  // Forecast view data
+  const forecastViewData = analytics.views.forecast;
+
+  // Projection detection: is the last month in the data the current month?
+  const hasProjection = useMemo(() => {
+    if (!filter.projection) return false;
+    const months = filteredPortfolioPerf.map((p) => p.month).sort();
+    if (months.length === 0) return false;
+    const now = new Date();
+    const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+    return months[months.length - 1] === currentMonth;
+  }, [filter.projection, filteredPortfolioPerf]);
+
+  // Tab enablement logic
+  const tabs = useMemo<TabDef[]>(() => {
+    const hasTransactions = filteredListingPerf.length > 0;
+    const hasCashflow = filter.viewMode !== "forecast" && filteredCashflow.length > 0;
+    const hasForecast = forecastViewData.listingPerformance.length > 0;
+
+    return [
+      {
+        id: "portfolio-overview",
+        label: "Portfolio",
+        enabled: hasTransactions,
+        reason: hasTransactions ? undefined : "No data matches current filters",
+      },
+      {
+        id: "listing-comparison",
+        label: "Comparison",
+        enabled: distinctListingIds.length >= 2,
+        reason:
+          distinctListingIds.length >= 2
+            ? undefined
+            : "Need 2+ listings in filtered set",
+      },
+      {
+        id: "listing-detail",
+        label: "Listing Detail",
+        enabled: distinctListingIds.length === 1,
+        reason:
+          distinctListingIds.length === 1
+            ? undefined
+            : "Select exactly 1 listing",
+      },
+      {
+        id: "cashflow",
+        label: "Cashflow",
+        enabled: hasCashflow,
+        reason: hasCashflow
+          ? undefined
+          : filter.viewMode === "forecast"
+            ? "Not available in Forecast view"
+            : "No cashflow data",
+      },
+      {
+        id: "forecast",
+        label: "Forecast",
+        enabled: hasForecast,
+        reason: hasForecast ? undefined : "No upcoming transactions",
+      },
+      {
+        id: "transactions",
+        label: "Transactions",
+        enabled: filteredTransactions.length > 0,
+        reason:
+          filteredTransactions.length > 0 ? undefined : "No transactions match filters",
+      },
+      {
+        id: "data-quality",
+        label: "Data Quality",
+        enabled: true,
+      },
+    ];
+  }, [
+    filteredListingPerf,
+    distinctListingIds,
+    filteredCashflow,
+    forecastViewData,
+    filteredTransactions,
+    filter.viewMode,
+  ]);
+
+  // Auto-fallback: if current tab becomes disabled, switch to portfolio-overview
+  const activeTab = filter.activeTab;
+  const currentTabDef = tabs.find((t) => t.id === activeTab);
+  useEffect(() => {
+    if (currentTabDef && !currentTabDef.enabled) {
+      const firstEnabled = tabs.find((t) => t.enabled);
+      if (firstEnabled) {
+        dispatch({
+          type: "SET_FILTER",
+          filter: { activeTab: firstEnabled.id },
+        });
+      }
+    }
+  }, [currentTabDef, tabs, dispatch]);
+
+  // Handle "Show only this listing" from ListingsTable
+  const handleSelectListing = (listingId: string) => {
+    dispatch({
+      type: "SET_FILTER",
+      filter: {
+        selectedListingIds: [listingId],
+        activeTab: "listing-detail",
+      },
+    });
+  };
+
+  // Forecast listing perf filtered by same account/listing/currency/date range
+  const filteredForecastListingPerf = useMemo(() => {
+    let data = forecastViewData.listingPerformance.filter(
+      (lp) => lp.currency === currency,
+    );
+    if (filter.selectedAccountIds.length > 0) {
+      const set = new Set(filter.selectedAccountIds);
+      data = data.filter((lp) => set.has(lp.accountId));
+    }
+    if (filter.selectedListingIds.length > 0) {
+      const set = new Set(filter.selectedListingIds);
+      data = data.filter((lp) => set.has(lp.listingId));
+    }
+    if (filter.dateRange.start) {
+      data = data.filter((lp) => lp.month >= filter.dateRange.start!);
+    }
+    if (filter.dateRange.end) {
+      data = data.filter((lp) => lp.month <= filter.dateRange.end!);
+    }
+    return data;
+  }, [forecastViewData, filter.selectedAccountIds, filter.selectedListingIds, filter.dateRange, currency]);
+
+  const filteredForecastPortfolioPerf = useMemo(
+    () => computeMonthlyPortfolioPerformance(filteredForecastListingPerf),
+    [filteredForecastListingPerf],
+  );
 
   return (
     <div className="min-h-screen flex flex-col">
       <DashboardHeader />
       <FilterBar />
 
-      <main className="flex-1 space-y-6 p-6">
-        {filter.viewMode === "forecast" && (
-          <div className="rounded-md border border-yellow-200 bg-yellow-50 px-4 py-3 text-sm text-yellow-800">
-            Forecast — subject to change (not finalized payouts)
-          </div>
-        )}
-
+      <main className="flex-1 p-6">
         <WarningsPanel warnings={analytics.warnings} />
 
-        <KPISummaryCards
-          portfolioPerf={filteredPortfolioPerf}
-          occupancy={filteredOccupancy}
-          currency={currency}
-        />
+        <Tabs
+          value={activeTab}
+          onValueChange={(v) =>
+            dispatch({
+              type: "SET_FILTER",
+              filter: { activeTab: v as DashboardTab },
+            })
+          }
+          className="mt-4"
+        >
+          <TabsList className="flex-wrap h-auto gap-1 mb-6">
+            {tabs.map((tab) =>
+              tab.enabled ? (
+                <TabsTrigger key={tab.id} value={tab.id}>
+                  {tab.label}
+                </TabsTrigger>
+              ) : (
+                <Tooltip key={tab.id} content={tab.reason ?? "Not available"}>
+                  <TabsTrigger value={tab.id} disabled className="opacity-50">
+                    {tab.label}
+                  </TabsTrigger>
+                </Tooltip>
+              ),
+            )}
+          </TabsList>
 
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          <RevenueTrendChart data={filteredPortfolioPerf} currency={currency} />
-          <RevenueBreakdownChart data={filteredListingPerf} currency={currency} />
-        </div>
+          <TabsContent value="portfolio-overview">
+            <PortfolioOverview
+              portfolioPerf={filteredPortfolioPerf}
+              listingPerf={filteredListingPerf}
+              trailing={filteredTrailing}
+              occupancy={filteredOccupancy}
+              transactions={filteredTransactions}
+              currency={currency}
+              revenueBasis={filter.revenueBasis}
+              projection={filter.projection}
+              hasProjection={hasProjection}
+            />
+          </TabsContent>
 
-        <ListingsTable data={filteredListingPerf} currency={currency} />
+          <TabsContent value="listing-comparison">
+            <ListingComparison
+              listingPerf={filteredListingPerf}
+              currency={currency}
+              revenueBasis={filter.revenueBasis}
+              onSelectListing={handleSelectListing}
+            />
+          </TabsContent>
 
-        {showCashflow && <CashflowSection data={filteredCashflow} currency={currency} />}
+          <TabsContent value="listing-detail">
+            <ListingDetail
+              listingPerf={filteredListingPerf}
+              currency={currency}
+              revenueBasis={filter.revenueBasis}
+              projection={filter.projection}
+            />
+          </TabsContent>
 
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          <TrailingComparisons data={filteredTrailing} currency={currency} />
-          <OccupancyDisplay data={filteredOccupancy} />
-        </div>
+          <TabsContent value="cashflow">
+            <CashflowTab cashflow={filteredCashflow} currency={currency} />
+          </TabsContent>
+
+          <TabsContent value="forecast">
+            <ForecastTab
+              portfolioPerf={filteredForecastPortfolioPerf}
+              listingPerf={filteredForecastListingPerf}
+              currency={currency}
+            />
+          </TabsContent>
+
+          <TabsContent value="transactions">
+            <TransactionsExplorer
+              transactions={filteredTransactions}
+              currency={currency}
+            />
+          </TabsContent>
+
+          <TabsContent value="data-quality">
+            <DataQualityTab
+              transactions={analytics.transactions}
+              warnings={analytics.warnings}
+            />
+          </TabsContent>
+        </Tabs>
       </main>
     </div>
   );

@@ -1,0 +1,186 @@
+import { useState, useMemo } from "react";
+import { ArrowUpDown, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from "@/components/ui/table";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { formatMoney } from "@/lib/format";
+import type { CanonicalTransaction } from "@rental-analytics/core";
+
+interface TransactionsExplorerProps {
+  transactions: CanonicalTransaction[];
+  currency: string;
+}
+
+type SortKey = "date" | "kind" | "accountId" | "listingName" | "nights" | "netAmount" | "grossAmount";
+
+const PAGE_SIZE = 25;
+
+export function TransactionsExplorer({ transactions, currency }: TransactionsExplorerProps) {
+  const [search, setSearch] = useState("");
+  const [sortKey, setSortKey] = useState<SortKey>("date");
+  const [sortAsc, setSortAsc] = useState(false);
+  const [page, setPage] = useState(0);
+
+  const filtered = useMemo(() => {
+    if (!search) return transactions;
+    const q = search.toLowerCase();
+    return transactions.filter((tx) => {
+      const name = tx.listing?.listingName?.toLowerCase() ?? "";
+      const account = tx.listing?.accountId?.toLowerCase() ?? "";
+      const kind = tx.kind.toLowerCase();
+      return name.includes(q) || account.includes(q) || kind.includes(q);
+    });
+  }, [transactions, search]);
+
+  const sorted = useMemo(() => {
+    const copy = [...filtered];
+    copy.sort((a, b) => {
+      let cmp = 0;
+      switch (sortKey) {
+        case "date":
+          cmp = a.occurredDate.localeCompare(b.occurredDate);
+          break;
+        case "kind":
+          cmp = a.kind.localeCompare(b.kind);
+          break;
+        case "accountId":
+          cmp = (a.listing?.accountId ?? "").localeCompare(b.listing?.accountId ?? "");
+          break;
+        case "listingName":
+          cmp = (a.listing?.listingName ?? "").localeCompare(b.listing?.listingName ?? "");
+          break;
+        case "nights":
+          cmp = (a.stay?.nights ?? 0) - (b.stay?.nights ?? 0);
+          break;
+        case "netAmount":
+          cmp = a.netAmount.amountMinor - b.netAmount.amountMinor;
+          break;
+        case "grossAmount":
+          cmp = a.grossAmount.amountMinor - b.grossAmount.amountMinor;
+          break;
+      }
+      return sortAsc ? cmp : -cmp;
+    });
+    return copy;
+  }, [filtered, sortKey, sortAsc]);
+
+  const totalPages = Math.ceil(sorted.length / PAGE_SIZE);
+  const pageData = sorted.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
+
+  const toggleSort = (key: SortKey) => {
+    if (sortKey === key) {
+      setSortAsc(!sortAsc);
+    } else {
+      setSortKey(key);
+      setSortAsc(false);
+    }
+    setPage(0);
+  };
+
+  const SortHeader = ({ label, col }: { label: string; col: SortKey }) => (
+    <TableHead
+      className="cursor-pointer select-none whitespace-nowrap"
+      onClick={() => toggleSort(col)}
+    >
+      <span className="inline-flex items-center gap-1">
+        {label}
+        <ArrowUpDown className="h-3 w-3" />
+      </span>
+    </TableHead>
+  );
+
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <CardTitle className="text-base">Transactions ({filtered.length})</CardTitle>
+        <Input
+          value={search}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            setPage(0);
+          }}
+          placeholder="Search listing, account, or type..."
+          className="w-72"
+        />
+      </CardHeader>
+      <CardContent>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <SortHeader label="Date" col="date" />
+              <SortHeader label="Type" col="kind" />
+              <SortHeader label="Account" col="accountId" />
+              <SortHeader label="Listing" col="listingName" />
+              <SortHeader label="Nights" col="nights" />
+              <SortHeader label="Net" col="netAmount" />
+              <SortHeader label="Gross" col="grossAmount" />
+              <TableHead className="whitespace-nowrap">Service Fee</TableHead>
+              <TableHead className="whitespace-nowrap">Cleaning</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {pageData.map((tx, i) => (
+              <TableRow key={`${tx.transactionId}-${i}`}>
+                <TableCell className="whitespace-nowrap">{tx.occurredDate}</TableCell>
+                <TableCell className="text-xs capitalize">
+                  {tx.kind.replace(/_/g, " ")}
+                </TableCell>
+                <TableCell className="text-xs">{tx.listing?.accountId ?? "—"}</TableCell>
+                <TableCell className="max-w-[200px] truncate">
+                  {tx.listing?.listingName ?? "—"}
+                </TableCell>
+                <TableCell>{tx.stay?.nights ?? "—"}</TableCell>
+                <TableCell className={tx.netAmount.amountMinor >= 0 ? "text-green-600" : "text-red-600"}>
+                  {formatMoney(tx.netAmount.amountMinor, currency)}
+                </TableCell>
+                <TableCell className={tx.grossAmount.amountMinor >= 0 ? "text-green-600" : "text-red-600"}>
+                  {formatMoney(tx.grossAmount.amountMinor, currency)}
+                </TableCell>
+                <TableCell className={tx.hostServiceFeeAmount.amountMinor >= 0 ? "" : "text-red-600"}>
+                  {formatMoney(tx.hostServiceFeeAmount.amountMinor, currency)}
+                </TableCell>
+                <TableCell>{formatMoney(tx.cleaningFeeAmount.amountMinor, currency)}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between mt-4">
+            <p className="text-sm text-muted-foreground">
+              Page {page + 1} of {totalPages}
+            </p>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={page === 0}
+                onClick={() => setPage(page - 1)}
+              >
+                <ChevronLeft className="h-4 w-4" />
+                Prev
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={page >= totalPages - 1}
+                onClick={() => setPage(page + 1)}
+              >
+                Next
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}

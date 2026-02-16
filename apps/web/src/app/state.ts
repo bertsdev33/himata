@@ -26,11 +26,14 @@ export type AppAction =
   | { type: "RESET" };
 
 export const initialFilter: FilterState = {
-  scope: "portfolio",
-  accountId: null,
-  listingId: null,
+  selectedAccountIds: [],
+  selectedListingIds: [],
+  dateRange: { start: null, end: null },
   viewMode: "realized",
   currency: null,
+  projection: false,
+  revenueBasis: "both",
+  activeTab: "portfolio-overview",
 };
 
 export const initialState: AppState = {
@@ -70,7 +73,8 @@ export function appReducer(state: AppState, action: AppAction): AppState {
         error: null,
         filter: {
           ...initialFilter,
-          accountId: action.analytics.accountIds[0] ?? null,
+          selectedAccountIds: [],
+          selectedListingIds: [],
           currency: action.analytics.currency,
         },
       };

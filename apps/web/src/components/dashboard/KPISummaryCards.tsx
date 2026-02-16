@@ -1,29 +1,33 @@
+import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tooltip } from "@/components/ui/tooltip";
-import { formatMoney, formatPercent } from "@/lib/format";
+import { Badge } from "@/components/ui/badge";
+import { formatMoney, formatPercent, formatDeltaPercent } from "@/lib/format";
 import type { MonthlyPortfolioPerformance, EstimatedOccupancy } from "@rental-analytics/core";
 import { Info } from "lucide-react";
+import type { RevenueBasis } from "@/app/types";
 
 interface KPISummaryCardsProps {
   portfolioPerf: MonthlyPortfolioPerformance[];
   occupancy: EstimatedOccupancy[];
   currency: string;
+  revenueBasis?: RevenueBasis;
+  hasProjection?: boolean;
 }
 
 export function KPISummaryCards({
   portfolioPerf,
   occupancy,
   currency,
+  revenueBasis = "net",
+  hasProjection = false,
 }: KPISummaryCardsProps) {
-  // Aggregate totals
   const totalNet = portfolioPerf.reduce((sum, p) => sum + p.netRevenueMinor, 0);
   const totalGross = portfolioPerf.reduce((sum, p) => sum + p.grossRevenueMinor, 0);
   const totalNights = portfolioPerf.reduce((sum, p) => sum + p.bookedNights, 0);
 
-  // ADR = gross / nights
   const adr = totalNights > 0 ? Math.round(totalGross / totalNights) : 0;
 
-  // Average occupancy across all months
   const occupancyRates = occupancy
     .filter((o) => o.estimatedOccupancyRate !== null)
     .map((o) => o.estimatedOccupancyRate!);
@@ -32,14 +36,36 @@ export function KPISummaryCards({
       ? occupancyRates.reduce((a, b) => a + b, 0) / occupancyRates.length
       : null;
 
+  // MoM change from last two months
+  const momChange = useMemo(() => {
+    if (portfolioPerf.length < 2) return null;
+    const sorted = [...portfolioPerf].sort((a, b) => a.month.localeCompare(b.month));
+    const current = sorted[sorted.length - 1];
+    const previous = sorted[sorted.length - 2];
+    const currentVal = revenueBasis === "net" ? current.netRevenueMinor : current.grossRevenueMinor;
+    const previousVal = revenueBasis === "net" ? previous.netRevenueMinor : previous.grossRevenueMinor;
+    if (previousVal === 0) return null;
+    return (currentVal - previousVal) / previousVal;
+  }, [portfolioPerf, revenueBasis]);
+
+  const projBadge = hasProjection ? (
+    <Badge variant="outline" className="ml-1 text-[10px] px-1 py-0">projected</Badge>
+  ) : null;
+
   const cards = [
     {
       title: "Total Net Revenue",
       value: formatMoney(totalNet, currency),
+      badge: projBadge,
     },
     {
       title: "Total Gross Revenue",
       value: formatMoney(totalGross, currency),
+      badge: projBadge,
+    },
+    {
+      title: "Booked Nights",
+      value: totalNights.toLocaleString(),
     },
     {
       title: "Est. Occupancy",
@@ -50,10 +76,16 @@ export function KPISummaryCards({
       title: "Avg. Daily Rate",
       value: formatMoney(adr, currency),
     },
+    {
+      title: "MoM Change",
+      value: formatDeltaPercent(momChange),
+      color: momChange === null ? undefined : momChange >= 0 ? "text-green-600" : "text-red-600",
+      tooltip: `Month-over-month ${revenueBasis} revenue change`,
+    },
   ];
 
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
       {cards.map((card) => (
         <Card key={card.title}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -67,7 +99,10 @@ export function KPISummaryCards({
             )}
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold">{card.value}</p>
+            <p className={`text-2xl font-bold ${card.color ?? ""}`}>
+              {card.value}
+              {card.badge}
+            </p>
           </CardContent>
         </Card>
       ))}

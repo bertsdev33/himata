@@ -18,20 +18,32 @@ export interface FileEntry {
   datasetKind: DatasetKind;
 }
 
-/** Scope of the dashboard filter */
-export type FilterScope = "portfolio" | "account" | "listing";
-
 /** Realized or forecast view */
 export type ViewMode = "realized" | "forecast" | "all";
 
+/** Revenue basis for chart display */
+export type RevenueBasis = "net" | "gross" | "both";
+
+/** Dashboard tab identifiers */
+export type DashboardTab =
+  | "portfolio-overview"
+  | "listing-comparison"
+  | "listing-detail"
+  | "cashflow"
+  | "forecast"
+  | "transactions"
+  | "data-quality";
+
 /** Dashboard filter state */
 export interface FilterState {
-  scope: FilterScope;
-  accountId: string | null;
-  listingId: string | null;
+  selectedAccountIds: string[];
+  selectedListingIds: string[];
+  dateRange: { start: string | null; end: string | null };
   viewMode: ViewMode;
-  /** Selected currency for multi-currency datasets */
   currency: string | null;
+  projection: boolean;
+  revenueBasis: RevenueBasis;
+  activeTab: DashboardTab;
 }
 
 /** Pre-computed analytics for a specific view (realized, forecast, or all) */
