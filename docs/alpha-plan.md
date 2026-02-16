@@ -1,14 +1,16 @@
 # Airbnb Portfolio Analytics Alpha Plan (Planning Only)
 
+Path convention: all file references in this document are repository-relative (from repo root). If your project layout differs, map these paths to equivalent modules.
+
 ## Summary
-1. Build a canonical transaction model in `/Users/victornunez/dev/Aither/airbnb/packages/core` that supports both performance analytics and cashflow payouts.
-2. Implement Airbnb v1 importer logic in `/Users/victornunez/dev/Aither/airbnb/packages/importers/airbnb/v1` with strict mapping rules, deterministic listing identity, and row-level warnings.
+1. Build a canonical transaction model in `packages/core` that supports both performance analytics and cashflow payouts.
+2. Implement Airbnb v1 importer logic in `packages/importers/airbnb/v1` with strict mapping rules, deterministic listing identity, and row-level warnings.
 3. Treat `Portfolio` as all uploaded files in current session, default dashboard scope `Portfolio (All accounts)`, with optional `Account` and `Listing` filters.
 4. Split realized vs forecast pipelines: `paid_*` contributes to realized performance + cashflow; `upcoming_*` contributes only to forecast/pipeline, labeled “Forecast – subject to change (not finalized payouts)”.
 5. Use month allocation by stay-night overlap for reservation-like rows to avoid start-date bucketing errors.
 
 ## Constraints to Honor (from repo docs, priority applied)
-1. Source-of-truth order: `/Users/victornunez/dev/Aither/airbnb/RULES.md` > `/Users/victornunez/dev/Aither/airbnb/TECH_STACK.md` > `/Users/victornunez/dev/Aither/airbnb/README.md`.
+1. Source-of-truth order: `docs/RULES.md` > `docs/TECH_STACK.md` > `README.md`.
 2. Security: validate/sanitize all external input, never log PII or raw spreadsheet contents, metadata-only analytics.
 3. Quality gates: TypeScript strong typing, no `any` unless justified, modular/SOLID/no duplication, explicit error handling, lint/typecheck/tests required.
 4. Workflow: Bun commands from repo root (`bun install`, `bun run dev:web`, `bun run lint`, `bun run typecheck`, `bun run test`), no bypassing hooks.
@@ -16,7 +18,7 @@
 6. Product architecture: PostHog must be direct-to-PostHog from client, no Cloudflare proxy.
 
 ## Public Interfaces and Types (Decision-Complete)
-1. Create canonical types at `/Users/victornunez/dev/Aither/airbnb/packages/core/src/schema/canonical.ts`:
+1. Create canonical types at `packages/core/src/schema/canonical.ts`:
 ```ts
 export type SourceSystem = "airbnb";
 export type SourceVersion = "v1";
@@ -169,7 +171,7 @@ export interface EstimatedOccupancy {
 }
 ```
 
-2. Create core API surface in `/Users/victornunez/dev/Aither/airbnb/packages/core/src/index.ts`:
+2. Create core API surface in `packages/core/src/index.ts`:
 ```ts
 export function allocatePerformanceToMonths(
   transactions: CanonicalTransaction[]
@@ -197,7 +199,7 @@ export function computeEstimatedOccupancy(
 ): EstimatedOccupancy[];
 ```
 
-3. Add importer interface in `/Users/victornunez/dev/Aither/airbnb/packages/importers/airbnb/v1/src/index.ts`:
+3. Add importer interface in `packages/importers/airbnb/v1/src/index.ts`:
 ```ts
 export interface ImportAirbnbV1Input {
   fileName: string;
@@ -209,7 +211,7 @@ export interface ImportAirbnbV1Input {
 export function importAirbnbV1(input: ImportAirbnbV1Input): ImportResult;
 ```
 
-## Importer Mapping Plan (`/Users/victornunez/dev/Aither/airbnb/packages/importers/airbnb/v1`)
+## Importer Mapping Plan (`packages/importers/airbnb/v1`)
 1. Header support:
 - `paid` schema columns include `Paid out` and `Arriving by date`.
 - `upcoming` schema omits `Paid out` and `Arriving by date`.
@@ -313,7 +315,7 @@ export function importAirbnbV1(input: ImportAirbnbV1Input): ImportResult;
 - `Forecast – subject to change (not finalized payouts)`.
 
 ## Test Plan (Fixtures + Core)
-1. Fixture input tests in `/Users/victornunez/dev/Aither/airbnb/packages/importers/airbnb/v1/test`:
+1. Fixture input tests in `packages/importers/airbnb/v1/test`:
 - `paid_a.csv`, `paid_b.csv`, `paid_c.csv`, `upcoming_a.csv` parse successfully.
 - All known Airbnb types map correctly.
 - Money/sign mapping validates:
@@ -323,7 +325,7 @@ export function importAirbnbV1(input: ImportAirbnbV1Input): ImportResult;
 - Deterministic `listingId` format and stability across files for same account+listing name.
 - Missing listing allowed for payout kinds, warned for performance kinds.
 
-2. Allocation tests in `/Users/victornunez/dev/Aither/airbnb/packages/core/test`:
+2. Allocation tests in `packages/core/test`:
 - Cross-month and multi-month reservations split by night overlap correctly.
 - Adjustments default to occurred-date month unless stay dates provided.
 - Largest-remainder minor-unit reconciliation preserves source totals exactly.

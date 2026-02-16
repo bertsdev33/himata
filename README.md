@@ -41,7 +41,7 @@ Backend (when AI is added):
 - Cloudflare Workers (BFF/API proxy)
 - OpenAI Responses API (MVP+)
 
-Full architecture and decisions: see `TECH_STACK.md`.
+Full architecture and decisions: see `docs/TECH_STACK.md`.
 
 ---
 
@@ -238,4 +238,4 @@ Define these in the root `package.json`:
 3. Build upload → parse → compute → dashboard flow in `apps/web`
 4. Add API layer only when AI is introduced
 
-For full architecture and decisions, see `TECH_STACK.md`.
+For full architecture and decisions, see `docs/TECH_STACK.md`.

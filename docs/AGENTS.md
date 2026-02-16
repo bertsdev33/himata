@@ -2,13 +2,13 @@
 
 ## Source of Truth
 - `README.md`: product scope, setup commands, env examples, and feature/workflow checklists
-- `TECH_STACK.md`: architecture decisions, runtime/infrastructure choices, and API/analytics strategy
-- `RULES.md`: mandatory coding, security, testing, and commit/branch discipline
+- `docs/TECH_STACK.md`: architecture decisions, runtime/infrastructure choices, and API/analytics strategy
+- `docs/RULES.md`: mandatory coding, security, testing, and commit/branch discipline
 
-When guidance conflicts, use `RULES.md` first, then `TECH_STACK.md`, then `README.md`.
+When guidance conflicts, use `docs/RULES.md` first, then `docs/TECH_STACK.md`, then `README.md`.
 
 ## Project Structure & Module Organization
-This repository is currently documentation-first. The active files are `README.md`, `TECH_STACK.md`, and `RULES.md`, which define product scope, architecture, and engineering rules.
+This repository is currently documentation-first. The active files are `README.md`, `docs/TECH_STACK.md`, and `docs/RULES.md`, which define product scope, architecture, and engineering rules.
 
 The target layout is a Bun-managed monorepo:
 - `apps/web`: Astro + React frontend
