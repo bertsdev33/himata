@@ -1,0 +1,19 @@
+{
+  "name": "rental-analytics",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "packages/importers/airbnb/v1"
+  ],
+  "scripts": {
+    "test": "bun test --recursive",
+    "lint": "tsc --noEmit -p packages/core/tsconfig.json && tsc --noEmit -p packages/importers/airbnb/v1/tsconfig.json",
+    "typecheck": "tsc --noEmit -p packages/core/tsconfig.json && tsc --noEmit -p packages/importers/airbnb/v1/tsconfig.json",
+    "e2e": "echo 'No e2e tests yet (alpha: packages-only, no frontend)'",
+    "dev:web": "echo 'No web app yet (alpha: packages-only, no frontend)'"
+  },
+  "devDependencies": {
+    "bun-types": "^1.3.9",
+    "typescript": "^5.9.3"
+  }
+}
