@@ -87,29 +87,6 @@ export function FilterBar() {
     });
   };
 
-  // Detect active preset
-  const activePreset = useMemo<DatePreset | null>(() => {
-    if (!filter.dateRange.start && !filter.dateRange.end) return "all";
-    for (const p of ["3m", "6m", "12m", "ytd"] as DatePreset[]) {
-      const range = getPresetRange(p, monthBounds.max);
-      if (range.start === filter.dateRange.start && range.end === filter.dateRange.end) return p;
-    }
-    return null;
-  }, [filter.dateRange, monthBounds.max]);
-
-  const handlePreset = (preset: DatePreset) => {
-    const range = getPresetRange(preset, monthBounds.max);
-    dispatch({ type: "SET_FILTER", filter: { dateRange: range } });
-  };
-
-  const presets: { value: DatePreset; label: string }[] = [
-    { value: "3m", label: "3M" },
-    { value: "6m", label: "6M" },
-    { value: "12m", label: "12M" },
-    { value: "ytd", label: "YTD" },
-    { value: "all", label: "All" },
-  ];
-
   // Quick action: compute "last month" and "current month" ranges
   const currentYm = useMemo(() => {
     const now = new Date();
@@ -125,10 +102,10 @@ export function FilterBar() {
   // Check if a quick action for time is active
   const activeQuickTime = useMemo(() => {
     const { start, end } = filter.dateRange;
+    if (!start && !end) return "all";
     if (start === lastMonthYm && end === lastMonthYm) return "last-month";
     if (start === currentYm && end === currentYm) return "current-month";
-    // Check named presets
-    for (const p of ["3m", "12m", "ytd"] as DatePreset[]) {
+    for (const p of ["3m", "6m", "12m", "ytd"] as DatePreset[]) {
       const range = getPresetRange(p, monthBounds.max);
       if (range.start === start && range.end === end) return p;
     }
@@ -136,7 +113,9 @@ export function FilterBar() {
   }, [filter.dateRange, lastMonthYm, currentYm, monthBounds.max]);
 
   const handleQuickTime = (key: string) => {
-    if (key === "last-month") {
+    if (key === "all") {
+      dispatch({ type: "SET_FILTER", filter: { dateRange: { start: null, end: null } } });
+    } else if (key === "last-month") {
       dispatch({ type: "SET_FILTER", filter: { dateRange: { start: lastMonthYm, end: lastMonthYm } } });
     } else if (key === "current-month") {
       dispatch({ type: "SET_FILTER", filter: { dateRange: { start: currentYm, end: currentYm } } });
@@ -147,35 +126,19 @@ export function FilterBar() {
   };
 
   const quickTimeOptions = [
+    { key: "all", label: "All Time" },
+    { key: "12m", label: "Last 12 Months" },
+    { key: "6m", label: "Last 6 Months" },
     { key: "3m", label: "Last 3 Months" },
+    { key: "ytd", label: "YTD" },
     { key: "last-month", label: "Last Month" },
     { key: "current-month", label: "Current Month" },
-    { key: "ytd", label: "YTD" },
-    { key: "12m", label: "12M" },
   ];
 
   return (
     <div className="sticky top-0 z-40 bg-background border-b px-6 py-3 space-y-2">
       {/* Row 1: Main filters */}
       <div className="flex flex-wrap items-center gap-3">
-        {/* Date range presets */}
-        <div className="flex items-center gap-1">
-          {presets.map((p) => (
-            <button
-              key={p.value}
-              type="button"
-              onClick={() => handlePreset(p.value)}
-              className={`px-2.5 py-1 text-xs font-medium rounded-md transition-colors ${
-                activePreset === p.value
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-              }`}
-            >
-              {p.label}
-            </button>
-          ))}
-        </div>
-
         {/* Custom date range */}
         <div className="flex items-center gap-1.5">
           <input
@@ -326,15 +289,15 @@ export function FilterBar() {
       </div>
 
       {/* Row 2: Quick actions */}
-      <div className="flex flex-wrap items-center gap-1.5 text-xs">
+      <div className="flex flex-wrap items-center gap-2 text-sm">
         {/* Time quick actions */}
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1.5">
           {quickTimeOptions.map((opt) => (
             <button
               key={opt.key}
               type="button"
               onClick={() => handleQuickTime(opt.key)}
-              className={`px-2 py-0.5 rounded-md border transition-colors ${
+              className={`px-3 py-1 rounded-md border transition-colors ${
                 activeQuickTime === opt.key
                   ? "bg-primary text-primary-foreground border-primary"
                   : "border-border text-muted-foreground hover:bg-accent hover:text-accent-foreground"
@@ -348,8 +311,8 @@ export function FilterBar() {
         {/* Account quick actions */}
         {analytics.accountIds.length > 1 && (
           <>
-            <span className="text-muted-foreground mx-0.5">|</span>
-            <div className="flex items-center gap-1">
+            <div className="h-5 w-px bg-border mx-1" />
+            <div className="flex items-center gap-1.5">
               {analytics.accountIds.map((id) => (
                 <button
                   key={id}
@@ -366,7 +329,7 @@ export function FilterBar() {
                       },
                     })
                   }
-                  className={`px-2 py-0.5 rounded-md border transition-colors ${
+                  className={`px-3 py-1 rounded-md border transition-colors ${
                     filter.selectedAccountIds.length === 1 && filter.selectedAccountIds[0] === id
                       ? "bg-primary text-primary-foreground border-primary"
                       : "border-border text-muted-foreground hover:bg-accent hover:text-accent-foreground"
@@ -382,8 +345,8 @@ export function FilterBar() {
         {/* Listing quick actions */}
         {listingOptions.length > 1 && (
           <>
-            <span className="text-muted-foreground mx-0.5">|</span>
-            <div className="flex items-center gap-1 flex-wrap">
+            <div className="h-5 w-px bg-border mx-1" />
+            <div className="flex items-center gap-1.5 flex-wrap">
               {listingOptions.map((opt) => (
                 <button
                   key={opt.value}
@@ -399,7 +362,7 @@ export function FilterBar() {
                       },
                     })
                   }
-                  className={`px-2 py-0.5 rounded-md border transition-colors max-w-[200px] truncate ${
+                  className={`px-3 py-1 rounded-md border transition-colors max-w-[240px] truncate ${
                     filter.selectedListingIds.length === 1 && filter.selectedListingIds[0] === opt.value
                       ? "bg-primary text-primary-foreground border-primary"
                       : "border-border text-muted-foreground hover:bg-accent hover:text-accent-foreground"
