@@ -33,6 +33,11 @@
 - **Performance awareness**
   - Prioritize readability first, but avoid naive or obviously inefficient solutions.
   - Flag potential bottlenecks (e.g., O(n²) loops, blocking I/O inside loops) and suggest optimizations or async patterns when scalability could become an issue.
+  - Keep Cloudflare Pages bundle size in mind for frontend changes:
+    - avoid unnecessary heavy dependencies in client bundles
+    - prefer code splitting/lazy loading for non-critical UI
+    - remove unused code and imports
+    - treat bundle-size reduction as an ongoing optimization goal, even when not yet a hard CI gate
 
 ---
 
@@ -82,6 +87,21 @@
   - `lint`, `type-check`, `unit`, and `e2e` tests.
   - Never bypass with `--no-verify`.
   - If a test fails, fix the code—not the test—unless the test itself is flawed or the underlying requirement it validates has changed.
+
+- **AI staged review gate (mandatory)**
+  - Install/update local hooks by running `./scripts/setup.sh` once per clone.
+  - Before every commit, use the Codex CLI to request a review of the currently staged files.
+  - Provide this review context to the agent:
+    - `git diff --staged` (or equivalent staged-file view)
+    - `docs/RULES.md`
+    - `docs/TECH_STACK.md`
+    - `README.md`
+    - `docs/alpha-plan.md`
+    - `docs/AGENTS.md`
+  - Use your installed Codex CLI invocation and include this minimum instruction:
+    - "Review the staged git changes using docs/RULES.md, docs/TECH_STACK.md, README.md, docs/alpha-plan.md, and docs/AGENTS.md as constraints. Flag bugs, regressions, security risks, missing tests, and workflow/architecture violations. Return only required fixes."
+  - All required feedback from this review must be applied before committing.
+  - Do not commit while required feedback is still unresolved.
 
 ---
 

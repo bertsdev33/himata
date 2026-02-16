@@ -94,6 +94,27 @@ From the repo root:
 bun install
 ```
 
+### Local Repo Setup (Hooks)
+
+Run once per local clone to configure git hooks:
+
+```bash
+./scripts/setup.sh
+```
+
+This installs the local pre-commit workflow (including staged-file Codex review).
+You can optionally enforce a hard timeout for the review step per command:
+
+```bash
+CODEX_REVIEW_TIMEOUT_SECONDS=300 git commit -m "your message"
+```
+
+You can also tune review speed/quality tradeoff per commit:
+
+```bash
+CODEX_REVIEW_REASONING_EFFORT=low git commit -m "your message"
+```
+
 ### Run the web app
 
 ```bash

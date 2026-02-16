@@ -84,6 +84,7 @@ Even if the product is mostly frontend, **AI integration requires a backend** (t
 - Better privacy posture (we can avoid uploading raw spreadsheets)
 - Avoid edge runtime memory/CPU limitations
 - Faster iteration for alpha
+- Keep frontend bundles lean for Cloudflare Pages delivery; avoid large client payloads and unnecessary dependencies.
 
 ---
 
