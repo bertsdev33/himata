@@ -98,13 +98,15 @@ function computeHeatmapData(transactions: CanonicalTransaction[]): HeatmapData {
   return { dowCounts, dowTotals, domCounts, domTotals, listingCount };
 }
 
-function getOccupancyColor(rate: number | null): string {
-  if (rate === null) return "transparent";
-  // Interpolate from dim teal to bright teal
+/**
+ * Alpha-based heatmap color using --heatmap CSS variable.
+ * 0% occupancy = transparent (blends into card background).
+ * 100% occupancy = fully saturated accent color.
+ */
+function getOccupancyAlpha(rate: number | null): number {
+  if (rate === null) return 0;
   const ratio = Math.min(rate, 1);
-  const sat = 30 + ratio * 36;
-  const light = 25 + ratio * 25;
-  return `hsl(172, ${sat}%, ${light}%)`;
+  return Math.round(Math.pow(ratio, 0.8) * 85) / 100;
 }
 
 export function OccupancyHeatmaps({ transactions }: OccupancyHeatmapsProps) {
@@ -133,12 +135,15 @@ export function OccupancyHeatmaps({ transactions }: OccupancyHeatmapsProps) {
           <div className="flex gap-2">
             {DOW_LABELS.map((label, i) => {
               const rate = dowRates[i];
+              const alpha = getOccupancyAlpha(rate);
               return (
                 <div key={label} className="flex-1 text-center">
                   <div className="text-xs text-muted-foreground mb-1">{label}</div>
                   <div
-                    className="rounded-md py-3 text-xs font-medium text-white"
-                    style={{ backgroundColor: getOccupancyColor(rate) }}
+                    className={`rounded-md py-3 text-xs font-medium transition-colors ${
+                      alpha > 0.45 ? "text-white" : "text-foreground"
+                    }`}
+                    style={{ backgroundColor: `hsl(var(--heatmap) / ${alpha})` }}
                   >
                     {formatPercent(rate)}
                   </div>
@@ -159,12 +164,15 @@ export function OccupancyHeatmaps({ transactions }: OccupancyHeatmapsProps) {
           <div className="grid grid-cols-7 gap-1">
             {DOM_LABELS.map((day, i) => {
               const rate = domRates[i];
+              const alpha = getOccupancyAlpha(rate);
               return (
                 <div key={day} className="text-center">
                   <div className="text-[10px] text-muted-foreground mb-0.5">{day}</div>
                   <div
-                    className="rounded py-1.5 text-[10px] font-medium text-white"
-                    style={{ backgroundColor: getOccupancyColor(rate) }}
+                    className={`rounded py-1.5 text-[10px] font-medium transition-colors ${
+                      alpha > 0.45 ? "text-white" : "text-foreground"
+                    }`}
+                    style={{ backgroundColor: `hsl(var(--heatmap) / ${alpha})` }}
                   >
                     {formatPercent(rate)}
                   </div>

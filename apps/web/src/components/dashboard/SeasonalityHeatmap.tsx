@@ -11,16 +11,26 @@ interface SeasonalityHeatmapProps {
 }
 
 const MONTH_LABELS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-const LEGEND_STEPS = [0, 0.2, 0.4, 0.6, 0.8, 1];
+const LEGEND_STEPS = [0, 0.15, 0.3, 0.5, 0.7, 0.85, 1];
+
+/**
+ * Alpha-based heatmap color using the --heatmap CSS variable.
+ * Low values = transparent (blends into card background).
+ * High values = fully saturated accent color.
+ * Works correctly in both light and dark mode.
+ */
+function heatmapAlpha(ratio: number): number {
+  // Use a slightly curved ramp so low values stay subtle
+  return Math.round(Math.pow(ratio, 0.8) * 85) / 100;
+}
 
 export function SeasonalityHeatmap({ data, currency, revenueBasis = "net" }: SeasonalityHeatmapProps) {
   const { grid, years, minVal, maxVal } = useMemo(() => {
-    // Build year-month grid
-    const map = new Map<string, number>(); // "YYYY-MM" -> revenue
+    const map = new Map<string, number>();
     for (const d of data) {
       const val = revenueBasis === "gross"
         ? d.grossRevenueMinor
-        : d.netRevenueMinor; // "both" and "net" both default to net for heatmap
+        : d.netRevenueMinor;
       map.set(d.month, (map.get(d.month) ?? 0) + val);
     }
 
@@ -30,7 +40,6 @@ export function SeasonalityHeatmap({ data, currency, revenueBasis = "net" }: Sea
     }
     const sortedYears = [...yearSet].sort();
 
-    // Build grid: years x 12 months
     const grid = new Map<string, (number | null)[]>();
     let min = Infinity;
     let max = -Infinity;
@@ -54,16 +63,11 @@ export function SeasonalityHeatmap({ data, currency, revenueBasis = "net" }: Sea
 
   if (years.length === 0) return null;
 
-  // Color interpolation: low (dim teal) to high (bright teal)
-  const getColor = (value: number | null): string => {
-    if (value === null) return "transparent";
+  const getRatio = (value: number | null): number => {
+    if (value === null) return -1;
     const range = maxVal - minVal;
-    if (range === 0) return "hsl(172, 66%, 40%)";
-    const ratio = (value - minVal) / range;
-    // Interpolate from hsl(172, 30%, 25%) to hsl(172, 66%, 50%)
-    const sat = 30 + ratio * 36;
-    const light = 25 + ratio * 25;
-    return `hsl(172, ${sat}%, ${light}%)`;
+    if (range === 0) return 1;
+    return (value - minVal) / range;
   };
 
   return (
@@ -91,22 +95,28 @@ export function SeasonalityHeatmap({ data, currency, revenueBasis = "net" }: Sea
                 return (
                   <tr key={year}>
                     <td className="font-semibold text-sm pr-4 py-1">{year}</td>
-                    {row.map((val, i) => (
-                      <td key={i} className="px-1 py-1">
-                        {val !== null ? (
-                          <div
-                            className="rounded-md px-2 py-2 text-center text-xs font-medium text-white"
-                            style={{ backgroundColor: getColor(val) }}
-                          >
-                            {formatMoneyCompact(val, currency)}
-                          </div>
-                        ) : (
-                          <div className="text-center text-xs text-muted-foreground py-2">
-                            —
-                          </div>
-                        )}
-                      </td>
-                    ))}
+                    {row.map((val, i) => {
+                      const ratio = getRatio(val);
+                      const alpha = ratio >= 0 ? heatmapAlpha(ratio) : 0;
+                      return (
+                        <td key={i} className="px-1 py-1">
+                          {val !== null ? (
+                            <div
+                              className={`rounded-md px-2 py-2 text-center text-xs font-medium transition-colors ${
+                                alpha > 0.45 ? "text-white" : "text-foreground"
+                              }`}
+                              style={{ backgroundColor: `hsl(var(--heatmap) / ${alpha})` }}
+                            >
+                              {formatMoneyCompact(val, currency)}
+                            </div>
+                          ) : (
+                            <div className="text-center text-xs text-muted-foreground py-2">
+                              —
+                            </div>
+                          )}
+                        </td>
+                      );
+                    })}
                   </tr>
                 );
               })}
@@ -121,9 +131,9 @@ export function SeasonalityHeatmap({ data, currency, revenueBasis = "net" }: Sea
             {LEGEND_STEPS.map((ratio) => (
               <div
                 key={ratio}
-                className="w-8 h-4 rounded-sm"
+                className="w-8 h-4 rounded-sm border border-border/30"
                 style={{
-                  backgroundColor: `hsl(172, ${30 + ratio * 36}%, ${25 + ratio * 25}%)`,
+                  backgroundColor: `hsl(var(--heatmap) / ${heatmapAlpha(ratio)})`,
                 }}
               />
             ))}
