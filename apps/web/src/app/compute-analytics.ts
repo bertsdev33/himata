@@ -16,6 +16,10 @@ import { computeRevenueForecast } from "@rental-analytics/forecasting";
 import type { FileEntry, AnalyticsData, ViewData } from "./types";
 import { readFileAsText } from "@/lib/file-helpers";
 
+export interface ComputeAnalyticsOptions {
+  computeMlForecasts?: boolean;
+}
+
 /**
  * Compute a ViewData from a subset of transactions.
  */
@@ -48,7 +52,11 @@ function computeViewData(
  * Pure, synchronous pipeline: ImportAirbnbV1Input[] -> AnalyticsData.
  * Exported for testing.
  */
-export function computeAnalyticsFromInputs(inputs: ImportAirbnbV1Input[]): AnalyticsData {
+export function computeAnalyticsFromInputs(
+  inputs: ImportAirbnbV1Input[],
+  options: ComputeAnalyticsOptions = {},
+): AnalyticsData {
+  const { computeMlForecasts = true } = options;
   const { transactions, warnings } = importAirbnbV1Session(inputs);
 
   // Build listing name map and metadata
@@ -94,7 +102,7 @@ export function computeAnalyticsFromInputs(inputs: ImportAirbnbV1Input[]): Analy
 
   // ML-based revenue forecasts (Ridge Regression on realized data, per currency)
   const mlForecasts: Record<string, import("@rental-analytics/forecasting").ForecastResult> = {};
-  if (realizedView.listingPerformance.length >= 3) {
+  if (computeMlForecasts && realizedView.listingPerformance.length >= 3) {
     const byCurrency = new Map<string, typeof realizedView.listingPerformance>();
     for (const lp of realizedView.listingPerformance) {
       const group = byCurrency.get(lp.currency);
@@ -132,7 +140,10 @@ export function computeAnalyticsFromInputs(inputs: ImportAirbnbV1Input[]): Analy
 /**
  * Async entry point: reads File objects, then runs the pure pipeline.
  */
-export async function computeAnalytics(files: FileEntry[]): Promise<AnalyticsData> {
+export async function computeAnalytics(
+  files: FileEntry[],
+  options: ComputeAnalyticsOptions = {},
+): Promise<AnalyticsData> {
   const inputs: ImportAirbnbV1Input[] = await Promise.all(
     files.map(async (entry) => ({
       fileName: entry.file.name,
@@ -142,5 +153,5 @@ export async function computeAnalytics(files: FileEntry[]): Promise<AnalyticsDat
     }))
   );
 
-  return computeAnalyticsFromInputs(inputs);
+  return computeAnalyticsFromInputs(inputs, options);
 }

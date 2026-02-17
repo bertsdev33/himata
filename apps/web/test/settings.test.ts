@@ -10,6 +10,7 @@ const defaultSettings: SettingsData = {
   listingOrder: null,
   accountOrder: null,
   filterBarExpanded: true,
+  mlForecastAutoRefresh: true,
 };
 
 // Replicate the pure load/save logic from useSettings for testability
@@ -121,6 +122,18 @@ describe("settings persistence", () => {
     expect(loaded.listingOrder).toBeNull();
     expect(loaded.accountOrder).toBeNull();
     expect(loaded.filterBarExpanded).toBe(true);
+    expect(loaded.mlForecastAutoRefresh).toBe(true);
+  });
+
+  test("round-trips mlForecastAutoRefresh = false", () => {
+    const settings: SettingsData = {
+      ...defaultSettings,
+      mlForecastAutoRefresh: false,
+    };
+    saveSettings(storage, settings);
+
+    const loaded = loadSettings(storage);
+    expect(loaded.mlForecastAutoRefresh).toBe(false);
   });
 });
 

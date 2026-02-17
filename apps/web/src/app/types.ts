@@ -89,4 +89,6 @@ export interface SettingsData {
   listingOrder: string[] | null;         // custom order, null = default (by txCount)
   accountOrder: string[] | null;         // custom order, null = default
   filterBarExpanded: boolean;
+  /** Auto-refresh ML forecasts in background when the UI is idle. */
+  mlForecastAutoRefresh: boolean;
 }

@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { useAppContext, initialFilter } from "@/app/state";
 import { useSettingsContext } from "@/app/settings-context";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tooltip } from "@/components/ui/tooltip";
 import { Select } from "@/components/ui/select";
 import { MultiSelect } from "@/components/ui/multi-select";
 import { Button } from "@/components/ui/button";
@@ -50,11 +51,25 @@ export function FilterBar() {
       .map((l) => ({ value: l.listingId, label: getListingName(l.listingId, l.listingName) }));
   }, [analytics.listings, filter.selectedAccountIds, getListingName]);
 
-  const viewOptions: { value: ViewMode; label: string }[] = [
-    { value: "realized", label: "Realized" },
-    { value: "forecast", label: "Forecast" },
-    { value: "all", label: "All" },
+  const viewOptions: { value: ViewMode; label: string; description: string }[] = [
+    {
+      value: "realized",
+      label: "Realized",
+      description: "Only past/paid data.",
+    },
+    {
+      value: "forecast",
+      label: "Upcoming",
+      description: "Only upcoming/unfulfilled reservations.",
+    },
+    {
+      value: "all",
+      label: "All",
+      description: "Combined analysis from realized and upcoming data.",
+    },
   ];
+
+  const currentCurrency = filter.currency ?? analytics.currency;
 
   // Get min/max months from data for date range bounds
   const monthBounds = useMemo(() => {
@@ -209,6 +224,30 @@ export function FilterBar() {
     return { min: months[0], max: months[months.length - 1] };
   }, [perfData, filter.selectedAccountIds, filter.selectedListingIds]);
 
+  // Upcoming months in current account/listing/currency scope (ignores date-range so presets can change it)
+  const scopedUpcomingMonths = useMemo(() => {
+    let data = analytics.views.forecast.listingPerformance.filter(
+      (lp) => lp.currency === currentCurrency,
+    );
+
+    if (filter.selectedAccountIds.length > 0) {
+      const accountSet = new Set(filter.selectedAccountIds);
+      data = data.filter((lp) => accountSet.has(lp.accountId));
+    }
+
+    if (filter.selectedListingIds.length > 0) {
+      const listingSet = new Set(filter.selectedListingIds);
+      data = data.filter((lp) => listingSet.has(lp.listingId));
+    }
+
+    return new Set(data.map((lp) => lp.month));
+  }, [
+    analytics.views.forecast.listingPerformance,
+    currentCurrency,
+    filter.selectedAccountIds,
+    filter.selectedListingIds,
+  ]);
+
   // Quick listings: filtered to contextual set, apply custom order, cap at MAX
   const quickListings = useMemo(() => {
     let listings = analytics.listings.filter((l) => contextualListingIds.has(l.listingId));
@@ -273,10 +312,25 @@ export function FilterBar() {
         rangeEnd = range.end;
       }
 
+      // For rolling windows, only gate by upcoming data while in Upcoming view.
+      if (
+        filter.viewMode === "forecast" &&
+        (opt.key === "3m" || opt.key === "6m" || opt.key === "12m")
+      ) {
+        let hasUpcomingInRange = false;
+        for (const month of scopedUpcomingMonths) {
+          if (month >= rangeStart && month <= rangeEnd) {
+            hasUpcomingInRange = true;
+            break;
+          }
+        }
+        if (!hasUpcomingInRange) return false;
+      }
+
       // Check overlap: preset range intersects contextual range
       return rangeStart <= contextualMonthBounds.max && rangeEnd >= contextualMonthBounds.min;
     });
-  }, [contextualMonthBounds, lastMonthYm, currentYm, monthBounds.max]);
+  }, [contextualMonthBounds, lastMonthYm, currentYm, monthBounds.max, scopedUpcomingMonths, filter.viewMode]);
 
   return (
     <div className="bg-background border-b px-6 py-2 space-y-2">
@@ -421,9 +475,10 @@ export function FilterBar() {
             className="gap-1.5 text-xs"
           >
             <SlidersHorizontal className="h-3.5 w-3.5" />
-            Quick Filters
+              Quick Filters
             <ChevronDown className={`h-3.5 w-3.5 transition-transform duration-200 ${isExpanded ? "" : "-rotate-90"}`} />
           </Button>
+          <span className="text-xs text-muted-foreground whitespace-nowrap">Data scope</span>
           <Tabs
             value={filter.viewMode}
             onValueChange={(v) =>
@@ -432,9 +487,11 @@ export function FilterBar() {
           >
             <TabsList>
               {viewOptions.map((opt) => (
-                <TabsTrigger key={opt.value} value={opt.value}>
-                  {opt.label}
-                </TabsTrigger>
+                <Tooltip key={opt.value} content={opt.description}>
+                  <TabsTrigger value={opt.value}>
+                    {opt.label}
+                  </TabsTrigger>
+                </Tooltip>
               ))}
             </TabsList>
           </Tabs>

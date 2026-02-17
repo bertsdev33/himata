@@ -10,6 +10,7 @@ const defaultSettings: SettingsData = {
   listingOrder: null,
   accountOrder: null,
   filterBarExpanded: true,
+  mlForecastAutoRefresh: true,
 };
 
 function loadSettings(): SettingsData {
@@ -97,6 +98,11 @@ export function useSettings() {
     [update],
   );
 
+  const setMlForecastAutoRefresh = useCallback(
+    (enabled: boolean) => update({ mlForecastAutoRefresh: enabled }),
+    [update],
+  );
+
   const resetAll = useCallback(() => {
     localStorage.removeItem(STORAGE_KEY);
     setSettingsState(defaultSettings);
@@ -111,6 +117,7 @@ export function useSettings() {
     setListingOrder,
     setAccountOrder,
     setFilterBarExpanded,
+    setMlForecastAutoRefresh,
     resetAll,
   };
 }

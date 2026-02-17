@@ -86,6 +86,7 @@ export function SettingsTab() {
     setAccountName,
     setListingOrder,
     setAccountOrder,
+    setMlForecastAutoRefresh,
     resetAll,
   } = useSettingsContext();
 
@@ -209,6 +210,37 @@ export function SettingsTab() {
               </div>
             </SortableContext>
           </DndContext>
+        </CardContent>
+      </Card>
+
+      <Separator />
+
+      {/* Forecast behavior */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">ML Forecast Refresh</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <p className="text-sm text-muted-foreground">
+            Auto mode refreshes ML forecasts in the background while the UI is idle.
+            Manual mode never auto-runs, including on load.
+          </p>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              size="sm"
+              variant={settings.mlForecastAutoRefresh ? "default" : "outline"}
+              onClick={() => setMlForecastAutoRefresh(true)}
+            >
+              Auto (Async)
+            </Button>
+            <Button
+              size="sm"
+              variant={!settings.mlForecastAutoRefresh ? "default" : "outline"}
+              onClick={() => setMlForecastAutoRefresh(false)}
+            >
+              Manual Only
+            </Button>
+          </div>
         </CardContent>
       </Card>
 

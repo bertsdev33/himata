@@ -5,10 +5,9 @@ import {
   computeTrailingComparisons,
   computeEstimatedOccupancy,
 } from "@rental-analytics/core";
-import { buildPortfolio } from "@rental-analytics/forecasting";
-import type { ForecastResult, ListingForecast } from "@rental-analytics/forecasting";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Tooltip } from "@/components/ui/tooltip";
+import { useSettingsContext } from "@/app/settings-context";
 import { DashboardHeader } from "./DashboardHeader";
 import { FilterBar } from "./FilterBar";
 import { WarningsPanel } from "@/components/shared/WarningsPanel";
@@ -22,6 +21,8 @@ import { DataQualityTab } from "./tabs/DataQualityTab";
 import { SettingsTab } from "./tabs/SettingsTab";
 import { applyProjection, filterCashflow } from "@/lib/dashboard-utils";
 import type { DashboardTab } from "@/app/types";
+import { transformMlForecastForDisplay } from "@/lib/ml-forecast-display-transform";
+import { useMlForecastRefresh } from "@/hooks/useMlForecastRefresh";
 
 interface TabDef {
   id: DashboardTab;
@@ -32,6 +33,7 @@ interface TabDef {
 
 export function DashboardLayout() {
   const { state, dispatch } = useAppContext();
+  const { settings } = useSettingsContext();
   const { analytics, filter } = state;
 
   if (!analytics) return null;
@@ -140,61 +142,31 @@ export function DashboardLayout() {
     [filteredListingPerf],
   );
 
-  // ML forecast filtered by currency + account/listing/date-range selection
-  const filteredMlForecast = useMemo<ForecastResult | null>(() => {
-    const forecast = analytics.mlForecasts[currency];
-    if (!forecast || forecast.listings.length === 0) return null;
+  const mlRefresh = useMlForecastRefresh({
+    analytics,
+    currency,
+    selectedAccountIds: filter.selectedAccountIds,
+    selectedListingIds: filter.selectedListingIds,
+    dateRange: filter.dateRange,
+    autoRefreshEnabled: settings.mlForecastAutoRefresh,
+    trainingFollowsDateRange: false,
+  });
 
-    // Filter listing forecasts by account/listing selections and date range
-    let filtered: ListingForecast[] = forecast.listings;
+  const baseMlForecast =
+    mlRefresh.snapshot === null
+      ? (analytics.mlForecasts[currency] ?? null)
+      : mlRefresh.snapshot.result;
 
-    if (filter.selectedAccountIds.length > 0) {
-      const accountSet = new Set(filter.selectedAccountIds);
-      filtered = filtered.filter((l) => accountSet.has(l.accountId));
-    }
-    if (filter.selectedListingIds.length > 0) {
-      const listingSet = new Set(filter.selectedListingIds);
-      filtered = filtered.filter((l) => listingSet.has(l.listingId));
-    }
-    // Date range: filter by forecast target month (consistent with upcoming-reservation filtering)
-    if (filter.dateRange.start) {
-      filtered = filtered.filter((l) => l.targetMonth >= filter.dateRange.start!);
-    }
-    if (filter.dateRange.end) {
-      filtered = filtered.filter((l) => l.targetMonth <= filter.dateRange.end!);
-    }
-
-    if (filtered.length === 0) return null;
-
-    // Recompute portfolio from filtered listings (group by targetMonth)
-    const byMonth = new Map<string, ListingForecast[]>();
-    for (const l of filtered) {
-      const group = byMonth.get(l.targetMonth);
-      if (group) group.push(l);
-      else byMonth.set(l.targetMonth, [l]);
-    }
-    let largestGroup: ListingForecast[] = [];
-    for (const group of byMonth.values()) {
-      if (group.length > largestGroup.length) largestGroup = group;
-    }
-
-    // Also filter excluded by account/listing
-    let filteredExcluded = forecast.excluded;
-    if (filter.selectedAccountIds.length > 0) {
-      const accountSet = new Set(filter.selectedAccountIds);
-      filteredExcluded = filteredExcluded.filter((e) => accountSet.has(e.accountId));
-    }
-    if (filter.selectedListingIds.length > 0) {
-      const listingSet = new Set(filter.selectedListingIds);
-      filteredExcluded = filteredExcluded.filter((e) => listingSet.has(e.listingId));
-    }
-
-    return {
-      portfolio: buildPortfolio(largestGroup),
-      listings: filtered,
-      excluded: filteredExcluded,
-    };
-  }, [analytics.mlForecasts, currency, filter.selectedAccountIds, filter.selectedListingIds, filter.dateRange]);
+  const filteredMlForecast = useMemo(
+    () =>
+      transformMlForecastForDisplay({
+        forecast: baseMlForecast,
+        selectedAccountIds: filter.selectedAccountIds,
+        selectedListingIds: filter.selectedListingIds,
+        dateRange: filter.dateRange,
+      }),
+    [baseMlForecast, filter.selectedAccountIds, filter.selectedListingIds, filter.dateRange],
+  );
 
   // Forecast view data
   const forecastViewData = analytics.views.forecast;
@@ -214,6 +186,12 @@ export function DashboardLayout() {
     const hasTransactions = filteredListingPerf.length > 0;
     const hasCashflow = filter.viewMode !== "forecast" && filteredCashflow.length > 0;
     const hasForecast = forecastViewData.listingPerformance.length > 0;
+    const hasBaselineMl = (analytics.mlForecasts[currency]?.listings.length ?? 0) > 0;
+    const hasMlSnapshot = mlRefresh.snapshot !== null;
+    const hasDisplayedMl = (filteredMlForecast?.listings.length ?? 0) > 0;
+    const hasMlTrainingData = analytics.views.realized.listingPerformance.some(
+      (lp) => lp.currency === currency,
+    );
 
     return [
       {
@@ -253,10 +231,20 @@ export function DashboardLayout() {
       {
         id: "forecast",
         label: "Forecast",
-        enabled: hasForecast || (filteredMlForecast?.listings.length ?? 0) > 0,
-        reason: hasForecast || (filteredMlForecast?.listings.length ?? 0) > 0
+        enabled:
+          hasForecast ||
+          hasDisplayedMl ||
+          hasMlSnapshot ||
+          hasBaselineMl ||
+          hasMlTrainingData,
+        reason:
+          hasForecast ||
+          hasDisplayedMl ||
+          hasMlSnapshot ||
+          hasBaselineMl ||
+          hasMlTrainingData
           ? undefined
-          : "No upcoming transactions or ML forecast data",
+          : "No upcoming or realized data available for forecast",
       },
       {
         id: "transactions",
@@ -284,6 +272,10 @@ export function DashboardLayout() {
     filteredTransactions,
     filter.viewMode,
     filteredMlForecast,
+    analytics.mlForecasts,
+    analytics.views.realized.listingPerformance,
+    currency,
+    mlRefresh.snapshot,
   ]);
 
   // Auto-fallback: if current tab becomes disabled, switch to portfolio-overview
@@ -418,6 +410,12 @@ export function DashboardLayout() {
               listingPerf={filteredForecastListingPerf}
               currency={currency}
               mlForecast={filteredMlForecast}
+              mlRefreshStatus={mlRefresh.status}
+              mlRefreshError={mlRefresh.error}
+              mlRefreshSnapshot={mlRefresh.snapshot}
+              mlAutoRefreshEnabled={settings.mlForecastAutoRefresh}
+              mlWorkerReady={mlRefresh.workerReady}
+              onRefreshMlForecast={mlRefresh.refreshNow}
             />
           </TabsContent>
 
