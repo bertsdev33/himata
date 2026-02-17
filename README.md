@@ -123,6 +123,34 @@ bun run dev:web
 
 Open the printed local URL.
 
+### Deploy to Cloudflare Pages
+
+This repository is a monorepo (`apps/web` depends on workspace packages in `packages/*`), so keep the Cloudflare Pages build rooted at the repository root.
+
+Cloudflare Pages project settings:
+
+- **Framework preset**: `None` (Astro static build)
+- **Root directory**: `/`
+- **Build command**: `bun install --frozen-lockfile && bun run build:web`
+- **Build output directory**: `apps/web/dist`
+
+Set these environment variables in the Cloudflare Pages project:
+
+- `PUBLIC_POSTHOG_KEY`
+- `PUBLIC_POSTHOG_HOST` (`https://us.i.posthog.com` or `https://eu.i.posthog.com`)
+
+Optional CLI flow (uses Wrangler):
+
+```bash
+# local Pages runtime for built static output
+bun run pages:dev
+
+# deploy to an existing Pages project
+CF_PAGES_PROJECT_NAME=your-pages-project bun run pages:deploy
+```
+
+Wrangler configuration for Pages is stored in `apps/web/wrangler.toml`.
+
 ### Run tests
 
 ```bash
@@ -245,6 +273,8 @@ Define these in the root `package.json`:
 
 - `dev:web` → runs `apps/web` dev server
 - `dev:api` → runs Worker dev server (when present)
+- `pages:dev` → builds the app, then runs Cloudflare Pages local preview from `apps/web/dist`
+- `pages:deploy` → deploys `apps/web/dist` to Cloudflare Pages via Wrangler
 - `test` → runs unit tests across packages
 - `lint` → lint all workspaces
 - `typecheck` → TypeScript checks

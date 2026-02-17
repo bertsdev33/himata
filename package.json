@@ -13,7 +13,9 @@
     "e2e": "echo 'No e2e tests yet (alpha: packages-only, no frontend)'",
     "dev:web": "cd apps/web && bun astro dev",
     "build:web": "cd apps/web && bun astro build",
-    "preview:web": "cd apps/web && bun astro preview"
+    "preview:web": "cd apps/web && bun astro preview",
+    "pages:dev": "bun run build:web && cd apps/web && bunx wrangler pages dev dist",
+    "pages:deploy": "bun run build:web && cd apps/web && bunx wrangler pages deploy dist --project-name ${CF_PAGES_PROJECT_NAME:?Set CF_PAGES_PROJECT_NAME}"
   },
   "devDependencies": {
     "bun-types": "^1.3.9",
