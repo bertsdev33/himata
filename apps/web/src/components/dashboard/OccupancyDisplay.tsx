@@ -1,0 +1,44 @@
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { formatPercent, formatMonth } from "@/lib/format";
+import { Info } from "lucide-react";
+import type { EstimatedOccupancy, YearMonth } from "@rental-analytics/core";
+
+interface OccupancyDisplayProps {
+  data: EstimatedOccupancy[];
+}
+
+export function OccupancyDisplay({ data }: OccupancyDisplayProps) {
+  if (data.length === 0) return null;
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base">Estimated Occupancy</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <Alert className="mb-4">
+          <Info className="h-4 w-4" />
+          <AlertDescription className="text-xs">
+            {data[0].label}: {data[0].disclaimer}
+          </AlertDescription>
+        </Alert>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+          {data.map((d) => (
+            <div key={d.month} className="rounded-md border p-3 text-center">
+              <p className="text-xs text-muted-foreground">
+                {formatMonth(d.month as YearMonth)}
+              </p>
+              <p className="text-xl font-bold mt-1">
+                {formatPercent(d.estimatedOccupancyRate)}
+              </p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                {d.bookedNights}n / {d.listingsInService} listings
+              </p>
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}

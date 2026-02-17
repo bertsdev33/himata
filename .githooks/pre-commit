@@ -1,0 +1,178 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+cd "${REPO_ROOT}"
+
+if ! git diff --cached --quiet --exit-code; then
+  :
+else
+  exit 0
+fi
+
+if ! command -v codex >/dev/null 2>&1; then
+  echo "[pre-commit] codex CLI was not found in PATH."
+  echo "[pre-commit] Install Codex CLI and run ./scripts/setup.sh again."
+  exit 1
+fi
+
+has_script() {
+  local script_name="$1"
+  [ -f package.json ] || return 1
+  grep -Eq "\"${script_name}\"[[:space:]]*:" package.json
+}
+
+run_bun_script() {
+  local gate_name="$1"
+  local script_name="$2"
+  local package_runner="$3"
+
+  echo "[pre-commit] Running ${gate_name} via ${package_runner} script '${script_name}'..."
+  case "${package_runner}" in
+    bun)
+      bun run "${script_name}"
+      ;;
+    pnpm)
+      pnpm run "${script_name}"
+      ;;
+    npm)
+      npm run "${script_name}"
+      ;;
+    *)
+      echo "[pre-commit] Unsupported package runner '${package_runner}'."
+      return 1
+      ;;
+  esac
+}
+
+run_first_available_gate() {
+  local gate_name="$1"
+  local package_runner="$2"
+  shift
+  shift
+  local script_name
+  for script_name in "$@"; do
+    if has_script "${script_name}"; then
+      run_bun_script "${gate_name}" "${script_name}" "${package_runner}"
+      return 0
+    fi
+  done
+  echo "[pre-commit] No script found for required gate '${gate_name}' in package.json."
+  return 1
+}
+
+run_quality_gates() {
+  local package_runner=""
+
+  if [ ! -f package.json ]; then
+    echo "[pre-commit] package.json not found; skipping lint/type-check/unit/e2e gates for this docs-only stage."
+    return 0
+  fi
+
+  if command -v bun >/dev/null 2>&1; then
+    package_runner="bun"
+  elif command -v pnpm >/dev/null 2>&1; then
+    package_runner="pnpm"
+  elif command -v npm >/dev/null 2>&1; then
+    package_runner="npm"
+  else
+    echo "[pre-commit] No package runner found. Install bun, pnpm, or npm to run mandatory quality gates."
+    return 1
+  fi
+
+  run_first_available_gate "lint" "${package_runner}" "lint" || return 1
+  run_first_available_gate "type-check" "${package_runner}" "type-check" "typecheck" || return 1
+  run_first_available_gate "unit" "${package_runner}" "unit" "test" || return 1
+  run_first_available_gate "e2e" "${package_runner}" "e2e" "test:e2e" || return 1
+}
+
+if ! run_quality_gates; then
+  echo "[pre-commit] Commit blocked due to failing/missing required quality gates."
+  exit 1
+fi
+
+read -r -d '' REVIEW_PROMPT <<'EOF' || true
+Review ONLY the currently staged git changes (`git diff --staged`).
+Use these files as required constraints:
+- docs/RULES.md
+- docs/TECH_STACK.md
+- README.md
+- docs/alpha-plan.md
+- docs/AGENTS.md
+
+Find REQUIRED fixes only:
+- bugs or regressions
+- security/privacy risks
+- missing tests for changed behavior
+- workflow or architecture violations against the files above
+- treat deletions of `.DS_Store` files as expected cleanup, not a violation
+
+Respond with exactly one line and nothing else:
+- PASS
+- FAIL: <required fix 1>; <required fix 2>; ...
+EOF
+
+echo "[pre-commit] Running Codex review on staged changes..."
+
+REVIEW_LOG="$(mktemp -t codex-precommit-review.XXXXXX)"
+trap 'rm -f "${REVIEW_LOG}"' EXIT
+
+REVIEW_TIMEOUT_SECONDS="${CODEX_REVIEW_TIMEOUT_SECONDS:-0}"
+REVIEW_REASONING_EFFORT="${CODEX_REVIEW_REASONING_EFFORT:-low}"
+TIMEOUT_CMD=""
+if [ "${REVIEW_TIMEOUT_SECONDS}" -gt 0 ]; then
+  if command -v timeout >/dev/null 2>&1; then
+    TIMEOUT_CMD="timeout"
+  elif command -v gtimeout >/dev/null 2>&1; then
+    TIMEOUT_CMD="gtimeout"
+  else
+    echo "[pre-commit] timeout utility not found; running without hard timeout."
+  fi
+fi
+
+CODEX_REVIEW_CMD=(codex review)
+if [ -n "${REVIEW_REASONING_EFFORT}" ]; then
+  CODEX_REVIEW_CMD+=(-c "model_reasoning_effort=\"${REVIEW_REASONING_EFFORT}\"")
+fi
+CODEX_REVIEW_CMD+=("${REVIEW_PROMPT}")
+
+set +e
+if [ -n "${TIMEOUT_CMD}" ]; then
+  "${TIMEOUT_CMD}" "${REVIEW_TIMEOUT_SECONDS}" "${CODEX_REVIEW_CMD[@]}" 2>&1 | tee "${REVIEW_LOG}"
+else
+  "${CODEX_REVIEW_CMD[@]}" 2>&1 | tee "${REVIEW_LOG}"
+fi
+REVIEW_STATUS=$?
+set -e
+
+if [ "${REVIEW_STATUS}" -eq 124 ]; then
+  echo "[pre-commit] Codex review timed out after ${REVIEW_TIMEOUT_SECONDS}s."
+  echo "[pre-commit] Set CODEX_REVIEW_TIMEOUT_SECONDS=0 to disable timeout."
+  echo "[pre-commit] Commit blocked."
+  exit 1
+fi
+
+if [ "${REVIEW_STATUS}" -ne 0 ]; then
+  echo "[pre-commit] Codex review command failed."
+  echo "[pre-commit] Commit blocked until review completes successfully."
+  exit 1
+fi
+
+FINAL_LINE="$(awk 'NF { line = $0 } END { print line }' "${REVIEW_LOG}" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')"
+
+if [ "${FINAL_LINE}" = "PASS" ]; then
+  echo "[pre-commit] Codex review passed."
+  exit 0
+fi
+
+if [[ "${FINAL_LINE}" == FAIL:* ]]; then
+  echo "[pre-commit] Commit blocked due to required fixes."
+  echo "[pre-commit] Apply the required feedback and retry."
+  exit 1
+fi
+
+echo "[pre-commit] Unexpected Codex output format."
+echo "[pre-commit] Expected final line: PASS or FAIL: ..."
+echo "[pre-commit] Actual final line: ${FINAL_LINE}"
+echo "[pre-commit] Commit blocked."
+exit 1

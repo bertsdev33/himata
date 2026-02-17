@@ -4,7 +4,7 @@ A web application to analyze rental platform exports (Airbnb first) and present 
 
 ## What this does (Alpha)
 
-- Upload a daily report spreadsheet (CSV/XLSX) from a supported format (Airbnb v1).
+- Upload Airbnb transaction CSV exports (XLSX support planned post-alpha).
 - Parse and normalize data client-side.
 - Compute KPIs per listing and per month:
   - Total revenue / net payout per listing
@@ -25,11 +25,11 @@ Frontend:
 - Astro + React islands
 - TypeScript
 - Tailwind CSS + shadcn/ui
-- Chart.js
+- Recharts
 
 Core data processing:
 
-- Client-side parsing (CSV/XLSX) in a Web Worker
+- Client-side CSV parsing via @rental-analytics/importer-airbnb-v1
 - Canonical schema normalization + metrics engine
 
 Analytics:
@@ -41,7 +41,7 @@ Backend (when AI is added):
 - Cloudflare Workers (BFF/API proxy)
 - OpenAI Responses API (MVP+)
 
-Full architecture and decisions: see `TECH_STACK.md`.
+Full architecture and decisions: see `docs/TECH_STACK.md`.
 
 ---
 
@@ -92,6 +92,27 @@ From the repo root:
 
 ```bash
 bun install
+```
+
+### Local Repo Setup (Hooks)
+
+Run once per local clone to configure git hooks:
+
+```bash
+./scripts/setup.sh
+```
+
+This installs the local pre-commit workflow (including staged-file Codex review).
+You can optionally enforce a hard timeout for the review step per command:
+
+```bash
+CODEX_REVIEW_TIMEOUT_SECONDS=300 git commit -m "your message"
+```
+
+You can also tune review speed/quality tradeoff per commit:
+
+```bash
+CODEX_REVIEW_REASONING_EFFORT=low git commit -m "your message"
 ```
 
 ### Run the web app
@@ -178,7 +199,7 @@ Feature branches:
 
 ### Import + Normalize
 
-- [ ] Support Airbnb export format v1 (CSV/XLSX)
+- [x] Support Airbnb export format v1 (CSV; XLSX deferred)
 - [ ] Validate required columns and data types
 - [ ] Normalize to `DailyListingMetric[]`
 
@@ -238,4 +259,4 @@ Define these in the root `package.json`:
 3. Build upload → parse → compute → dashboard flow in `apps/web`
 4. Add API layer only when AI is introduced
 
-For full architecture and decisions, see `TECH_STACK.md`.
+For full architecture and decisions, see `docs/TECH_STACK.md`.
