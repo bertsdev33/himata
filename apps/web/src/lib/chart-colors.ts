@@ -8,7 +8,9 @@ export const CHART_COLORS = {
   cancellation: "hsl(0, 84%, 60%)",  // Red
   payout: "hsl(142, 71%, 45%)",      // Green
   trailingAvg: "hsl(220, 14%, 50%)", // Gray
-  forecast: "hsl(45, 93%, 47%)",     // Gold
+  forecast: "hsl(45, 93%, 47%)",         // Gold
+  mlForecast: "hsl(280, 65%, 60%)",      // Purple
+  mlConfidenceBand: "hsl(280, 65%, 85%)", // Light purple
 } as const;
 
 export const CHART_COLORS_ARRAY = [

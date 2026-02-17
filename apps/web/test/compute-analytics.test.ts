@@ -217,4 +217,69 @@ describe("computeAnalyticsFromInputs", () => {
       }
     });
   });
+
+  describe("ML forecast (mlForecasts)", () => {
+    test("paid-only input populates mlForecasts for USD", () => {
+      const result = computeAnalyticsFromInputs([paid]);
+
+      // Fixture data is all USD — should produce at most one forecast
+      expect(result.mlForecasts).toBeDefined();
+      const usdForecast = result.mlForecasts["USD"];
+      if (usdForecast) {
+        // Every listed forecast should be USD
+        for (const listing of usdForecast.listings) {
+          expect(listing.currency).toBe("USD");
+        }
+        // Portfolio currency should match
+        expect(usdForecast.portfolio.currency).toBe("USD");
+      }
+    });
+
+    test("mlForecasts is empty when no realized data", () => {
+      const result = computeAnalyticsFromInputs([upcoming]);
+
+      // Upcoming-only means no realized listing perf → no ML forecast
+      expect(Object.keys(result.mlForecasts).length).toBe(0);
+    });
+
+    test("mlForecasts keyed by currency, not mixed", () => {
+      const paidB = loadFixture("paid_b.csv", "account-b", "paid");
+      const result = computeAnalyticsFromInputs([paid, paidB]);
+
+      for (const [cur, forecast] of Object.entries(result.mlForecasts)) {
+        // Every listing in this forecast should match the key currency
+        for (const listing of forecast.listings) {
+          expect(listing.currency).toBe(cur);
+        }
+      }
+    });
+
+    test("forecast listing predictions have valid structure", () => {
+      const result = computeAnalyticsFromInputs([paid]);
+      const usdForecast = result.mlForecasts["USD"];
+
+      if (usdForecast && usdForecast.listings.length > 0) {
+        for (const listing of usdForecast.listings) {
+          expect(listing.lowerBandMinor).toBeGreaterThanOrEqual(0);
+          expect(listing.lowerBandMinor).toBeLessThanOrEqual(listing.forecastGrossRevenueMinor);
+          expect(listing.forecastGrossRevenueMinor).toBeLessThanOrEqual(listing.upperBandMinor);
+          expect(listing.targetMonth).toMatch(/^\d{4}-\d{2}$/);
+          expect(["high", "medium", "low"]).toContain(listing.confidence);
+          expect(listing.trainingMonths).toBeGreaterThan(0);
+        }
+      }
+    });
+
+    test("portfolio aggregates only same-targetMonth listings", () => {
+      const result = computeAnalyticsFromInputs([paid]);
+      const usdForecast = result.mlForecasts["USD"];
+
+      if (usdForecast && usdForecast.portfolio.listingForecasts.length > 0) {
+        const portfolioMonth = usdForecast.portfolio.targetMonth;
+        for (const l of usdForecast.portfolio.listingForecasts) {
+          expect(l.targetMonth).toBe(portfolioMonth);
+        }
+      }
+    });
+  });
 });

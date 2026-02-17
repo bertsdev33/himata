@@ -13,15 +13,18 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { CHART_COLORS } from "@/lib/chart-colors";
 import { formatMonth, formatMoneyCompact } from "@/lib/format";
 import { AlertTriangle } from "lucide-react";
+import { MLForecastSection } from "../MLForecastSection";
 import type { MonthlyPortfolioPerformance, MonthlyListingPerformance, YearMonth } from "@rental-analytics/core";
+import type { ForecastResult } from "@rental-analytics/forecasting";
 
 interface ForecastTabProps {
   portfolioPerf: MonthlyPortfolioPerformance[];
   listingPerf: MonthlyListingPerformance[];
   currency: string;
+  mlForecast?: ForecastResult | null;
 }
 
-export function ForecastTab({ portfolioPerf, listingPerf, currency }: ForecastTabProps) {
+export function ForecastTab({ portfolioPerf, listingPerf, currency, mlForecast }: ForecastTabProps) {
   const revenueData = useMemo(
     () =>
       [...portfolioPerf]
@@ -46,14 +49,18 @@ export function ForecastTab({ portfolioPerf, listingPerf, currency }: ForecastTa
       }));
   }, [listingPerf]);
 
+  const hasUpcomingData = revenueData.length > 0 || nightsData.length > 0;
+
   return (
     <div className="space-y-6">
-      <Alert className="border-yellow-200 bg-yellow-50">
-        <AlertTriangle className="h-4 w-4 text-yellow-600" />
-        <AlertDescription className="text-yellow-800">
-          Forecast data is based on upcoming/unfulfilled reservations and is subject to change.
-        </AlertDescription>
-      </Alert>
+      {hasUpcomingData && (
+        <Alert className="border-yellow-200 bg-yellow-50">
+          <AlertTriangle className="h-4 w-4 text-yellow-600" />
+          <AlertDescription className="text-yellow-800">
+            Forecast data is based on upcoming/unfulfilled reservations and is subject to change.
+          </AlertDescription>
+        </Alert>
+      )}
 
       {revenueData.length > 0 && (
         <Card>
@@ -108,6 +115,10 @@ export function ForecastTab({ portfolioPerf, listingPerf, currency }: ForecastTa
             </ResponsiveContainer>
           </CardContent>
         </Card>
+      )}
+
+      {mlForecast && mlForecast.listings.length > 0 && (
+        <MLForecastSection forecast={mlForecast} />
       )}
     </div>
   );

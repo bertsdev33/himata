@@ -16,6 +16,7 @@
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
     "@rental-analytics/core": "workspace:*",
+    "@rental-analytics/forecasting": "workspace:*",
     "@rental-analytics/importer-airbnb-v1": "workspace:*",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

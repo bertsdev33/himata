@@ -12,6 +12,7 @@ import {
   importAirbnbV1Session,
   type ImportAirbnbV1Input,
 } from "@rental-analytics/importer-airbnb-v1";
+import { computeRevenueForecast } from "@rental-analytics/forecasting";
 import type { FileEntry, AnalyticsData, ViewData } from "./types";
 import { readFileAsText } from "@/lib/file-helpers";
 
@@ -91,6 +92,23 @@ export function computeAnalyticsFromInputs(inputs: ImportAirbnbV1Input[]): Analy
   // Service ranges from all transactions
   const serviceRanges = inferListingServiceRanges(allView.listingPerformance, transactions);
 
+  // ML-based revenue forecasts (Ridge Regression on realized data, per currency)
+  const mlForecasts: Record<string, import("@rental-analytics/forecasting").ForecastResult> = {};
+  if (realizedView.listingPerformance.length >= 3) {
+    const byCurrency = new Map<string, typeof realizedView.listingPerformance>();
+    for (const lp of realizedView.listingPerformance) {
+      const group = byCurrency.get(lp.currency);
+      if (group) group.push(lp);
+      else byCurrency.set(lp.currency, [lp]);
+    }
+    for (const [cur, listings] of byCurrency) {
+      const result = computeRevenueForecast(listings);
+      if (result.listings.length > 0) {
+        mlForecasts[cur] = result;
+      }
+    }
+  }
+
   return {
     transactions,
     warnings,
@@ -107,6 +125,7 @@ export function computeAnalyticsFromInputs(inputs: ImportAirbnbV1Input[]): Analy
       realized: realizedView,
       forecast: forecastView,
     },
+    mlForecasts,
   };
 }
 

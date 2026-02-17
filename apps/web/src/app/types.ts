@@ -9,6 +9,7 @@ import type {
   EstimatedOccupancy,
   ListingServiceRange,
 } from "@rental-analytics/core";
+import type { ForecastResult } from "@rental-analytics/forecasting";
 
 /** Represents a file entry in the upload flow */
 export interface FileEntry {
@@ -76,6 +77,8 @@ export interface AnalyticsData {
     realized: ViewData;
     forecast: ViewData;
   };
+  /** ML-based revenue forecasts keyed by currency (Ridge Regression) */
+  mlForecasts: Record<string, ForecastResult>;
 }
 
 /** Persisted user settings for the dashboard */
