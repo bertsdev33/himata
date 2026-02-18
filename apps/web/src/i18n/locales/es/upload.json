@@ -11,7 +11,7 @@
   },
   "fields": {
     "account_id": "ID de Cuenta",
-    "dataset_kind": "Tipo de dataset"
+    "dataset_kind": "Tipo de conjunto de datos"
   },
   "actions": {
     "analyze": "Analizar",

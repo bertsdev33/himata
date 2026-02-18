@@ -4,8 +4,8 @@ export type Locale = (typeof locales)[number];
 
 export const localeLabels: Record<Locale, string> = {
   en: "English",
-  es: "Espanol",
-  fr: "Francais",
+  es: "Español",
+  fr: "Français",
 };
 
 /** BCP-47 tags for Intl.NumberFormat / Intl.DateTimeFormat. */

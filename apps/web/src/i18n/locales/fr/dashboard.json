@@ -2,42 +2,42 @@
   "tabs": {
     "portfolio": "Portefeuille",
     "comparison": "Comparaison",
-    "listing_detail": "Detail du Bien",
-    "cashflow": "Tresorerie",
-    "forecast": "Prevision",
+    "listing_detail": "Détail du Bien",
+    "cashflow": "Trésorerie",
+    "forecast": "Prévision",
     "transactions": "Transactions",
-    "data_quality": "Qualite des Donnees",
-    "settings": "Parametres",
+    "data_quality": "Qualité des Données",
+    "settings": "Paramètres",
     "not_available": "Non disponible",
     "reasons": {
-      "no_data_matches_filters": "Aucune donnee ne correspond aux filtres actuels",
-      "need_two_or_more_listings": "Il faut 2+ biens dans l'ensemble filtre",
-      "select_exactly_one_listing": "Selectionnez exactement 1 bien",
-      "not_available_in_forecast_view": "Non disponible en vue Prevision",
-      "no_cashflow_data": "Aucune donnee de tresorerie",
-      "no_realized_data_for_forecast": "Aucune donnee realisee disponible pour entrainer la prevision",
+      "no_data_matches_filters": "Aucune donnée ne correspond aux filtres actuels",
+      "need_two_or_more_listings": "Il faut 2+ biens dans l'ensemble filtré",
+      "select_exactly_one_listing": "Sélectionnez exactement 1 bien",
+      "not_available_in_forecast_view": "Non disponible en vue Prévision",
+      "no_cashflow_data": "Aucune donnée de trésorerie",
+      "no_realized_data_for_forecast": "Aucune donnée réalisée disponible pour entraîner la prévision",
       "no_transactions_match_filters": "Aucune transaction ne correspond aux filtres"
     }
   },
   "filter_bar": {
-    "includes_forecast": "Inclut la prevision",
-    "data_scope": "Perimetre des donnees",
+    "includes_forecast": "Inclut la prévision",
+    "data_scope": "Périmètre des données",
     "view": {
       "realized": {
-        "label": "Realise",
-        "description": "Seulement les donnees passees/payees."
+        "label": "Réalisé",
+        "description": "Seulement les données passées/payées."
       },
       "upcoming": {
-        "label": "A venir",
-        "description": "Seulement les reservations a venir/non finalisees."
+        "label": "À venir",
+        "description": "Seulement les réservations à venir/non finalisées."
       },
       "all": {
         "label": "Tout",
-        "description": "Analyse combinee des donnees realisees et a venir."
+        "description": "Analyse combinée des données réalisées et à venir."
       }
     },
     "quick_time": {
-      "all": "Toute Periode",
+      "all": "Toute Période",
       "last_12_months": "12 Derniers Mois",
       "last_6_months": "6 Derniers Mois",
       "last_3_months": "3 Derniers Mois",
@@ -60,44 +60,44 @@
       "clear": "Effacer",
       "project_this_month": "Projeter ce Mois",
       "quick_filters": "Filtres Rapides",
-      "pin_time": "Epingler les filtres rapides de temps",
-      "unpin_time": "Desepingler les filtres rapides de temps",
-      "pin_accounts": "Epingler les filtres rapides de comptes",
-      "unpin_accounts": "Desepingler les filtres rapides de comptes",
-      "pin_listings": "Epingler les filtres rapides de biens",
-      "unpin_listings": "Desepingler les filtres rapides de biens"
+      "pin_time": "Épingler les filtres rapides de temps",
+      "unpin_time": "Désépingler les filtres rapides de temps",
+      "pin_accounts": "Épingler les filtres rapides de comptes",
+      "unpin_accounts": "Désépingler les filtres rapides de comptes",
+      "pin_listings": "Épingler les filtres rapides de biens",
+      "unpin_listings": "Désépingler les filtres rapides de biens"
     },
     "multi_select": {
-      "select_placeholder": "Selectionner",
+      "select_placeholder": "Sélectionner",
       "all": "Tout",
-      "selected": "selectionnes",
+      "selected": "sélectionnés",
       "search_placeholder": "Rechercher...",
-      "select_all": "Tout Selectionner",
+      "select_all": "Tout Sélectionner",
       "clear_all": "Tout Effacer",
-      "no_results": "Aucun resultat trouve.",
-      "clear_selection_aria": "Effacer la selection"
+      "no_results": "Aucun résultat trouvé.",
+      "clear_selection_aria": "Effacer la sélection"
     },
     "listing_row_hidden": {
-      "prefix": "Les filtres rapides des biens sont masques car il y a trop de biens. Activez",
+      "prefix": "Les filtres rapides des biens sont masqués car il y a trop de biens. Activez",
       "show_all_listings": "Afficher Tous les Biens",
-      "suffix": "dans Parametres pour forcer l'affichage."
+      "suffix": "dans Paramètres pour forcer l'affichage."
     }
   },
   "kpi": {
     "badges": {
-      "projected": "projete"
+      "projected": "projeté"
     },
     "cards": {
       "total_net_revenue": "Revenu Net Total",
       "total_gross_revenue": "Revenu Brut Total",
-      "booked_nights": "Nuits Reservees",
+      "booked_nights": "Nuits Réservées",
       "estimated_occupancy": "Occupation Est.",
       "avg_daily_rate": "Tarif Journalier Moyen",
       "mom_change": "Variation MoM"
     },
     "tooltips": {
-      "estimated_occupancy": "nuits reservees / (jours_du_mois * biens_en_service); ce n'est pas l'occupation reelle",
-      "mom_change": "Variation du revenu {{revenueBasis}} d'un mois a l'autre"
+      "estimated_occupancy": "nuits réservées / (jours_du_mois * biens_en_service); ce n'est pas l'occupation réelle",
+      "mom_change": "Variation du revenu {{revenueBasis}} d'un mois à l'autre"
     }
   },
   "listings_table": {
@@ -114,7 +114,7 @@
       "share": "Part"
     },
     "actions": {
-      "view_listing": "Voir le detail du bien"
+      "view_listing": "Voir le détail du bien"
     }
   },
   "charts": {
@@ -125,22 +125,22 @@
         "top_5": "Top 5"
       },
       "projected_name": "{{name}} (proj.)",
-      "projection_note": "Les lignes pointillees montrent les valeurs projetees en fin de mois"
+      "projection_note": "Les lignes pointillées montrent les valeurs projetées en fin de mois"
     },
     "nights_vs_adr": {
       "title": "Nuits vs ADR",
-      "booked_nights": "Nuits Reservees",
+      "booked_nights": "Nuits Réservées",
       "adr": "ADR",
-      "projection_note": "La derniere barre montre les valeurs projetees en fin de mois"
+      "projection_note": "La dernière barre montre les valeurs projetées en fin de mois"
     },
     "revenue_breakdown": {
-      "title": "Repartition du Revenu",
+      "title": "Répartition du Revenu",
       "legend": {
-        "reservations": "Reservations",
+        "reservations": "Réservations",
         "adjustments": "Ajustements",
-        "resolutions": "Resolutions",
+        "resolutions": "Résolutions",
         "cancellations": "Annulations",
-        "projected": "Projete"
+        "projected": "Projeté"
       }
     },
     "revenue_trend": {
@@ -158,33 +158,33 @@
     }
   },
   "occupancy_display": {
-    "title": "Occupation Estimee",
+    "title": "Occupation Estimée",
     "breakdown": "{{nights}}n / {{listings}} biens"
   },
   "occupancy_heatmaps": {
     "by_weekday": {
       "title": "Occupation par Jour de la Semaine",
-      "description": "Taux d'occupation estime par jour"
+      "description": "Taux d'occupation estimé par jour"
     },
     "by_month_day": {
       "title": "Occupation par Jour du Mois",
-      "description": "Taux d'occupation estime par jour calendaire"
+      "description": "Taux d'occupation estimé par jour calendaire"
     }
   },
   "seasonality_heatmap": {
-    "title": "Carte de Saisonnalite",
-    "description": "Intensite du revenu par mois a travers les annees",
-    "year": "Annee",
+    "title": "Carte de Saisonnalité",
+    "description": "Intensité du revenu par mois à travers les années",
+    "year": "Année",
     "low": "Faible",
-    "high": "Eleve"
+    "high": "Élevé"
   },
   "top_movers": {
     "title": "Top Variations (MoM)",
-    "projected_note": "Les valeurs du mois actuel sont projetees selon le rythme actuel",
+    "projected_note": "Les valeurs du mois actuel sont projetées selon le rythme actuel",
     "columns": {
       "listing": "Bien",
       "current": "Actuel",
-      "previous": "Precedent",
+      "previous": "Précédent",
       "delta": "Delta",
       "percent": "%",
       "nights": "Nuits",
@@ -205,7 +205,7 @@
     "outperforming": "Surperformance",
     "underperforming": "Sous-performance",
     "current": "Actuel",
-    "projected": "projete",
+    "projected": "projeté",
     "trailing_avg": "Moyenne Glissante"
   },
   "transactions": {
@@ -220,19 +220,19 @@
       "net": "Net",
       "gross": "Brut",
       "service_fee": "Frais de Service",
-      "cleaning": "Menage"
+      "cleaning": "Ménage"
     },
     "kinds": {
-      "reservation": "Reservation",
+      "reservation": "Réservation",
       "adjustment": "Ajustement",
-      "resolution_adjustment": "Ajustement de Resolution",
+      "resolution_adjustment": "Ajustement de Résolution",
       "cancellation_fee": "Frais d'Annulation",
       "payout": "Paiement",
-      "resolution_payout": "Paiement de Resolution"
+      "resolution_payout": "Paiement de Résolution"
     },
     "pagination": {
       "page_of": "Page {{page}} sur {{totalPages}}",
-      "prev": "Prec.",
+      "prev": "Préc.",
       "next": "Suiv."
     }
   }
