@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { formatPercent } from "@/lib/format";
+import { useLocaleContext } from "@/i18n/LocaleProvider";
 import type { CanonicalTransaction } from "@rental-analytics/core";
 
 interface OccupancyHeatmapsProps {
@@ -113,6 +114,7 @@ function heatmapText(ratio: number): string {
 }
 
 export function OccupancyHeatmaps({ transactions }: OccupancyHeatmapsProps) {
+  const { locale } = useLocaleContext();
   const data = useMemo(() => computeHeatmapData(transactions), [transactions]);
 
   const dowRates = data.dowCounts.map((count, i) =>
@@ -146,7 +148,7 @@ export function OccupancyHeatmaps({ transactions }: OccupancyHeatmapsProps) {
                     className={`rounded-md py-3 text-xs font-medium transition-all duration-150 cursor-default hover:ring-2 hover:ring-foreground/25 hover:brightness-110 hover:scale-[1.06] ${heatmapText(r)}`}
                     style={{ backgroundColor: rate !== null ? heatmapBg(r) : undefined }}
                   >
-                    {formatPercent(rate)}
+                    {formatPercent(rate, locale)}
                   </div>
                 </div>
               );
@@ -173,7 +175,7 @@ export function OccupancyHeatmaps({ transactions }: OccupancyHeatmapsProps) {
                     className={`rounded py-1.5 text-[10px] font-medium transition-all duration-150 cursor-default hover:ring-2 hover:ring-foreground/25 hover:brightness-110 hover:scale-105 ${heatmapText(r)}`}
                     style={{ backgroundColor: rate !== null ? heatmapBg(r) : undefined }}
                   >
-                    {formatPercent(rate)}
+                    {formatPercent(rate, locale)}
                   </div>
                 </div>
               );

@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { formatMoneyCompact } from "@/lib/format";
+import { useLocaleContext } from "@/i18n/LocaleProvider";
 import type { MonthlyPortfolioPerformance } from "@rental-analytics/core";
 import type { RevenueBasis } from "@/app/types";
 
@@ -30,6 +31,7 @@ function heatmapText(ratio: number): string {
 }
 
 export function SeasonalityHeatmap({ data, currency, revenueBasis = "net" }: SeasonalityHeatmapProps) {
+  const { locale } = useLocaleContext();
   const { grid, years, minVal, maxVal } = useMemo(() => {
     const map = new Map<string, number>();
     for (const d of data) {
@@ -109,7 +111,7 @@ export function SeasonalityHeatmap({ data, currency, revenueBasis = "net" }: Sea
                               className={`rounded-md px-2 py-2 text-center text-xs font-medium transition-all duration-150 cursor-default hover:ring-2 hover:ring-foreground/25 hover:brightness-110 hover:scale-[1.04] ${heatmapText(ratio)}`}
                               style={{ backgroundColor: heatmapBg(ratio) }}
                             >
-                              {formatMoneyCompact(val, currency)}
+                              {formatMoneyCompact(val, currency, locale)}
                             </div>
                           ) : (
                             <div className="text-center text-xs text-muted-foreground py-2">
@@ -140,7 +142,7 @@ export function SeasonalityHeatmap({ data, currency, revenueBasis = "net" }: Sea
           </div>
           <span className="text-xs text-muted-foreground">High</span>
           <span className="text-xs text-muted-foreground ml-2">
-            {formatMoneyCompact(minVal, currency)} — {formatMoneyCompact(maxVal, currency)}
+            {formatMoneyCompact(minVal, currency, locale)} — {formatMoneyCompact(maxVal, currency, locale)}
           </span>
         </div>
       </CardContent>

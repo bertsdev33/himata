@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatMoney, formatDeltaPercent, formatMonth } from "@/lib/format";
+import { useLocaleContext } from "@/i18n/LocaleProvider";
 import type { TrailingComparison, YearMonth } from "@rental-analytics/core";
 
 interface TrailingComparisonsProps {
@@ -8,6 +9,7 @@ interface TrailingComparisonsProps {
 }
 
 export function TrailingComparisons({ data, currency }: TrailingComparisonsProps) {
+  const { locale } = useLocaleContext();
   if (data.length === 0) return null;
 
   // Show comparisons for the latest month only
@@ -20,7 +22,7 @@ export function TrailingComparisons({ data, currency }: TrailingComparisonsProps
     <Card>
       <CardHeader>
         <CardTitle className="text-base">
-          Trailing Comparisons — {formatMonth(latestMonth as YearMonth)}
+          Trailing Comparisons — {formatMonth(latestMonth as YearMonth, locale)}
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -34,16 +36,16 @@ export function TrailingComparisons({ data, currency }: TrailingComparisonsProps
                 <p className="text-xs text-muted-foreground mt-0.5">{d.label}</p>
                 <div className="mt-2 flex items-baseline gap-3">
                   <span className="text-lg font-semibold">
-                    {formatMoney(d.currentMinor, currency)}
+                    {formatMoney(d.currentMinor, currency, locale)}
                   </span>
                   <span
                     className={`text-sm font-medium ${isPositive ? "text-green-600" : "text-red-600"}`}
                   >
-                    {formatDeltaPercent(d.deltaPct)}
+                    {formatDeltaPercent(d.deltaPct, locale)}
                   </span>
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Baseline: {formatMoney(d.baselineMinor, currency)}
+                  Baseline: {formatMoney(d.baselineMinor, currency, locale)}
                 </p>
               </div>
             );

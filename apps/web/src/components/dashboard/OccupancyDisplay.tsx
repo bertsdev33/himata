@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { formatPercent, formatMonth } from "@/lib/format";
+import { useLocaleContext } from "@/i18n/LocaleProvider";
 import { Info } from "lucide-react";
 import type { EstimatedOccupancy, YearMonth } from "@rental-analytics/core";
 
@@ -9,6 +10,7 @@ interface OccupancyDisplayProps {
 }
 
 export function OccupancyDisplay({ data }: OccupancyDisplayProps) {
+  const { locale } = useLocaleContext();
   if (data.length === 0) return null;
 
   return (
@@ -27,10 +29,10 @@ export function OccupancyDisplay({ data }: OccupancyDisplayProps) {
           {data.map((d) => (
             <div key={d.month} className="rounded-md border p-3 text-center">
               <p className="text-xs text-muted-foreground">
-                {formatMonth(d.month as YearMonth)}
+                {formatMonth(d.month as YearMonth, locale)}
               </p>
               <p className="text-xl font-bold mt-1">
-                {formatPercent(d.estimatedOccupancyRate)}
+                {formatPercent(d.estimatedOccupancyRate, locale)}
               </p>
               <p className="text-xs text-muted-foreground mt-0.5">
                 {d.bookedNights}n / {d.listingsInService} listings

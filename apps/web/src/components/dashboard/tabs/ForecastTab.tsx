@@ -12,9 +12,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { CHART_COLORS } from "@/lib/chart-colors";
-import { formatMonth, formatMoneyCompact } from "@/lib/format";
+import { formatMoney, formatMonth, formatMoneyCompact } from "@/lib/format";
 import { AlertTriangle, Loader2 } from "lucide-react";
 import { MLForecastSection } from "../MLForecastSection";
+import { useLocaleContext } from "@/i18n/LocaleProvider";
 import type {
   MonthlyPortfolioPerformance,
   MonthlyListingPerformance,
@@ -50,6 +51,7 @@ export function ForecastTab({
   mlWorkerReady,
   onRefreshMlForecast,
 }: ForecastTabProps) {
+  const { locale } = useLocaleContext();
   const upcomingRevenueData = useMemo(
     () =>
       [...portfolioPerf]
@@ -224,7 +226,7 @@ export function ForecastTab({
 
       {mlRefreshSnapshot && (
         <div className="text-xs text-muted-foreground">
-          Trained: {new Date(mlRefreshSnapshot.trainedAt).toLocaleString()} · Window{" "}
+          Trained: {new Date(mlRefreshSnapshot.trainedAt).toLocaleString(locale)} · Window{" "}
           {mlRefreshSnapshot.trainingMeta.months.start ?? "?"} to{" "}
           {mlRefreshSnapshot.trainingMeta.months.end ?? "?"} · Rows{" "}
           {mlRefreshSnapshot.trainingMeta.rowCount} · Listings{" "}
@@ -243,18 +245,16 @@ export function ForecastTab({
                 <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                 <XAxis
                   dataKey="month"
-                  tickFormatter={(value) => formatMonth(value as YearMonth)}
+                  tickFormatter={(value) => formatMonth(value as YearMonth, locale)}
                   className="text-xs"
                   interval={0}
                 />
                 <YAxis
-                  tickFormatter={(v) => formatMoneyCompact(v * 100, currency)}
+                  tickFormatter={(v) => formatMoneyCompact(v * 100, currency, locale)}
                   className="text-xs"
                 />
                 <Tooltip
-                  formatter={(value: number) =>
-                    new Intl.NumberFormat("en-US", { style: "currency", currency }).format(value)
-                  }
+                  formatter={(value: number) => formatMoney(Math.round(value * 100), currency, locale)}
                 />
                 <Bar
                   dataKey="revenue"
@@ -279,7 +279,7 @@ export function ForecastTab({
                 <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                 <XAxis
                   dataKey="month"
-                  tickFormatter={(value) => formatMonth(value as YearMonth)}
+                  tickFormatter={(value) => formatMonth(value as YearMonth, locale)}
                   className="text-xs"
                   interval={0}
                 />
@@ -308,22 +308,22 @@ export function ForecastTab({
                 <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                 <XAxis
                   dataKey="month"
-                  tickFormatter={(value) => formatMonth(value as YearMonth)}
+                  tickFormatter={(value) => formatMonth(value as YearMonth, locale)}
                   className="text-xs"
                   interval={0}
                 />
                 <YAxis
-                  tickFormatter={(v) => formatMoneyCompact(v * 100, currency)}
+                  tickFormatter={(v) => formatMoneyCompact(v * 100, currency, locale)}
                   className="text-xs"
                 />
                 <Tooltip
                   formatter={(value: number, _name, payload) => {
-                    if (!payload) return new Intl.NumberFormat("en-US", { style: "currency", currency }).format(value);
+                    if (!payload) return formatMoney(Math.round(value * 100), currency, locale);
                     const row = payload.payload as { low: number; high: number; source: string };
                     return [
                       row.source === "Model Forecast"
-                        ? `${new Intl.NumberFormat("en-US", { style: "currency", currency }).format(value)} (range ${new Intl.NumberFormat("en-US", { style: "currency", currency }).format(row.low)} - ${new Intl.NumberFormat("en-US", { style: "currency", currency }).format(row.high)})`
-                        : new Intl.NumberFormat("en-US", { style: "currency", currency }).format(value),
+                        ? `${formatMoney(Math.round(value * 100), currency, locale)} (range ${formatMoney(Math.round(row.low * 100), currency, locale)} - ${formatMoney(Math.round(row.high * 100), currency, locale)})`
+                        : formatMoney(Math.round(value * 100), currency, locale),
                       row.source,
                     ];
                   }}

@@ -13,6 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatMoney, formatPercent, formatDeltaPercent } from "@/lib/format";
+import { useLocaleContext } from "@/i18n/LocaleProvider";
 import type { MonthlyListingPerformance } from "@rental-analytics/core";
 
 interface ListingsTableProps {
@@ -49,6 +50,7 @@ interface ListingSummary {
 
 export function ListingsTable({ data, currency, onSelectListing }: ListingsTableProps) {
   const { getListingName, getAccountName } = useSettingsContext();
+  const { locale } = useLocaleContext();
   const [sortKey, setSortKey] = useState<SortKey>("netRevenue");
   const [sortAsc, setSortAsc] = useState(false);
 
@@ -232,12 +234,12 @@ export function ListingsTable({ data, currency, onSelectListing }: ListingsTable
                   </Badge>
                 </TableCell>
                 <TableCell>{s.bookedNights}</TableCell>
-                <TableCell>{formatMoney(s.grossRevenue, currency)}</TableCell>
-                <TableCell>{formatMoney(s.netRevenue, currency)}</TableCell>
-                <TableCell>{formatMoney(s.adr, currency)}</TableCell>
+                <TableCell>{formatMoney(s.grossRevenue, currency, locale)}</TableCell>
+                <TableCell>{formatMoney(s.netRevenue, currency, locale)}</TableCell>
+                <TableCell>{formatMoney(s.adr, currency, locale)}</TableCell>
                 <TableCell>
                   {s.occupancy !== null ? (
-                    formatPercent(s.occupancy)
+                    formatPercent(s.occupancy, locale)
                   ) : (
                     <span className="text-muted-foreground">—</span>
                   )}
@@ -245,13 +247,13 @@ export function ListingsTable({ data, currency, onSelectListing }: ListingsTable
                 <TableCell>
                   {s.vsTrailing !== null ? (
                     <span className={s.vsTrailing >= 0 ? "text-green-600" : "text-red-600"}>
-                      {formatDeltaPercent(s.vsTrailing)}
+                      {formatDeltaPercent(s.vsTrailing, locale)}
                     </span>
                   ) : (
                     <span className="text-muted-foreground">—</span>
                   )}
                 </TableCell>
-                <TableCell>{formatPercent(s.portfolioShare)}</TableCell>
+                <TableCell>{formatPercent(s.portfolioShare, locale)}</TableCell>
                 {onSelectListing && (
                   <TableCell>
                     <Button

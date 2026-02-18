@@ -13,7 +13,8 @@ import {
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CHART_COLORS } from "@/lib/chart-colors";
-import { formatMonth, formatMoneyCompact } from "@/lib/format";
+import { formatMoney, formatMonth, formatMoneyCompact } from "@/lib/format";
+import { useLocaleContext } from "@/i18n/LocaleProvider";
 import type { MonthlyListingPerformance, YearMonth } from "@rental-analytics/core";
 
 interface NightsVsAdrChartProps {
@@ -23,6 +24,7 @@ interface NightsVsAdrChartProps {
 }
 
 export function NightsVsAdrChart({ data, currency, projection = false }: NightsVsAdrChartProps) {
+  const { locale } = useLocaleContext();
   const { chartData, hasProjection } = useMemo(() => {
     const now = new Date();
     const currentYm = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
@@ -49,7 +51,7 @@ export function NightsVsAdrChart({ data, currency, projection = false }: NightsV
       const gross = isProjected ? Math.round(values.gross * scale) : values.gross;
       return {
         month,
-        label: formatMonth(month as YearMonth),
+        label: formatMonth(month as YearMonth, locale),
         nights,
         adr: nights > 0 ? gross / nights / 100 : 0,
         isProjected,
@@ -57,7 +59,7 @@ export function NightsVsAdrChart({ data, currency, projection = false }: NightsV
     });
 
     return { chartData: rows, hasProjection: showProjection };
-  }, [data, projection]);
+  }, [data, locale, projection]);
 
   return (
     <Card>
@@ -73,13 +75,13 @@ export function NightsVsAdrChart({ data, currency, projection = false }: NightsV
             <YAxis
               yAxisId="right"
               orientation="right"
-              tickFormatter={(v) => formatMoneyCompact(v * 100, currency)}
+              tickFormatter={(v) => formatMoneyCompact(v * 100, currency, locale)}
               className="text-xs"
             />
             <Tooltip
               formatter={(value: number, name: string) =>
                 name === "ADR"
-                  ? new Intl.NumberFormat("en-US", { style: "currency", currency }).format(value)
+                  ? formatMoney(Math.round(value * 100), currency, locale)
                   : value
               }
             />

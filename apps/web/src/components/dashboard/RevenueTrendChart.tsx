@@ -12,7 +12,8 @@ import {
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CHART_COLORS } from "@/lib/chart-colors";
-import { formatMonth, formatMoneyCompact } from "@/lib/format";
+import { formatMoney, formatMonth, formatMoneyCompact } from "@/lib/format";
+import { useLocaleContext } from "@/i18n/LocaleProvider";
 import type { MonthlyPortfolioPerformance, YearMonth } from "@rental-analytics/core";
 import type { RevenueBasis } from "@/app/types";
 
@@ -33,6 +34,7 @@ export function RevenueTrendChart({
   currency,
   projection = false,
 }: RevenueTrendChartProps) {
+  const { locale } = useLocaleContext();
   const [revenueBasis, setRevenueBasis] = useState<RevenueBasis>("both");
   const isBoth = revenueBasis === "both";
 
@@ -50,14 +52,14 @@ export function RevenueTrendChart({
         windowSlice.reduce((s, w) => s + w[primaryKey], 0) / windowSlice.length;
 
       return {
-        label: formatMonth(d.month as YearMonth),
+        label: formatMonth(d.month as YearMonth, locale),
         gross: d.grossRevenueMinor / 100,
         net: d.netRevenueMinor / 100,
         trailingAvg: avgValue / 100,
         isProjected,
       };
     });
-  }, [data, revenueBasis, projection]);
+  }, [data, locale, revenueBasis, projection]);
 
   return (
     <Card>
@@ -86,16 +88,11 @@ export function RevenueTrendChart({
             <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
             <XAxis dataKey="label" className="text-xs" />
             <YAxis
-              tickFormatter={(v) => formatMoneyCompact(v * 100, currency)}
+              tickFormatter={(v) => formatMoneyCompact(v * 100, currency, locale)}
               className="text-xs"
             />
             <Tooltip
-              formatter={(value: number) =>
-                new Intl.NumberFormat("en-US", {
-                  style: "currency",
-                  currency,
-                }).format(value)
-              }
+              formatter={(value: number) => formatMoney(Math.round(value * 100), currency, locale)}
               labelFormatter={(label) => label}
             />
             <Legend />

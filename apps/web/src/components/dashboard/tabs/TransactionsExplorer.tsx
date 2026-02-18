@@ -13,6 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { formatMoney } from "@/lib/format";
+import { useLocaleContext } from "@/i18n/LocaleProvider";
 import type { CanonicalTransaction } from "@rental-analytics/core";
 
 interface TransactionsExplorerProps {
@@ -26,6 +27,7 @@ const PAGE_SIZE = 25;
 
 export function TransactionsExplorer({ transactions, currency }: TransactionsExplorerProps) {
   const { getListingName, getAccountName } = useSettingsContext();
+  const { locale } = useLocaleContext();
   const [search, setSearch] = useState("");
   const [sortKey, setSortKey] = useState<SortKey>("date");
   const [sortAsc, setSortAsc] = useState(false);
@@ -145,15 +147,15 @@ export function TransactionsExplorer({ transactions, currency }: TransactionsExp
                 </TableCell>
                 <TableCell>{tx.stay?.nights ?? "—"}</TableCell>
                 <TableCell className={tx.netAmount.amountMinor >= 0 ? "text-green-600" : "text-red-600"}>
-                  {formatMoney(tx.netAmount.amountMinor, currency)}
+                  {formatMoney(tx.netAmount.amountMinor, currency, locale)}
                 </TableCell>
                 <TableCell className={tx.grossAmount.amountMinor >= 0 ? "text-green-600" : "text-red-600"}>
-                  {formatMoney(tx.grossAmount.amountMinor, currency)}
+                  {formatMoney(tx.grossAmount.amountMinor, currency, locale)}
                 </TableCell>
                 <TableCell className={tx.hostServiceFeeAmount.amountMinor >= 0 ? "" : "text-red-600"}>
-                  {formatMoney(tx.hostServiceFeeAmount.amountMinor, currency)}
+                  {formatMoney(tx.hostServiceFeeAmount.amountMinor, currency, locale)}
                 </TableCell>
-                <TableCell>{formatMoney(tx.cleaningFeeAmount.amountMinor, currency)}</TableCell>
+                <TableCell>{formatMoney(tx.cleaningFeeAmount.amountMinor, currency, locale)}</TableCell>
               </TableRow>
             ))}
           </TableBody>

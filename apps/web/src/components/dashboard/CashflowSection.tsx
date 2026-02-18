@@ -11,7 +11,8 @@ import {
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CHART_COLORS } from "@/lib/chart-colors";
-import { formatMonth, formatMoneyCompact } from "@/lib/format";
+import { formatMoney, formatMonth, formatMoneyCompact } from "@/lib/format";
+import { useLocaleContext } from "@/i18n/LocaleProvider";
 import type { MonthlyCashflow, YearMonth } from "@rental-analytics/core";
 
 interface CashflowSectionProps {
@@ -21,6 +22,7 @@ interface CashflowSectionProps {
 }
 
 export function CashflowSection({ data, currency, projection = false }: CashflowSectionProps) {
+  const { locale } = useLocaleContext();
   const { chartData, hasProjection } = useMemo(() => {
     // Aggregate cashflow by month
     const monthMap = new Map<string, number>();
@@ -38,11 +40,11 @@ export function CashflowSection({ data, currency, projection = false }: Cashflow
     const hasCurrentMonth = monthMap.has(currentYm);
     const showProjection = projection && hasCurrentMonth && scale > 1;
 
-    const rows = entries.map(([month, payouts]) => {
+      const rows = entries.map(([month, payouts]) => {
       const isProjected = showProjection && month === currentYm;
       return {
         month,
-        label: formatMonth(month as YearMonth),
+        label: formatMonth(month as YearMonth, locale),
         Payouts: payouts / 100,
         Projected: isProjected ? Math.round(payouts * scale) / 100 : null,
         isProjected,
@@ -50,7 +52,7 @@ export function CashflowSection({ data, currency, projection = false }: Cashflow
     });
 
     return { chartData: rows, hasProjection: showProjection };
-  }, [data, projection]);
+  }, [data, locale, projection]);
 
   if (chartData.length === 0) return null;
 
@@ -65,15 +67,12 @@ export function CashflowSection({ data, currency, projection = false }: Cashflow
             <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
             <XAxis dataKey="label" className="text-xs" />
             <YAxis
-              tickFormatter={(v) => formatMoneyCompact(v * 100, currency)}
+              tickFormatter={(v) => formatMoneyCompact(v * 100, currency, locale)}
               className="text-xs"
             />
             <Tooltip
               formatter={(value: number, name: string) => [
-                new Intl.NumberFormat("en-US", {
-                  style: "currency",
-                  currency,
-                }).format(value),
+                formatMoney(Math.round(value * 100), currency, locale),
                 name === "Projected" ? "Projected Payouts" : "Payouts",
               ]}
             />

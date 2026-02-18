@@ -11,7 +11,8 @@ import {
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CHART_COLORS } from "@/lib/chart-colors";
-import { formatMonth, formatMoneyCompact } from "@/lib/format";
+import { formatMoney, formatMonth, formatMoneyCompact } from "@/lib/format";
+import { useLocaleContext } from "@/i18n/LocaleProvider";
 import type { MonthlyListingPerformance, YearMonth } from "@rental-analytics/core";
 
 interface RevenueBreakdownChartProps {
@@ -21,6 +22,7 @@ interface RevenueBreakdownChartProps {
 }
 
 export function RevenueBreakdownChart({ data, currency, projection = false }: RevenueBreakdownChartProps) {
+  const { locale } = useLocaleContext();
   const chartData = useMemo(() => {
     // Aggregate by month across all listings
     const monthMap = new Map<
@@ -56,7 +58,7 @@ export function RevenueBreakdownChart({ data, currency, projection = false }: Re
 
         // Actual values (always shown)
         const entry: Record<string, string | number> = {
-          label: formatMonth(month as YearMonth),
+          label: formatMonth(month as YearMonth, locale),
           Reservations: values.reservation / 100,
           Adjustments: values.adjustment / 100,
           Resolutions: values.resolution / 100,
@@ -73,7 +75,7 @@ export function RevenueBreakdownChart({ data, currency, projection = false }: Re
 
         return entry;
       });
-  }, [data, projection]);
+  }, [data, locale, projection]);
 
   const hasProjection = chartData.some((d) => (d.Projected as number) > 0);
 
@@ -88,16 +90,11 @@ export function RevenueBreakdownChart({ data, currency, projection = false }: Re
             <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
             <XAxis dataKey="label" className="text-xs" />
             <YAxis
-              tickFormatter={(v) => formatMoneyCompact(v * 100, currency)}
+              tickFormatter={(v) => formatMoneyCompact(v * 100, currency, locale)}
               className="text-xs"
             />
             <Tooltip
-              formatter={(value: number) =>
-                new Intl.NumberFormat("en-US", {
-                  style: "currency",
-                  currency,
-                }).format(value)
-              }
+              formatter={(value: number) => formatMoney(Math.round(value * 100), currency, locale)}
             />
             <Legend />
             <Bar dataKey="Reservations" stackId="a" fill={CHART_COLORS.reservation} />

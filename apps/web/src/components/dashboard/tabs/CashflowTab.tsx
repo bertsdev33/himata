@@ -10,6 +10,7 @@ import {
   TableCell,
 } from "@/components/ui/table";
 import { formatMoney, formatMonth } from "@/lib/format";
+import { useLocaleContext } from "@/i18n/LocaleProvider";
 import type { MonthlyCashflow, YearMonth } from "@rental-analytics/core";
 
 interface CashflowTabProps {
@@ -19,6 +20,7 @@ interface CashflowTabProps {
 }
 
 export function CashflowTab({ cashflow, currency, projection = false }: CashflowTabProps) {
+  const { locale } = useLocaleContext();
   const payoutSummary = useMemo(() => {
     const monthMap = new Map<string, { totalPaid: number; eventCount: number }>();
     for (const cf of cashflow) {
@@ -31,11 +33,11 @@ export function CashflowTab({ cashflow, currency, projection = false }: Cashflow
       .sort(([a], [b]) => a.localeCompare(b))
       .map(([month, data]) => ({
         month,
-        label: formatMonth(month as YearMonth),
+        label: formatMonth(month as YearMonth, locale),
         totalPaid: data.totalPaid,
         eventCount: data.eventCount,
       }));
-  }, [cashflow]);
+  }, [cashflow, locale]);
 
   return (
     <div className="space-y-6">
@@ -60,7 +62,7 @@ export function CashflowTab({ cashflow, currency, projection = false }: Cashflow
                   <TableRow key={row.month}>
                     <TableCell>{row.label}</TableCell>
                     <TableCell className="text-right">
-                      {formatMoney(row.totalPaid, currency)}
+                      {formatMoney(row.totalPaid, currency, locale)}
                     </TableCell>
                     <TableCell className="text-right">{row.eventCount}</TableCell>
                   </TableRow>

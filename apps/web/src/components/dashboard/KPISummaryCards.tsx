@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tooltip } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
 import { formatMoney, formatPercent, formatDeltaPercent } from "@/lib/format";
+import { useLocaleContext } from "@/i18n/LocaleProvider";
 import type { MonthlyPortfolioPerformance, EstimatedOccupancy } from "@rental-analytics/core";
 import { Info } from "lucide-react";
 import type { RevenueBasis } from "@/app/types";
@@ -22,6 +23,7 @@ export function KPISummaryCards({
   revenueBasis = "net",
   hasProjection = false,
 }: KPISummaryCardsProps) {
+  const { locale } = useLocaleContext();
   const totalNet = portfolioPerf.reduce((sum, p) => sum + p.netRevenueMinor, 0);
   const totalGross = portfolioPerf.reduce((sum, p) => sum + p.grossRevenueMinor, 0);
   const totalNights = portfolioPerf.reduce((sum, p) => sum + p.bookedNights, 0);
@@ -55,30 +57,30 @@ export function KPISummaryCards({
   const cards = [
     {
       title: "Total Net Revenue",
-      value: formatMoney(totalNet, currency),
+      value: formatMoney(totalNet, currency, locale),
       badge: projBadge,
     },
     {
       title: "Total Gross Revenue",
-      value: formatMoney(totalGross, currency),
+      value: formatMoney(totalGross, currency, locale),
       badge: projBadge,
     },
     {
       title: "Booked Nights",
-      value: totalNights.toLocaleString(),
+      value: totalNights.toLocaleString(locale),
     },
     {
       title: "Est. Occupancy",
-      value: formatPercent(avgOccupancy),
+      value: formatPercent(avgOccupancy, locale),
       tooltip: "booked nights / (days_in_month * listings_in_service); not true occupancy",
     },
     {
       title: "Avg. Daily Rate",
-      value: formatMoney(adr, currency),
+      value: formatMoney(adr, currency, locale),
     },
     {
       title: "MoM Change",
-      value: formatDeltaPercent(momChange),
+      value: formatDeltaPercent(momChange, locale),
       color: momChange === null ? undefined : momChange >= 0 ? "text-green-600" : "text-red-600",
       tooltip: `Month-over-month ${revenueBasis} revenue change`,
     },

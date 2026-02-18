@@ -5,6 +5,7 @@ import { RevenueTrendChart } from "../RevenueTrendChart";
 import { NightsVsAdrChart } from "../NightsVsAdrChart";
 import { formatMoney, formatDeltaPercent } from "@/lib/format";
 import { projectMonthValue } from "@/lib/dashboard-utils";
+import { useLocaleContext } from "@/i18n/LocaleProvider";
 import {
   computeMonthlyPortfolioPerformance,
 } from "@rental-analytics/core";
@@ -21,6 +22,7 @@ export function ListingDetail({
   currency,
   projection,
 }: ListingDetailProps) {
+  const { locale } = useLocaleContext();
   // Convert listing perf to portfolio perf for RevenueTrendChart
   const portfolioPerf = useMemo(
     () => computeMonthlyPortfolioPerformance(listingPerf),
@@ -116,7 +118,7 @@ export function ListingDetail({
                     indicator.isOver ? "text-green-700" : "text-red-700"
                   }`}
                 >
-                  {formatDeltaPercent(indicator.delta)}
+                  {formatDeltaPercent(indicator.delta, locale)}
                 </p>
                 <p
                   className={`text-sm font-medium ${
@@ -128,13 +130,13 @@ export function ListingDetail({
               </div>
               <div className="text-sm text-muted-foreground space-y-1">
                 <p>
-                  Current: {formatMoney(indicator.currentVal, currency)}
+                  Current: {formatMoney(indicator.currentVal, currency, locale)}
                   {indicator.isProjected && (
                     <span className="ml-1 text-xs text-yellow-600">(projected)</span>
                   )}
                 </p>
                 <p>
-                  Trailing Avg: {formatMoney(Math.round(indicator.trailingAvg), currency)}
+                  Trailing Avg: {formatMoney(Math.round(indicator.trailingAvg), currency, locale)}
                 </p>
               </div>
             </div>

@@ -13,7 +13,8 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CHART_COLORS, MULTI_LINE_COLORS } from "@/lib/chart-colors";
-import { formatMonth, formatMoneyCompact } from "@/lib/format";
+import { formatMoney, formatMonth, formatMoneyCompact } from "@/lib/format";
+import { useLocaleContext } from "@/i18n/LocaleProvider";
 import type { MonthlyListingPerformance, YearMonth } from "@rental-analytics/core";
 import type { RevenueBasis } from "@/app/types";
 
@@ -31,6 +32,7 @@ export function MultiLineRevenueChart({
   projection = false,
 }: MultiLineRevenueChartProps) {
   const { getListingName } = useSettingsContext();
+  const { locale } = useLocaleContext();
   const [topOnly, setTopOnly] = useState(false);
 
   const totalListings = new Set(data.map((lp) => lp.listingId)).size;
@@ -80,7 +82,7 @@ export function MultiLineRevenueChart({
     const rows = months.map((month) => {
       const values = monthMap.get(month)!;
       const entry: Record<string, string | number> = {
-        label: formatMonth(month as YearMonth),
+        label: formatMonth(month as YearMonth, locale),
       };
       for (const id of selectedIds) {
         entry[id] = values[id] ?? 0;
@@ -96,7 +98,7 @@ export function MultiLineRevenueChart({
     });
 
     return { chartData: rows, listingIds: selectedIds, listingNames: names, hasProjection: showProjection };
-  }, [data, revenueBasis, topOnly, totalListings, projection]);
+  }, [data, locale, revenueBasis, topOnly, totalListings, projection]);
 
   return (
     <Card>
@@ -118,17 +120,12 @@ export function MultiLineRevenueChart({
             <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
             <XAxis dataKey="label" className="text-xs" />
             <YAxis
-              tickFormatter={(v) => formatMoneyCompact(v * 100, currency)}
+              tickFormatter={(v) => formatMoneyCompact(v * 100, currency, locale)}
               className="text-xs"
               domain={[(dataMin: number) => Math.min(0, dataMin), "auto"]}
             />
             <Tooltip
-              formatter={(value: number) =>
-                new Intl.NumberFormat("en-US", {
-                  style: "currency",
-                  currency,
-                }).format(value)
-              }
+              formatter={(value: number) => formatMoney(Math.round(value * 100), currency, locale)}
             />
             <Legend />
             {listingIds.map((id, i) => (

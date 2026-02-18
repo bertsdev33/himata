@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/table";
 import { formatMoney, formatDeltaPercent } from "@/lib/format";
 import { projectMonthValue } from "@/lib/dashboard-utils";
+import { useLocaleContext } from "@/i18n/LocaleProvider";
 import type { MonthlyListingPerformance } from "@rental-analytics/core";
 
 interface TopMoversTableProps {
@@ -32,6 +33,7 @@ interface MoverRow {
 
 export function TopMoversTable({ listingPerf, currency, projection = false }: TopMoversTableProps) {
   const { getListingName } = useSettingsContext();
+  const { locale } = useLocaleContext();
 
   const movers = useMemo(() => {
     if (listingPerf.length === 0) return [];
@@ -153,17 +155,17 @@ export function TopMoversTable({ listingPerf, currency, projection = false }: To
                     {getListingName(m.listingId, m.listingName)}
                   </TableCell>
                   <TableCell className="text-right">
-                    {formatMoney(m.currentRevenue, currency)}
+                    {formatMoney(m.currentRevenue, currency, locale)}
                   </TableCell>
                   <TableCell className="text-right">
-                    {formatMoney(m.previousRevenue, currency)}
+                    {formatMoney(m.previousRevenue, currency, locale)}
                   </TableCell>
                   <TableCell className={`text-right font-medium ${deltaColor}`}>
                     {m.momDelta >= 0 ? "+" : ""}
-                    {formatMoney(m.momDelta, currency)}
+                    {formatMoney(m.momDelta, currency, locale)}
                   </TableCell>
                   <TableCell className={`text-right ${deltaColor}`}>
-                    {formatDeltaPercent(m.momDeltaPct)}
+                    {formatDeltaPercent(m.momDeltaPct, locale)}
                   </TableCell>
                   <TableCell className={`text-right ${m.nightsDelta >= 0 ? "text-green-600" : "text-red-600"}`}>
                     {m.nightsDelta >= 0 ? "+" : ""}
@@ -171,7 +173,7 @@ export function TopMoversTable({ listingPerf, currency, projection = false }: To
                   </TableCell>
                   <TableCell className={`text-right ${m.adrDelta >= 0 ? "text-green-600" : "text-red-600"}`}>
                     {m.adrDelta >= 0 ? "+" : ""}
-                    {formatMoney(m.adrDelta, currency)}
+                    {formatMoney(m.adrDelta, currency, locale)}
                   </TableCell>
                 </TableRow>
               );

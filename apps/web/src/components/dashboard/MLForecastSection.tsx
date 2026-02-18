@@ -12,6 +12,7 @@ import {
 import { ForecastConfidenceBadge } from "./ForecastConfidenceBadge";
 import { formatMoney, formatMonth } from "@/lib/format";
 import { useSettingsContext } from "@/app/settings-context";
+import { useLocaleContext } from "@/i18n/LocaleProvider";
 import { BrainCircuit, ChevronDown, ChevronRight } from "lucide-react";
 import type { ForecastResult } from "@rental-analytics/forecasting";
 import type { YearMonth } from "@rental-analytics/core";
@@ -22,6 +23,7 @@ interface MLForecastSectionProps {
 
 export function MLForecastSection({ forecast }: MLForecastSectionProps) {
   const { settings } = useSettingsContext();
+  const { locale } = useLocaleContext();
   const [showExcluded, setShowExcluded] = useState(false);
   const { portfolio, listings, excluded } = forecast;
 
@@ -50,7 +52,7 @@ export function MLForecastSection({ forecast }: MLForecastSectionProps) {
       <Card>
         <CardHeader className="pb-2">
           <CardTitle className="text-base">
-            ML Forecast — {formatMonth(portfolioMonth as YearMonth)}
+            ML Forecast — {formatMonth(portfolioMonth as YearMonth, locale)}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -58,19 +60,19 @@ export function MLForecastSection({ forecast }: MLForecastSectionProps) {
             <div>
               <p className="text-sm text-muted-foreground">Predicted Gross Revenue</p>
               <p className="text-2xl font-bold">
-                {formatMoney(portfolio.forecastGrossRevenueMinor, currency)}
+                {formatMoney(portfolio.forecastGrossRevenueMinor, currency, locale)}
               </p>
               {hasMultipleTargetMonths && (
                 <p className="text-xs text-muted-foreground mt-1">
-                  Total for {portfolio.listingForecasts.length} of {listings.length} listings targeting {formatMonth(portfolioMonth as YearMonth)}
+                  Total for {portfolio.listingForecasts.length} of {listings.length} listings targeting {formatMonth(portfolioMonth as YearMonth, locale)}
                 </p>
               )}
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Confidence Range</p>
               <p className="text-lg font-medium">
-                {formatMoney(portfolio.lowerBandMinor, currency)} –{" "}
-                {formatMoney(portfolio.upperBandMinor, currency)}
+                {formatMoney(portfolio.lowerBandMinor, currency, locale)} –{" "}
+                {formatMoney(portfolio.upperBandMinor, currency, locale)}
               </p>
             </div>
             <div>
@@ -112,15 +114,15 @@ export function MLForecastSection({ forecast }: MLForecastSectionProps) {
                         {getDisplayName(listing.listingId, listing.listingName)}
                       </TableCell>
                       <TableCell className="text-right">
-                        {formatMoney(listing.forecastGrossRevenueMinor, listing.currency)}
+                        {formatMoney(listing.forecastGrossRevenueMinor, listing.currency, locale)}
                       </TableCell>
                       <TableCell className="text-right text-sm text-muted-foreground">
-                        {formatMoney(listing.lowerBandMinor, listing.currency)} –{" "}
-                        {formatMoney(listing.upperBandMinor, listing.currency)}
+                        {formatMoney(listing.lowerBandMinor, listing.currency, locale)} –{" "}
+                        {formatMoney(listing.upperBandMinor, listing.currency, locale)}
                       </TableCell>
                       {hasMultipleTargetMonths && (
                         <TableCell className="text-sm">
-                          {formatMonth(listing.targetMonth as YearMonth)}
+                          {formatMonth(listing.targetMonth as YearMonth, locale)}
                         </TableCell>
                       )}
                       <TableCell className="text-center">
