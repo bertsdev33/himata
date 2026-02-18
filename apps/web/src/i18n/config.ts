@@ -1,12 +1,11 @@
 export const defaultLocale = "en" as const;
-export const locales = ["en", "es", "fr", "zh"] as const;
+export const locales = ["en", "es", "fr"] as const;
 export type Locale = (typeof locales)[number];
 
 export const localeLabels: Record<Locale, string> = {
   en: "English",
   es: "Espanol",
   fr: "Francais",
-  zh: "中文",
 };
 
 /** BCP-47 tags for Intl.NumberFormat / Intl.DateTimeFormat. */
@@ -14,7 +13,6 @@ export const intlLocaleMap: Record<Locale, string> = {
   en: "en-US",
   es: "es-ES",
   fr: "fr-FR",
-  zh: "zh-CN",
 };
 
 export const namespaces = [

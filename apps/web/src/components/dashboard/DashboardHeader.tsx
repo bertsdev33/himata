@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useAppContext } from "@/app/state";
 import { useLocaleContext } from "@/i18n/LocaleProvider";
-import { ReactLanguageSwitcher } from "./ReactLanguageSwitcher";
+import { LocaleSwitcher } from "@/components/LocaleSwitcher";
 
 export function DashboardHeader() {
   const { state, dispatch } = useAppContext();
@@ -19,7 +19,7 @@ export function DashboardHeader() {
         <Badge variant="secondary">{currency}</Badge>
       </div>
       <div className="flex items-center gap-3">
-        <ReactLanguageSwitcher />
+        <LocaleSwitcher />
         <Button variant="outline" onClick={() => dispatch({ type: "RESET" })}>
           <ArrowLeft className="mr-2 h-4 w-4" />
           {t("actions.upload_new_files")}

@@ -28,16 +28,6 @@ import fr_dataQuality from "./locales/fr/data-quality.json";
 import fr_insights from "./locales/fr/insights.json";
 import fr_errors from "./locales/fr/errors.json";
 
-import zh_common from "./locales/zh/common.json";
-import zh_dashboard from "./locales/zh/dashboard.json";
-import zh_upload from "./locales/zh/upload.json";
-import zh_forecast from "./locales/zh/forecast.json";
-import zh_cashflow from "./locales/zh/cashflow.json";
-import zh_settings from "./locales/zh/settings.json";
-import zh_dataQuality from "./locales/zh/data-quality.json";
-import zh_insights from "./locales/zh/insights.json";
-import zh_errors from "./locales/zh/errors.json";
-
 export const resources = {
   en: {
     common: en_common,
@@ -71,16 +61,5 @@ export const resources = {
     "data-quality": fr_dataQuality,
     insights: fr_insights,
     errors: fr_errors,
-  },
-  zh: {
-    common: zh_common,
-    dashboard: zh_dashboard,
-    upload: zh_upload,
-    forecast: zh_forecast,
-    cashflow: zh_cashflow,
-    settings: zh_settings,
-    "data-quality": zh_dataQuality,
-    insights: zh_insights,
-    errors: zh_errors,
   },
 } as const;

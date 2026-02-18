@@ -17,8 +17,8 @@ describe("i18n routing helpers", () => {
     expect(buildLocalePath("/", "es")).toBe("/es");
     expect(buildLocalePath("/es", "en")).toBe("/");
     expect(buildLocalePath("/es/forecast", "fr")).toBe("/fr/forecast");
-    expect(buildLocalePath("/dashboard", "zh")).toBe("/zh/dashboard");
-    expect(buildLocalePath("/zh/transactions/123", "en")).toBe("/transactions/123");
+    expect(buildLocalePath("/dashboard", "fr")).toBe("/fr/dashboard");
+    expect(buildLocalePath("/fr/transactions/123", "en")).toBe("/transactions/123");
   });
 
   test("buildLocaleNavigationUrl preserves search and hash", () => {

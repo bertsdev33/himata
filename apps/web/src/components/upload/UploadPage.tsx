@@ -5,6 +5,7 @@ import { useAppContext } from "@/app/state";
 import { computeAnalytics } from "@/app/compute-analytics";
 import { prefillAccountId, detectDatasetKind } from "@/lib/file-helpers";
 import { useLocaleContext } from "@/i18n/LocaleProvider";
+import { LocaleSwitcher } from "@/components/LocaleSwitcher";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { FileDropzone } from "./FileDropzone";
@@ -64,11 +65,16 @@ export function UploadPage() {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-16">
-      <div className="text-center mb-10">
-        <h1 className="text-4xl font-bold tracking-tight">{t("app.title", { ns: "common" })}</h1>
-        <p className="text-muted-foreground mt-3 text-lg">
-          {t("subtitle", { ns: "upload" })}
-        </p>
+      <div className="mb-10">
+        <div className="mb-4 flex justify-end">
+          <LocaleSwitcher />
+        </div>
+        <div className="text-center">
+          <h1 className="text-4xl font-bold tracking-tight">{t("app.title", { ns: "common" })}</h1>
+          <p className="text-muted-foreground mt-3 text-lg">
+            {t("subtitle", { ns: "upload" })}
+          </p>
+        </div>
       </div>
 
       <FileDropzone

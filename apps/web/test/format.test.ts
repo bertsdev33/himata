@@ -42,8 +42,8 @@ describe("format helpers", () => {
       }).format(1234.56),
     );
 
-    expect(formatPercent(0.125, "zh")).toBe(
-      new Intl.NumberFormat(localeTag("zh"), {
+    expect(formatPercent(0.125, "fr")).toBe(
+      new Intl.NumberFormat(localeTag("fr"), {
         style: "percent",
         minimumFractionDigits: 1,
         maximumFractionDigits: 1,
