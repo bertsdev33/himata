@@ -7,6 +7,7 @@ import en_settings from "./locales/en/settings.json";
 import en_dataQuality from "./locales/en/data-quality.json";
 import en_insights from "./locales/en/insights.json";
 import en_errors from "./locales/en/errors.json";
+import en_notifications from "./locales/en/notifications.json";
 
 import es_common from "./locales/es/common.json";
 import es_dashboard from "./locales/es/dashboard.json";
@@ -17,6 +18,7 @@ import es_settings from "./locales/es/settings.json";
 import es_dataQuality from "./locales/es/data-quality.json";
 import es_insights from "./locales/es/insights.json";
 import es_errors from "./locales/es/errors.json";
+import es_notifications from "./locales/es/notifications.json";
 
 import fr_common from "./locales/fr/common.json";
 import fr_dashboard from "./locales/fr/dashboard.json";
@@ -27,6 +29,7 @@ import fr_settings from "./locales/fr/settings.json";
 import fr_dataQuality from "./locales/fr/data-quality.json";
 import fr_insights from "./locales/fr/insights.json";
 import fr_errors from "./locales/fr/errors.json";
+import fr_notifications from "./locales/fr/notifications.json";
 
 export const resources = {
   en: {
@@ -39,6 +42,7 @@ export const resources = {
     "data-quality": en_dataQuality,
     insights: en_insights,
     errors: en_errors,
+    notifications: en_notifications,
   },
   es: {
     common: es_common,
@@ -50,6 +54,7 @@ export const resources = {
     "data-quality": es_dataQuality,
     insights: es_insights,
     errors: es_errors,
+    notifications: es_notifications,
   },
   fr: {
     common: fr_common,
@@ -61,5 +66,6 @@ export const resources = {
     "data-quality": fr_dataQuality,
     insights: fr_insights,
     errors: fr_errors,
+    notifications: fr_notifications,
   },
 } as const;

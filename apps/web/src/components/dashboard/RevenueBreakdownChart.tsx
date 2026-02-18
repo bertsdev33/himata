@@ -11,6 +11,7 @@ import {
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CHART_COLORS } from "@/lib/chart-colors";
+import { useIsMobile } from "@/hooks/useIsMobile";
 import { formatMoney, formatMonth, formatMoneyCompact } from "@/lib/format";
 import { useLocaleContext } from "@/i18n/LocaleProvider";
 import { useTranslation } from "react-i18next";
@@ -25,6 +26,7 @@ interface RevenueBreakdownChartProps {
 export function RevenueBreakdownChart({ data, currency, projection = false }: RevenueBreakdownChartProps) {
   const { locale } = useLocaleContext();
   const { t } = useTranslation("dashboard", { lng: locale });
+  const isMobile = useIsMobile();
   const chartData = useMemo(() => {
     // Aggregate by month across all listings
     const monthMap = new Map<
@@ -87,8 +89,8 @@ export function RevenueBreakdownChart({ data, currency, projection = false }: Re
         <CardTitle className="text-base">{t("charts.revenue_breakdown.title")}</CardTitle>
       </CardHeader>
       <CardContent className="min-w-0 overflow-hidden">
-        <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={chartData} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
+        <ResponsiveContainer width="100%" height={isMobile ? 220 : 300}>
+          <BarChart data={chartData} margin={{ top: 5, right: isMobile ? 8 : 20, left: isMobile ? 0 : 10, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
             <XAxis dataKey="label" className="text-xs" />
             <YAxis

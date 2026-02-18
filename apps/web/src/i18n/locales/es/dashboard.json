@@ -9,6 +9,14 @@
     "data_quality": "Calidad de Datos",
     "settings": "Configuración",
     "not_available": "No disponible",
+    "mobile": {
+      "open_navigation": "Abrir navegación de pestañas",
+      "close_navigation": "Cerrar navegación de pestañas",
+      "navigation_menu": "Navegación de pestañas del panel",
+      "previous_tab": "Pestaña anterior",
+      "next_tab": "Pestaña siguiente",
+      "tab_indicator": "{{current}} de {{total}}"
+    },
     "reasons": {
       "no_data_matches_filters": "No hay datos para los filtros actuales",
       "need_two_or_more_listings": "Se necesitan 2+ anuncios en el conjunto filtrado",
@@ -65,7 +73,10 @@
       "pin_accounts": "Fijar filtros rápidos de cuentas",
       "unpin_accounts": "Soltar filtros rápidos de cuentas",
       "pin_listings": "Fijar filtros rápidos de anuncios",
-      "unpin_listings": "Soltar filtros rápidos de anuncios"
+      "unpin_listings": "Soltar filtros rápidos de anuncios",
+      "filters": "Filtros",
+      "open_filters": "Abrir filtros",
+      "close_filters": "Cerrar filtros"
     },
     "multi_select": {
       "select_placeholder": "Seleccionar",
@@ -114,7 +125,9 @@
       "share": "Participación"
     },
     "actions": {
-      "view_listing": "Ver detalle del anuncio"
+      "view_listing": "Ver detalle del anuncio",
+      "sort_by": "Ordenar anuncios por",
+      "toggle_sort_direction": "Alternar dirección de orden"
     }
   },
   "charts": {
@@ -211,6 +224,10 @@
   "transactions": {
     "title": "Transacciones ({{count}})",
     "search_placeholder": "Buscar anuncio, cuenta o tipo...",
+    "actions": {
+      "sort_by": "Ordenar transacciones por",
+      "toggle_sort_direction": "Alternar dirección de orden"
+    },
     "columns": {
       "date": "Fecha",
       "type": "Tipo",

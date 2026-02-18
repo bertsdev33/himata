@@ -1,0 +1,10 @@
+{
+  "title": "Notifications",
+  "mark_all_read": "Tout marquer comme lu",
+  "mark_read": "Marquer comme lu",
+  "already_read": "Déjà lu",
+  "empty": "Aucune notification",
+  "import_group": "{{name}} ({{count}})",
+  "forecast_failed": "Prévision ML échouée",
+  "forecast_stale": "Prévision ML obsolète"
+}

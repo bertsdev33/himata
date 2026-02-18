@@ -40,6 +40,8 @@ function MultiSelect({
   const [open, setOpen] = React.useState(false);
   const [search, setSearch] = React.useState("");
   const ref = React.useRef<HTMLDivElement>(null);
+  const menuRef = React.useRef<HTMLDivElement>(null);
+  const [menuOffsetLeft, setMenuOffsetLeft] = React.useState(0);
 
   React.useEffect(() => {
     function handleClick(e: MouseEvent) {
@@ -50,6 +52,42 @@ function MultiSelect({
     document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
+
+  const updateMenuPosition = React.useCallback(() => {
+    if (!open || !menuRef.current) return;
+
+    const menuRect = menuRef.current.getBoundingClientRect();
+    const viewportPadding = 8;
+    let nextOffset = 0;
+
+    if (menuRect.right > window.innerWidth - viewportPadding) {
+      nextOffset -= menuRect.right - (window.innerWidth - viewportPadding);
+    }
+    if (menuRect.left + nextOffset < viewportPadding) {
+      nextOffset += viewportPadding - (menuRect.left + nextOffset);
+    }
+
+    setMenuOffsetLeft(nextOffset);
+  }, [open]);
+
+  React.useEffect(() => {
+    if (!open) {
+      setMenuOffsetLeft(0);
+      return;
+    }
+
+    const rafId = window.requestAnimationFrame(updateMenuPosition);
+    const handleViewportChange = () => updateMenuPosition();
+
+    window.addEventListener("resize", handleViewportChange);
+    window.addEventListener("scroll", handleViewportChange, true);
+
+    return () => {
+      window.cancelAnimationFrame(rafId);
+      window.removeEventListener("resize", handleViewportChange);
+      window.removeEventListener("scroll", handleViewportChange, true);
+    };
+  }, [open, options.length, selected.length, search, updateMenuPosition]);
 
   const filtered = searchable && search
     ? options.filter((o) => o.label.toLowerCase().includes(search.toLowerCase()))
@@ -102,7 +140,11 @@ function MultiSelect({
       </button>
 
       {open && (
-        <div className="absolute z-50 mt-1 w-full min-w-[220px] rounded-md border bg-popover shadow-md animate-in fade-in-0 zoom-in-95">
+        <div
+          ref={menuRef}
+          style={menuOffsetLeft === 0 ? undefined : { left: `${menuOffsetLeft}px` }}
+          className="absolute left-0 z-50 mt-1 w-max min-w-full max-w-[calc(100vw-1rem)] rounded-md border bg-popover shadow-md animate-in fade-in-0 zoom-in-95"
+        >
           {searchable && (
             <div className="flex items-center border-b px-3 py-2">
               <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />

@@ -78,7 +78,7 @@ export function FileDropzone({ onFilesSelected, onError }: FileDropzoneProps) {
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
       className={`
-        relative flex cursor-pointer flex-col items-center justify-center gap-4 rounded-lg border-2 border-dashed p-12
+        relative flex cursor-pointer flex-col items-center justify-center gap-4 rounded-lg border-2 border-dashed p-6 sm:p-12
         transition-colors
         ${isDragOver
           ? "border-primary bg-primary/5"

@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState, useEffect, useRef } from "react";
 import {
   BarChart,
   Bar,
@@ -12,8 +12,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { CHART_COLORS } from "@/lib/chart-colors";
+import { useIsMobile } from "@/hooks/useIsMobile";
 import { formatMoney, formatMonth, formatMoneyCompact } from "@/lib/format";
-import { AlertTriangle, Loader2 } from "lucide-react";
+import { AlertTriangle, Loader2, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { MLForecastSection } from "../MLForecastSection";
 import { useLocaleContext } from "@/i18n/LocaleProvider";
@@ -54,6 +55,12 @@ export function ForecastTab({
 }: ForecastTabProps) {
   const { locale } = useLocaleContext();
   const { t } = useTranslation("forecast", { lng: locale });
+  const isMobile = useIsMobile();
+  const getAxisInterval = (pointCount: number): number => {
+    if (!isMobile || pointCount <= 4) return 0;
+    // Keep around 4 ticks visible on narrow screens.
+    return Math.ceil(pointCount / 4) - 1;
+  };
   const upcomingRevenueData = useMemo(
     () =>
       [...portfolioPerf]
@@ -137,6 +144,14 @@ export function ForecastTab({
   const failed = mlRefreshStatus === "failed";
   const outdated = !upToDate && !refreshing && !failed;
   const workerPreparing = !mlWorkerReady && !refreshing;
+  const [bannerDismissed, setBannerDismissed] = useState(false);
+  const prevStatusRef = useRef(mlRefreshStatus);
+  useEffect(() => {
+    if (mlRefreshStatus !== prevStatusRef.current) {
+      prevStatusRef.current = mlRefreshStatus;
+      setBannerDismissed(false);
+    }
+  }, [mlRefreshStatus]);
 
   let primaryBannerClass = "border-yellow-200 bg-yellow-50";
   let primaryTextClass = "text-yellow-800";
@@ -189,31 +204,42 @@ export function ForecastTab({
 
   return (
     <div className="space-y-6">
-      <Alert className={primaryBannerClass}>
-        {refreshing ? (
-          <Loader2 className="h-4 w-4 animate-spin text-sky-700" />
-        ) : (
-          <AlertTriangle className="h-4 w-4 text-yellow-600" />
-        )}
-        <AlertDescription className={`${primaryTextClass} flex flex-wrap items-center justify-between gap-3`}>
-          <span>
-            {primaryMessage}
-            <span className="block text-xs font-normal">{requiredDisclaimer}</span>
-          </span>
-          {actionLabel && (
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={onRefreshMlForecast}
-              disabled={actionDisabled}
-              className="w-full sm:w-auto"
-            >
-              {actionLoading && <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />}
-              {actionLabel}
-            </Button>
+      {!bannerDismissed && (
+        <Alert className={`${primaryBannerClass} relative`}>
+          {refreshing ? (
+            <Loader2 className="h-4 w-4 animate-spin text-sky-700" />
+          ) : (
+            <AlertTriangle className="h-4 w-4 text-yellow-600" />
           )}
-        </AlertDescription>
-      </Alert>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setBannerDismissed(true)}
+            className="absolute right-1 top-1 h-7 w-7 text-muted-foreground hover:text-foreground"
+            aria-label={t("actions.dismiss")}
+          >
+            <X className="h-4 w-4" />
+          </Button>
+          <AlertDescription className={`${primaryTextClass} flex flex-wrap items-center justify-between gap-3 pr-8`}>
+            <span>
+              {primaryMessage}
+              <span className="block text-xs font-normal">{requiredDisclaimer}</span>
+            </span>
+            {actionLabel && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={onRefreshMlForecast}
+                disabled={actionDisabled}
+                className="w-full sm:w-auto"
+              >
+                {actionLoading && <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />}
+                {actionLabel}
+              </Button>
+            )}
+          </AlertDescription>
+        </Alert>
+      )}
 
       {isFallbackFullHistory && (
         <Alert className="border-violet-200 bg-violet-50">
@@ -249,14 +275,15 @@ export function ForecastTab({
             <CardTitle className="text-base">{t("cards.upcoming_revenue.title")}</CardTitle>
           </CardHeader>
           <CardContent className="min-w-0 overflow-hidden">
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={upcomingRevenueData} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
+            <ResponsiveContainer width="100%" height={isMobile ? 220 : 300}>
+              <BarChart data={upcomingRevenueData} margin={{ top: 5, right: isMobile ? 8 : 20, left: isMobile ? 0 : 10, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                 <XAxis
                   dataKey="month"
                   tickFormatter={(value) => formatMonth(value as YearMonth, locale)}
                   className="text-xs"
-                  interval={0}
+                  interval={getAxisInterval(upcomingRevenueData.length)}
+                  minTickGap={isMobile ? 18 : 8}
                 />
                 <YAxis
                   tickFormatter={(v) => formatMoneyCompact(v * 100, currency, locale)}
@@ -283,14 +310,15 @@ export function ForecastTab({
             <CardTitle className="text-base">{t("cards.upcoming_nights.title")}</CardTitle>
           </CardHeader>
           <CardContent className="min-w-0 overflow-hidden">
-            <ResponsiveContainer width="100%" height={250}>
-              <BarChart data={nightsData} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
+            <ResponsiveContainer width="100%" height={isMobile ? 200 : 250}>
+              <BarChart data={nightsData} margin={{ top: 5, right: isMobile ? 8 : 20, left: isMobile ? 0 : 10, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                 <XAxis
                   dataKey="month"
                   tickFormatter={(value) => formatMonth(value as YearMonth, locale)}
                   className="text-xs"
-                  interval={0}
+                  interval={getAxisInterval(nightsData.length)}
+                  minTickGap={isMobile ? 18 : 8}
                 />
                 <YAxis className="text-xs" />
                 <Tooltip />
@@ -312,14 +340,15 @@ export function ForecastTab({
             <CardTitle className="text-base">{t("cards.nowcast_forecast.title")}</CardTitle>
           </CardHeader>
           <CardContent className="min-w-0 overflow-hidden">
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={revenueData} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
+            <ResponsiveContainer width="100%" height={isMobile ? 220 : 300}>
+              <BarChart data={revenueData} margin={{ top: 5, right: isMobile ? 8 : 20, left: isMobile ? 0 : 10, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                 <XAxis
                   dataKey="month"
                   tickFormatter={(value) => formatMonth(value as YearMonth, locale)}
                   className="text-xs"
-                  interval={0}
+                  interval={getAxisInterval(revenueData.length)}
+                  minTickGap={isMobile ? 18 : 8}
                 />
                 <YAxis
                   tickFormatter={(v) => formatMoneyCompact(v * 100, currency, locale)}

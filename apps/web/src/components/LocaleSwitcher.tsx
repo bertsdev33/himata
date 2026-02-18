@@ -7,7 +7,7 @@ interface LocaleSwitcherProps {
   className?: string;
 }
 
-export function LocaleSwitcher({ className = "h-9 w-[140px]" }: LocaleSwitcherProps) {
+export function LocaleSwitcher({ className = "h-9 w-[110px] sm:w-[140px]" }: LocaleSwitcherProps) {
   const { locale, setLocale } = useLocaleContext();
   const { t } = useTranslation("common", { lng: locale });
   const options = locales.map((loc) => ({ value: loc, label: localeLabels[loc] }));

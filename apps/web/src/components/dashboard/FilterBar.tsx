@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect, useRef, type ReactNode } from "react";
 import { useAppContext, initialFilter } from "@/app/state";
 import { useSettingsContext } from "@/app/settings-context";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -6,14 +6,34 @@ import { Tooltip } from "@/components/ui/tooltip";
 import { Select } from "@/components/ui/select";
 import { MultiSelect } from "@/components/ui/multi-select";
 import { Button } from "@/components/ui/button";
-import { RotateCcw, ChevronDown, SlidersHorizontal, Pin, PinOff } from "lucide-react";
+import { RotateCcw, ChevronDown, SlidersHorizontal, Pin, PinOff, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useLocaleContext } from "@/i18n/LocaleProvider";
+import { useIsMobile } from "@/hooks/useIsMobile";
 import type { ViewMode } from "@/app/types";
 import { getPresetRange, type DatePreset } from "@/lib/dashboard-utils";
+import { deriveQuickFilterRowVisibility } from "@/lib/dashboard-responsive";
 
 const MAX_QUICK_ACCOUNTS = 10;
 const MAX_INLINE_LISTING_QUICK_FILTERS = 12;
+const QUICK_FILTER_SCROLL_CLASSES =
+  "flex min-w-0 flex-1 snap-x snap-mandatory items-center gap-1.5 overflow-x-auto whitespace-nowrap pr-8 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden";
+
+function QuickFilterScroller({ children }: { children: ReactNode }) {
+  return (
+    <div className="relative min-w-0 flex-1">
+      <div className={QUICK_FILTER_SCROLL_CLASSES}>{children}</div>
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-y-0 left-0 w-4 bg-gradient-to-r from-background to-transparent sm:hidden"
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-y-0 right-0 w-6 bg-gradient-to-l from-background to-transparent sm:hidden"
+      />
+    </div>
+  );
+}
 
 export function FilterBar() {
   const { state, dispatch } = useAppContext();
@@ -33,6 +53,35 @@ export function FilterBar() {
   if (!analytics) return null;
 
   const [isExpanded, setIsExpanded] = useState(settings.filterBarExpanded);
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const isMobile = useIsMobile();
+  const mobileOverlayRef = useRef<HTMLDivElement>(null);
+
+  // Lock body scroll and handle Escape when mobile filter panel is open
+  useEffect(() => {
+    if (!mobileFiltersOpen) return;
+
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        setMobileFiltersOpen(false);
+      }
+    };
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [mobileFiltersOpen]);
+
+  // Close mobile panel when resizing to desktop
+  useEffect(() => {
+    if (!isMobile) setMobileFiltersOpen(false);
+  }, [isMobile]);
 
   const handleToggleExpanded = () => {
     const next = !isExpanded;
@@ -368,10 +417,15 @@ export function FilterBar() {
   const hasAccountQuickFilters = quickAccounts.length > 1;
   const hasListingQuickFilters = quickListings.length > 1;
 
-  const showTimeQuickRow = isExpanded || settings.quickFilterPinnedTime;
-  const showAccountQuickRow = hasAccountQuickFilters && (isExpanded || settings.quickFilterPinnedAccounts);
-  const showListingQuickRow = hasListingQuickFilters && (isExpanded || settings.quickFilterPinnedListings);
-  const showAnyQuickRows = showTimeQuickRow || showAccountQuickRow || showListingQuickRow;
+  const { showTimeQuickRow, showAccountQuickRow, showListingQuickRow, showAnyQuickRows } =
+    deriveQuickFilterRowVisibility({
+      isExpanded,
+      hasAccountQuickFilters,
+      hasListingQuickFilters,
+      pinnedTime: settings.quickFilterPinnedTime,
+      pinnedAccounts: settings.quickFilterPinnedAccounts,
+      pinnedListings: settings.quickFilterPinnedListings,
+    });
   const multiSelectLabels = {
     selectPlaceholder: t("filter_bar.multi_select.select_placeholder"),
     all: t("filter_bar.multi_select.all"),
@@ -383,368 +437,444 @@ export function FilterBar() {
     clearSelectionAriaLabel: t("filter_bar.multi_select.clear_selection_aria"),
   };
 
-  return (
-    <div className="space-y-2 border-b bg-background px-4 py-2 sm:px-6">
-      {/* Row 1: Main filters — always visible */}
-      <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-        {/* Custom date range */}
-        <div className="flex w-full flex-wrap items-center gap-1.5 sm:w-auto sm:flex-nowrap">
-          <input
-            type="month"
-            value={filter.dateRange.start ?? ""}
-            min={monthBounds.min}
-            max={filter.dateRange.end ?? monthBounds.max}
-            onChange={(e) =>
-              dispatch({
-                type: "SET_FILTER",
-                filter: {
-                  dateRange: { ...filter.dateRange, start: e.target.value || null },
-                },
-              })
-            }
-            className={`h-8 w-full min-w-0 rounded-md border px-2 text-xs transition-colors sm:w-[9.5rem] ${
-              startIsForecast
-                ? "border-yellow-400 bg-yellow-50 text-yellow-800"
-                : "border-input bg-background"
-            }`}
-          />
-          <span className="text-xs text-muted-foreground">—</span>
-          <input
-            type="month"
-            value={filter.dateRange.end ?? ""}
-            min={filter.dateRange.start ?? monthBounds.min}
-            max={monthBounds.max}
-            onChange={(e) =>
-              dispatch({
-                type: "SET_FILTER",
-                filter: {
-                  dateRange: { ...filter.dateRange, end: e.target.value || null },
-                },
-              })
-            }
-            className={`h-8 w-full min-w-0 rounded-md border px-2 text-xs transition-colors sm:w-[9.5rem] ${
-              endIsForecast
-                ? "border-yellow-400 bg-yellow-50 text-yellow-800"
-                : "border-input bg-background"
-            }`}
-          />
-          {endInForecast && (
-            <span className="text-[10px] font-medium text-yellow-600">
-              {t("filter_bar.includes_forecast")}
-            </span>
-          )}
-        </div>
+  // Count of active filters for badge display
+  const activeFilterCount =
+    (filter.selectedAccountIds.length > 0 ? 1 : 0) +
+    (filter.selectedListingIds.length > 0 ? 1 : 0) +
+    (filter.dateRange.start !== null ? 1 : 0) +
+    (filter.dateRange.end !== null ? 1 : 0);
 
-        {/* Account multi-select */}
-        {analytics.accountIds.length > 1 && (
-          <div className="w-full sm:w-48">
-            <MultiSelect
-              options={accountOptions}
-              selected={filter.selectedAccountIds}
-              labels={multiSelectLabels}
-              onChange={(ids) =>
-                dispatch({
-                  type: "SET_FILTER",
-                  filter: {
-                    selectedAccountIds: ids,
-                    selectedListingIds: [],
-                  },
-                })
-              }
-              placeholder={t("filter_bar.placeholders.accounts")}
-            />
-          </div>
-        )}
-
-        {/* Listing multi-select */}
-        {listingOptions.length > 1 && (
-          <div className="w-full sm:w-64">
-            <MultiSelect
-              options={listingOptions}
-              selected={filter.selectedListingIds}
-              labels={multiSelectLabels}
-              onChange={(ids) =>
-                dispatch({
-                  type: "SET_FILTER",
-                  filter: { selectedListingIds: ids },
-                })
-              }
-              placeholder={t("filter_bar.placeholders.listings")}
-              searchable
-            />
-          </div>
-        )}
-
-        {/* Clear all filters */}
-        {hasActiveFilters && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleClearAll}
-            className="text-muted-foreground"
-          >
-            <RotateCcw className="mr-1 h-3.5 w-3.5" />
-            {t("filter_bar.actions.clear")}
-          </Button>
-        )}
-
-        {/* Currency selector */}
-        {analytics.currencies.length > 1 && (
-          <Select
-            value={filter.currency ?? analytics.currency}
-            onChange={(e) =>
-              dispatch({
-                type: "SET_FILTER",
-                filter: { currency: e.target.value },
-              })
-            }
-            options={analytics.currencies.map((c) => ({ value: c, label: c }))}
-            className="w-full sm:w-24"
-          />
-        )}
-
-        {/* Projection toggle */}
-        <label className="flex cursor-pointer items-center gap-2 text-sm">
-          <input
-            type="checkbox"
-            checked={filter.projection}
-            onChange={(e) =>
-              dispatch({
-                type: "SET_FILTER",
-                filter: { projection: e.target.checked },
-              })
-            }
-            className="h-4 w-4 rounded border-input"
-          />
-          <span className="text-muted-foreground whitespace-nowrap">
-            {t("filter_bar.actions.project_this_month")}
+  // ---- Shared filter content used in both mobile panel and desktop inline ----
+  const mainFiltersContent = (
+    <>
+      {/* Custom date range */}
+      <div className="flex w-full flex-wrap items-center gap-1.5 sm:w-auto sm:flex-nowrap">
+        <input
+          type="month"
+          value={filter.dateRange.start ?? ""}
+          min={monthBounds.min}
+          max={filter.dateRange.end ?? monthBounds.max}
+          onChange={(e) =>
+            dispatch({
+              type: "SET_FILTER",
+              filter: {
+                dateRange: { ...filter.dateRange, start: e.target.value || null },
+              },
+            })
+          }
+          className={`h-8 w-full min-w-0 rounded-md border px-2 text-xs transition-colors sm:w-[9.5rem] ${
+            startIsForecast
+              ? "border-yellow-400 bg-yellow-50 text-yellow-800"
+              : "border-input bg-background"
+          }`}
+        />
+        <span className="text-xs text-muted-foreground">—</span>
+        <input
+          type="month"
+          value={filter.dateRange.end ?? ""}
+          min={filter.dateRange.start ?? monthBounds.min}
+          max={monthBounds.max}
+          onChange={(e) =>
+            dispatch({
+              type: "SET_FILTER",
+              filter: {
+                dateRange: { ...filter.dateRange, end: e.target.value || null },
+              },
+            })
+          }
+          className={`h-8 w-full min-w-0 rounded-md border px-2 text-xs transition-colors sm:w-[9.5rem] ${
+            endIsForecast
+              ? "border-yellow-400 bg-yellow-50 text-yellow-800"
+              : "border-input bg-background"
+          }`}
+        />
+        {endInForecast && (
+          <span className="text-[10px] font-medium text-yellow-600">
+            {t("filter_bar.includes_forecast")}
           </span>
-        </label>
-
-        {/* Quick filters toggle + View mode — pushed right */}
-        <div className="flex w-full flex-wrap items-center gap-2 sm:ml-auto sm:w-auto sm:justify-end sm:gap-3">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleToggleExpanded}
-            className="gap-1.5 text-xs"
-          >
-            <SlidersHorizontal className="h-3.5 w-3.5" />
-            {t("filter_bar.actions.quick_filters")}
-            <ChevronDown className={`h-3.5 w-3.5 transition-transform duration-200 ${isExpanded ? "" : "-rotate-90"}`} />
-          </Button>
-          <span className="hidden whitespace-nowrap text-xs text-muted-foreground sm:inline">
-            {t("filter_bar.data_scope")}
-          </span>
-          <Tabs
-            value={filter.viewMode}
-            onValueChange={(v) =>
-              dispatch({ type: "SET_FILTER", filter: { viewMode: v as ViewMode } })
-            }
-            className="w-full sm:w-auto"
-          >
-            <TabsList className="h-auto w-full flex-wrap sm:w-auto">
-              {viewOptions.map((opt) => (
-                <Tooltip key={opt.value} content={opt.description}>
-                  <TabsTrigger value={opt.value} className="flex-1 sm:flex-none">
-                    {opt.label}
-                  </TabsTrigger>
-                </Tooltip>
-              ))}
-            </TabsList>
-          </Tabs>
-        </div>
+        )}
       </div>
 
-      {/* Row 2+: Quick actions — pinned rows can remain visible while collapsed */}
-      <div
-        className={`grid transition-[grid-template-rows] duration-300 ease-in-out ${
-          showAnyQuickRows ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
-        }`}
-      >
-        <div className="overflow-hidden">
-          <div className="space-y-1 pb-1 text-sm">
-            {showTimeQuickRow && (
-              <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-center">
-                <span className="w-full text-xs font-medium text-muted-foreground sm:w-16 sm:shrink-0">
-                  {t("filter_bar.rows.time")}
-                </span>
-                <div className="flex min-w-0 flex-1 items-center gap-1.5 overflow-x-auto whitespace-nowrap">
-                  {activeTimePresets.map((opt) => (
-                    <button
-                      key={opt.key}
-                      type="button"
-                      onClick={() => handleQuickTime(opt.key)}
-                      className={`shrink-0 rounded-md border px-3 py-1 transition-colors ${
-                        activeQuickTime === opt.key
-                          ? "bg-primary text-primary-foreground border-primary"
-                          : "border-border text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-                      }`}
-                    >
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
-                <Button
-                  type="button"
-                  variant={settings.quickFilterPinnedTime ? "secondary" : "ghost"}
-                  size="sm"
-                  className="h-7 shrink-0 self-end px-2 sm:self-auto"
-                  onClick={() => setQuickFilterPinnedTime(!settings.quickFilterPinnedTime)}
-                  aria-label={
-                    settings.quickFilterPinnedTime
-                      ? t("filter_bar.actions.unpin_time")
-                      : t("filter_bar.actions.pin_time")
-                  }
-                >
-                  {settings.quickFilterPinnedTime ? <Pin className="h-3.5 w-3.5" /> : <PinOff className="h-3.5 w-3.5" />}
-                </Button>
-              </div>
-            )}
+      {/* Account multi-select */}
+      {analytics.accountIds.length > 1 && (
+        <div className="w-full sm:w-48">
+          <MultiSelect
+            options={accountOptions}
+            selected={filter.selectedAccountIds}
+            labels={multiSelectLabels}
+            onChange={(ids) =>
+              dispatch({
+                type: "SET_FILTER",
+                filter: {
+                  selectedAccountIds: ids,
+                  selectedListingIds: [],
+                },
+              })
+            }
+            placeholder={t("filter_bar.placeholders.accounts")}
+          />
+        </div>
+      )}
 
-            {showAccountQuickRow && (
-              <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-center">
-                <span className="w-full text-xs font-medium text-muted-foreground sm:w-16 sm:shrink-0">
-                  {t("filter_bar.rows.accounts")}
-                </span>
-                <div className="flex min-w-0 flex-1 items-center gap-1.5 overflow-x-auto whitespace-nowrap">
-                  <button
+      {/* Listing multi-select */}
+      {listingOptions.length > 1 && (
+        <div className="w-full sm:w-64">
+          <MultiSelect
+            options={listingOptions}
+            selected={filter.selectedListingIds}
+            labels={multiSelectLabels}
+            onChange={(ids) =>
+              dispatch({
+                type: "SET_FILTER",
+                filter: { selectedListingIds: ids },
+              })
+            }
+            placeholder={t("filter_bar.placeholders.listings")}
+            searchable
+          />
+        </div>
+      )}
+
+      {/* Clear all filters */}
+      {hasActiveFilters && (
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={handleClearAll}
+          className="text-muted-foreground"
+        >
+          <RotateCcw className="mr-1 h-3.5 w-3.5" />
+          {t("filter_bar.actions.clear")}
+        </Button>
+      )}
+
+      {/* Currency selector */}
+      {analytics.currencies.length > 1 && (
+        <Select
+          value={filter.currency ?? analytics.currency}
+          onChange={(e) =>
+            dispatch({
+              type: "SET_FILTER",
+              filter: { currency: e.target.value },
+            })
+          }
+          options={analytics.currencies.map((c) => ({ value: c, label: c }))}
+          className="w-full sm:w-24"
+        />
+      )}
+
+      {/* Projection toggle */}
+      <label className="flex cursor-pointer items-center gap-2 text-sm">
+        <input
+          type="checkbox"
+          checked={filter.projection}
+          onChange={(e) =>
+            dispatch({
+              type: "SET_FILTER",
+              filter: { projection: e.target.checked },
+            })
+          }
+          className="h-4 w-4 rounded border-input"
+        />
+        <span className="text-muted-foreground whitespace-nowrap">
+          {t("filter_bar.actions.project_this_month")}
+        </span>
+      </label>
+    </>
+  );
+
+  // ---- View mode tabs (shared between mobile compact bar and desktop) ----
+  const viewModeTabs = (
+    <Tabs
+      value={filter.viewMode}
+      onValueChange={(v) =>
+        dispatch({ type: "SET_FILTER", filter: { viewMode: v as ViewMode } })
+      }
+      className="w-full sm:w-auto"
+    >
+      <TabsList className="h-auto w-full flex-wrap sm:w-auto">
+        {viewOptions.map((opt) => (
+          <Tooltip key={opt.value} content={opt.description}>
+            <TabsTrigger value={opt.value} className="flex-1 sm:flex-none">
+              {opt.label}
+            </TabsTrigger>
+          </Tooltip>
+        ))}
+      </TabsList>
+    </Tabs>
+  );
+
+  return (
+    <>
+      {/* ===== Mobile: compact bar + overlay panel ===== */}
+      <div className="flex items-center gap-2 border-b bg-background px-4 py-2 sm:hidden">
+        <Button
+          variant="outline"
+          size="sm"
+          className="relative gap-1.5 text-xs"
+          onClick={() => setMobileFiltersOpen(true)}
+          aria-label={t("filter_bar.actions.open_filters")}
+        >
+          <SlidersHorizontal className="h-3.5 w-3.5" />
+          {t("filter_bar.actions.filters")}
+          {activeFilterCount > 0 && (
+            <span className="absolute -right-1.5 -top-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
+              {activeFilterCount}
+            </span>
+          )}
+        </Button>
+        <div className="flex-1">{viewModeTabs}</div>
+      </div>
+
+      {/* Mobile filter overlay panel */}
+      {mobileFiltersOpen && (
+        <div className="fixed inset-0 z-50 sm:hidden" role="dialog" aria-modal="true">
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-black/45"
+            onClick={() => setMobileFiltersOpen(false)}
+            aria-hidden="true"
+          />
+          {/* Panel */}
+          <div
+            ref={mobileOverlayRef}
+            className="absolute inset-0 overflow-y-auto bg-background"
+          >
+            <div className="flex items-center justify-between border-b px-4 py-3">
+              <p className="text-sm font-semibold">{t("filter_bar.actions.filters")}</p>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setMobileFiltersOpen(false)}
+                aria-label={t("filter_bar.actions.close_filters")}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="space-y-4 p-4">
+              <div className="flex flex-wrap items-center gap-2">
+                {mainFiltersContent}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ===== Desktop: full inline filter bar ===== */}
+      <div className="hidden space-y-2 border-b bg-background px-4 py-2 sm:block sm:px-6">
+        {/* Row 1: Main filters */}
+        <div className="flex flex-wrap items-center gap-3">
+          {mainFiltersContent}
+
+          {/* Quick filters toggle + View mode — pushed right */}
+          <div className="ml-auto flex items-center gap-3">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleToggleExpanded}
+              className="gap-1.5 text-xs"
+            >
+              <SlidersHorizontal className="h-3.5 w-3.5" />
+              {t("filter_bar.actions.quick_filters")}
+              <ChevronDown className={`h-3.5 w-3.5 transition-transform duration-200 ${isExpanded ? "" : "-rotate-90"}`} />
+            </Button>
+            <span className="whitespace-nowrap text-xs text-muted-foreground">
+              {t("filter_bar.data_scope")}
+            </span>
+            {viewModeTabs}
+          </div>
+        </div>
+
+        {/* Row 2+: Quick actions */}
+        <div
+          className={`grid transition-[grid-template-rows] duration-300 ease-in-out ${
+            showAnyQuickRows ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
+          }`}
+        >
+          <div className="overflow-hidden">
+            <div className="space-y-1 pb-1 text-sm">
+              {showTimeQuickRow && (
+                <div className="flex items-center gap-2">
+                  <span className="w-16 shrink-0 text-xs font-medium text-muted-foreground">
+                    {t("filter_bar.rows.time")}
+                  </span>
+                  <QuickFilterScroller>
+                    {activeTimePresets.map((opt) => (
+                      <button
+                        key={opt.key}
+                        type="button"
+                        onClick={() => handleQuickTime(opt.key)}
+                        className={`shrink-0 snap-start rounded-md border px-3 py-1 transition-colors ${
+                          activeQuickTime === opt.key
+                            ? "bg-primary text-primary-foreground border-primary"
+                            : "border-border text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                        }`}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </QuickFilterScroller>
+                  <Button
                     type="button"
-                    onClick={() =>
-                      dispatch({
-                        type: "SET_FILTER",
-                        filter: {
-                          selectedAccountIds: [],
-                          selectedListingIds: [],
-                        },
-                      })
+                    variant={settings.quickFilterPinnedTime ? "secondary" : "ghost"}
+                    size="sm"
+                    className="h-7 shrink-0 px-2"
+                    onClick={() => setQuickFilterPinnedTime(!settings.quickFilterPinnedTime)}
+                    aria-label={
+                      settings.quickFilterPinnedTime
+                        ? t("filter_bar.actions.unpin_time")
+                        : t("filter_bar.actions.pin_time")
                     }
-                    className={`shrink-0 rounded-md border px-3 py-1 transition-colors ${
-                      filter.selectedAccountIds.length === 0
-                        ? "bg-primary text-primary-foreground border-primary"
-                        : "border-border text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-                    }`}
                   >
-                    {t("filter_bar.rows.all_accounts")}
-                  </button>
-                  {quickAccounts.map((opt) => (
+                    {settings.quickFilterPinnedTime ? <Pin className="h-3.5 w-3.5" /> : <PinOff className="h-3.5 w-3.5" />}
+                  </Button>
+                </div>
+              )}
+
+              {showAccountQuickRow && (
+                <div className="flex items-center gap-2">
+                  <span className="w-16 shrink-0 text-xs font-medium text-muted-foreground">
+                    {t("filter_bar.rows.accounts")}
+                  </span>
+                  <QuickFilterScroller>
                     <button
-                      key={opt.value}
                       type="button"
                       onClick={() =>
                         dispatch({
                           type: "SET_FILTER",
                           filter: {
-                            selectedAccountIds:
-                              filter.selectedAccountIds.length === 1 && filter.selectedAccountIds[0] === opt.value
-                                ? []
-                                : [opt.value],
+                            selectedAccountIds: [],
                             selectedListingIds: [],
                           },
                         })
                       }
-                      className={`shrink-0 rounded-md border px-3 py-1 transition-colors ${
-                        filter.selectedAccountIds.length === 1 && filter.selectedAccountIds[0] === opt.value
+                      className={`shrink-0 snap-start rounded-md border px-3 py-1 transition-colors ${
+                        filter.selectedAccountIds.length === 0
                           ? "bg-primary text-primary-foreground border-primary"
                           : "border-border text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                       }`}
                     >
-                      {opt.label}
+                      {t("filter_bar.rows.all_accounts")}
                     </button>
-                  ))}
-                </div>
-                <Button
-                  type="button"
-                  variant={settings.quickFilterPinnedAccounts ? "secondary" : "ghost"}
-                  size="sm"
-                  className="h-7 shrink-0 self-end px-2 sm:self-auto"
-                  onClick={() => setQuickFilterPinnedAccounts(!settings.quickFilterPinnedAccounts)}
-                  aria-label={
-                    settings.quickFilterPinnedAccounts
-                      ? t("filter_bar.actions.unpin_accounts")
-                      : t("filter_bar.actions.pin_accounts")
-                  }
-                >
-                  {settings.quickFilterPinnedAccounts ? <Pin className="h-3.5 w-3.5" /> : <PinOff className="h-3.5 w-3.5" />}
-                </Button>
-              </div>
-            )}
-
-            {showListingQuickRow && (
-              <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-center">
-                <span className="w-full text-xs font-medium text-muted-foreground sm:w-16 sm:shrink-0">
-                  {t("filter_bar.rows.listings")}
-                </span>
-                <div className="flex min-w-0 flex-1 items-center gap-1.5 overflow-x-auto whitespace-nowrap">
-                  <button
+                    {quickAccounts.map((opt) => (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        onClick={() =>
+                          dispatch({
+                            type: "SET_FILTER",
+                            filter: {
+                              selectedAccountIds:
+                                filter.selectedAccountIds.length === 1 && filter.selectedAccountIds[0] === opt.value
+                                  ? []
+                                  : [opt.value],
+                              selectedListingIds: [],
+                            },
+                          })
+                        }
+                        className={`shrink-0 snap-start rounded-md border px-3 py-1 transition-colors ${
+                          filter.selectedAccountIds.length === 1 && filter.selectedAccountIds[0] === opt.value
+                            ? "bg-primary text-primary-foreground border-primary"
+                            : "border-border text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                        }`}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </QuickFilterScroller>
+                  <Button
                     type="button"
-                    onClick={() =>
-                      dispatch({
-                        type: "SET_FILTER",
-                        filter: { selectedListingIds: [] },
-                      })
+                    variant={settings.quickFilterPinnedAccounts ? "secondary" : "ghost"}
+                    size="sm"
+                    className="h-7 shrink-0 px-2"
+                    onClick={() => setQuickFilterPinnedAccounts(!settings.quickFilterPinnedAccounts)}
+                    aria-label={
+                      settings.quickFilterPinnedAccounts
+                        ? t("filter_bar.actions.unpin_accounts")
+                        : t("filter_bar.actions.pin_accounts")
                     }
-                    className={`shrink-0 rounded-md border px-3 py-1 transition-colors ${
-                      filter.selectedListingIds.length === 0
-                        ? "bg-primary text-primary-foreground border-primary"
-                        : "border-border text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-                    }`}
                   >
-                    {t("filter_bar.rows.all_listings")}
-                  </button>
-                  {quickListings.map((opt) => (
+                    {settings.quickFilterPinnedAccounts ? <Pin className="h-3.5 w-3.5" /> : <PinOff className="h-3.5 w-3.5" />}
+                  </Button>
+                </div>
+              )}
+
+              {showListingQuickRow && (
+                <div className="flex items-center gap-2">
+                  <span className="w-16 shrink-0 text-xs font-medium text-muted-foreground">
+                    {t("filter_bar.rows.listings")}
+                  </span>
+                  <QuickFilterScroller>
                     <button
-                      key={opt.value}
                       type="button"
                       onClick={() =>
                         dispatch({
                           type: "SET_FILTER",
-                          filter: {
-                            selectedListingIds:
-                              filter.selectedListingIds.length === 1 && filter.selectedListingIds[0] === opt.value
-                                ? []
-                                : [opt.value],
-                          },
+                          filter: { selectedListingIds: [] },
                         })
                       }
-                      className={`shrink-0 rounded-md border px-3 py-1 transition-colors max-w-[240px] truncate ${
-                        filter.selectedListingIds.length === 1 && filter.selectedListingIds[0] === opt.value
+                      className={`shrink-0 snap-start rounded-md border px-3 py-1 transition-colors ${
+                        filter.selectedListingIds.length === 0
                           ? "bg-primary text-primary-foreground border-primary"
                           : "border-border text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                       }`}
-                      title={opt.label}
                     >
-                      {opt.label}
+                      {t("filter_bar.rows.all_listings")}
                     </button>
-                  ))}
+                    {quickListings.map((opt) => (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        onClick={() =>
+                          dispatch({
+                            type: "SET_FILTER",
+                            filter: {
+                              selectedListingIds:
+                                filter.selectedListingIds.length === 1 && filter.selectedListingIds[0] === opt.value
+                                  ? []
+                                  : [opt.value],
+                            },
+                          })
+                        }
+                        className={`shrink-0 snap-start rounded-md border px-3 py-1 transition-colors max-w-[240px] truncate ${
+                          filter.selectedListingIds.length === 1 && filter.selectedListingIds[0] === opt.value
+                            ? "bg-primary text-primary-foreground border-primary"
+                            : "border-border text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                        }`}
+                        title={opt.label}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </QuickFilterScroller>
+                  <Button
+                    type="button"
+                    variant={settings.quickFilterPinnedListings ? "secondary" : "ghost"}
+                    size="sm"
+                    className="h-7 shrink-0 px-2"
+                    onClick={() => setQuickFilterPinnedListings(!settings.quickFilterPinnedListings)}
+                    aria-label={
+                      settings.quickFilterPinnedListings
+                        ? t("filter_bar.actions.unpin_listings")
+                        : t("filter_bar.actions.pin_listings")
+                    }
+                  >
+                    {settings.quickFilterPinnedListings ? <Pin className="h-3.5 w-3.5" /> : <PinOff className="h-3.5 w-3.5" />}
+                  </Button>
                 </div>
-                <Button
-                  type="button"
-                  variant={settings.quickFilterPinnedListings ? "secondary" : "ghost"}
-                  size="sm"
-                  className="h-7 shrink-0 self-end px-2 sm:self-auto"
-                  onClick={() => setQuickFilterPinnedListings(!settings.quickFilterPinnedListings)}
-                  aria-label={
-                    settings.quickFilterPinnedListings
-                      ? t("filter_bar.actions.unpin_listings")
-                      : t("filter_bar.actions.pin_listings")
-                  }
-                >
-                  {settings.quickFilterPinnedListings ? <Pin className="h-3.5 w-3.5" /> : <PinOff className="h-3.5 w-3.5" />}
-                </Button>
-              </div>
-            )}
+              )}
 
-            {isExpanded && !listingQuickRowEnabled && (
-              <p className="pl-0 text-xs text-muted-foreground sm:pl-[4.5rem]">
-                {t("filter_bar.listing_row_hidden.prefix")}
-                <span className="font-medium"> {t("filter_bar.listing_row_hidden.show_all_listings")} </span>
-                {t("filter_bar.listing_row_hidden.suffix")}
-              </p>
-            )}
+              {isExpanded && !listingQuickRowEnabled && (
+                <p className="pl-[4.5rem] text-xs text-muted-foreground">
+                  {t("filter_bar.listing_row_hidden.prefix")}
+                  <span className="font-medium"> {t("filter_bar.listing_row_hidden.show_all_listings")} </span>
+                  {t("filter_bar.listing_row_hidden.suffix")}
+                </p>
+              )}
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }

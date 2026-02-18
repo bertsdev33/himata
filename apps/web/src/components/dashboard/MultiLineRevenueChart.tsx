@@ -13,6 +13,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CHART_COLORS, MULTI_LINE_COLORS } from "@/lib/chart-colors";
+import { useIsMobile } from "@/hooks/useIsMobile";
 import { formatMoney, formatMonth, formatMoneyCompact } from "@/lib/format";
 import { useLocaleContext } from "@/i18n/LocaleProvider";
 import { useTranslation } from "react-i18next";
@@ -36,6 +37,7 @@ export function MultiLineRevenueChart({
   const { locale } = useLocaleContext();
   const { t } = useTranslation("dashboard", { lng: locale });
   const [topOnly, setTopOnly] = useState(false);
+  const isMobile = useIsMobile();
 
   const totalListings = new Set(data.map((lp) => lp.listingId)).size;
 
@@ -87,13 +89,14 @@ export function MultiLineRevenueChart({
         label: formatMonth(month as YearMonth, locale),
       };
       for (const id of selectedIds) {
-        entry[id] = values[id] ?? 0;
+        // Comparisons chart should never render below zero.
+        entry[id] = Math.max(0, values[id] ?? 0);
       }
       // Add projected values for current month
       if (showProjection && month === currentYm) {
         for (const id of selectedIds) {
-          const actual = (values[id] ?? 0);
-          entry[`${id}_projected`] = Math.round(actual * scale * 100) / 100;
+          const actual = Math.max(0, values[id] ?? 0);
+          entry[`${id}_projected`] = Math.max(0, Math.round(actual * scale * 100) / 100);
         }
       }
       return entry;
@@ -120,19 +123,19 @@ export function MultiLineRevenueChart({
         )}
       </CardHeader>
       <CardContent className="min-w-0 overflow-hidden">
-        <ResponsiveContainer width="100%" height={350}>
-          <LineChart data={chartData} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
+        <ResponsiveContainer width="100%" height={isMobile ? 250 : 350}>
+          <LineChart data={chartData} margin={{ top: 5, right: isMobile ? 8 : 20, left: isMobile ? 0 : 10, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
             <XAxis dataKey="label" className="text-xs" />
             <YAxis
               tickFormatter={(v) => formatMoneyCompact(v * 100, currency, locale)}
               className="text-xs"
-              domain={[(dataMin: number) => Math.min(0, dataMin), "auto"]}
+              domain={[0, "auto"]}
             />
             <Tooltip
               formatter={(value: number) => formatMoney(Math.round(value * 100), currency, locale)}
             />
-            <Legend />
+            {!(isMobile && listingIds.length > 5) && <Legend />}
             {listingIds.map((id, i) => (
               <Line
                 key={id}

@@ -87,7 +87,7 @@ export function WarningsPanel({ warnings }: WarningsPanelProps) {
     <div
       className={`transition-all duration-300 ease-in-out ${
         isVisible
-          ? "opacity-100 max-h-[500px] translate-y-0 mb-4"
+          ? "opacity-100 max-h-[2000px] translate-y-0 mb-4"
           : "opacity-0 max-h-0 -translate-y-2 overflow-hidden mb-0"
       }`}
     >
@@ -97,14 +97,14 @@ export function WarningsPanel({ warnings }: WarningsPanelProps) {
           variant="ghost"
           size="icon"
           onClick={handleDismiss}
-          className="absolute right-2 top-2 h-7 w-7 text-muted-foreground hover:text-foreground"
+          className="absolute right-1 top-1 z-10 h-7 w-7 text-muted-foreground hover:text-foreground sm:right-2 sm:top-2"
           aria-label={t("warnings.dismiss")}
         >
           <X className="h-4 w-4" />
         </Button>
         <Accordion type="single" collapsible className="w-full">
           <AccordionItem value="warnings" className="border-b-0">
-            <AccordionTrigger className="py-0 pr-10 hover:no-underline">
+            <AccordionTrigger className="py-0 pr-8 hover:no-underline sm:pr-10">
               <AlertTitle>{t("warnings.title", { count: warnings.length })}</AlertTitle>
             </AccordionTrigger>
             <AccordionContent className="pb-0 pt-0">
@@ -117,7 +117,7 @@ export function WarningsPanel({ warnings }: WarningsPanelProps) {
                       </p>
                       <ul className="mt-1 space-y-0.5">
                         {items.slice(0, 10).map((w, i) => (
-                          <li key={i} className="text-xs text-muted-foreground">
+                          <li key={i} className="text-xs text-muted-foreground break-words">
                             {w.fileName}
                             {w.rowNumber ? `:${w.rowNumber}` : ""} — {formatWarningMessage(w)}
                           </li>

@@ -64,14 +64,14 @@ export function UploadPage() {
   }, [state.files, dispatch, t]);
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-16">
-      <div className="mb-10">
+    <div className="mx-auto max-w-3xl px-4 py-8 sm:py-16">
+      <div className="mb-6 sm:mb-10">
         <div className="mb-4 flex justify-end">
           <LocaleSwitcher />
         </div>
         <div className="text-center">
-          <h1 className="text-4xl font-bold tracking-tight">{t("app.title", { ns: "common" })}</h1>
-          <p className="text-muted-foreground mt-3 text-lg">
+          <h1 className="text-2xl sm:text-4xl font-bold tracking-tight">{t("app.title", { ns: "common" })}</h1>
+          <p className="text-muted-foreground mt-2 sm:mt-3 text-base sm:text-lg">
             {t("subtitle", { ns: "upload" })}
           </p>
         </div>

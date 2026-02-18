@@ -97,7 +97,7 @@ export function SeasonalityHeatmap({ data, currency, revenueBasis = "net" }: Sea
                   {t("seasonality_heatmap.year")}
                 </th>
                 {monthLabels.map((m) => (
-                  <th key={m} className="text-center text-xs text-muted-foreground font-medium pb-2 px-1 min-w-[60px]">
+                  <th key={m} className="text-center text-[10px] sm:text-xs text-muted-foreground font-medium pb-2 px-0.5 sm:px-1 min-w-[44px] sm:min-w-[60px]">
                     {m}
                   </th>
                 ))}
@@ -108,15 +108,16 @@ export function SeasonalityHeatmap({ data, currency, revenueBasis = "net" }: Sea
                 const row = grid.get(year)!;
                 return (
                   <tr key={year}>
-                    <td className="font-semibold text-sm pr-4 py-1">{year}</td>
+                    <td className="font-semibold text-xs sm:text-sm pr-2 sm:pr-4 py-1">{year}</td>
                     {row.map((val, i) => {
                       const ratio = getRatio(val);
                       return (
-                        <td key={i} className="px-1 py-1">
+                        <td key={i} className="px-0.5 sm:px-1 py-1">
                           {val !== null && ratio >= 0 ? (
                             <div
-                              className={`rounded-md px-2 py-2 text-center text-xs font-medium transition-all duration-150 cursor-default hover:ring-2 hover:ring-foreground/25 hover:brightness-110 hover:scale-[1.04] ${heatmapText(ratio)}`}
+                              className={`rounded-md px-1 sm:px-2 py-1.5 sm:py-2 text-center text-[10px] sm:text-xs font-medium overflow-hidden transition-all duration-150 cursor-default hover:ring-2 hover:ring-foreground/25 hover:brightness-110 hover:scale-[1.04] ${heatmapText(ratio)}`}
                               style={{ backgroundColor: heatmapBg(ratio) }}
+                              title={formatMoneyCompact(val, currency, locale)}
                             >
                               {formatMoneyCompact(val, currency, locale)}
                             </div>
@@ -136,7 +137,7 @@ export function SeasonalityHeatmap({ data, currency, revenueBasis = "net" }: Sea
         </div>
 
         {/* Color legend */}
-        <div className="flex items-center gap-2 mt-4 pt-3 border-t">
+        <div className="flex flex-wrap items-center gap-2 mt-4 pt-3 border-t">
           <span className="text-xs text-muted-foreground">{t("seasonality_heatmap.low")}</span>
           <div className="flex gap-0.5">
             {LEGEND_STEPS.map((ratio) => (

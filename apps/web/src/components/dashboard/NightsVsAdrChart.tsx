@@ -13,6 +13,7 @@ import {
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CHART_COLORS } from "@/lib/chart-colors";
+import { useIsMobile } from "@/hooks/useIsMobile";
 import { formatMoney, formatMonth, formatMoneyCompact } from "@/lib/format";
 import { useLocaleContext } from "@/i18n/LocaleProvider";
 import { useTranslation } from "react-i18next";
@@ -27,6 +28,7 @@ interface NightsVsAdrChartProps {
 export function NightsVsAdrChart({ data, currency, projection = false }: NightsVsAdrChartProps) {
   const { locale } = useLocaleContext();
   const { t } = useTranslation("dashboard", { lng: locale });
+  const isMobile = useIsMobile();
   const { chartData, hasProjection } = useMemo(() => {
     const now = new Date();
     const currentYm = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
@@ -69,8 +71,8 @@ export function NightsVsAdrChart({ data, currency, projection = false }: NightsV
         <CardTitle className="text-base">{t("charts.nights_vs_adr.title")}</CardTitle>
       </CardHeader>
       <CardContent className="min-w-0 overflow-hidden">
-        <ResponsiveContainer width="100%" height={300}>
-          <ComposedChart data={chartData} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
+        <ResponsiveContainer width="100%" height={isMobile ? 220 : 300}>
+          <ComposedChart data={chartData} margin={{ top: 5, right: isMobile ? 8 : 20, left: isMobile ? 0 : 10, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
             <XAxis dataKey="label" className="text-xs" />
             <YAxis yAxisId="left" className="text-xs" />
