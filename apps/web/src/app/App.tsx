@@ -3,7 +3,8 @@ import { AppContext, appReducer, initialState } from "./state";
 import { SettingsContext } from "./settings-context";
 import { useSettings } from "@/hooks/useSettings";
 import { LocaleProvider } from "@/i18n/LocaleProvider";
-import { defaultLocale, locales, type Locale } from "@/i18n/config";
+import { defaultLocale, type Locale } from "@/i18n/config";
+import { buildLocaleNavigationUrl } from "@/i18n/routing";
 import { UploadPage } from "@/components/upload/UploadPage";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 
@@ -18,13 +19,7 @@ export default function App({ locale: astroLocale }: AppProps) {
 
   const handleLocaleChange = (newLocale: Locale) => {
     settingsValue.update({ locale: newLocale });
-
-    const segments = window.location.pathname.split("/").filter(Boolean);
-    const first = segments[0] as Locale | undefined;
-    const pathSegments = first && locales.includes(first) ? segments.slice(1) : segments;
-    const suffix = pathSegments.length > 0 ? `/${pathSegments.join("/")}` : "/";
-    const nextPath = newLocale === defaultLocale ? suffix : `/${newLocale}${suffix === "/" ? "" : suffix}`;
-    const nextUrl = `${nextPath}${window.location.search}${window.location.hash}`;
+    const nextUrl = buildLocaleNavigationUrl(window.location, newLocale);
 
     window.location.href = nextUrl;
   };

@@ -1,0 +1,59 @@
+---
+import "@/styles/globals.css";
+import { getRelativeLocaleUrl } from "astro:i18n";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
+import { defaultLocale, localeLabels, locales, type Locale } from "@/i18n/config";
+import { getLocaleAgnosticPath } from "@/i18n/routing";
+
+const locale = (Astro.currentLocale ?? defaultLocale) as Locale;
+const site = Astro.site ?? new URL("https://example.com");
+const basePath = getLocaleAgnosticPath(Astro.url.pathname);
+const currentLocaleHref = getRelativeLocaleUrl(locale, basePath);
+const localeOptions = locales.map((loc) => ({
+  value: getRelativeLocaleUrl(loc, basePath),
+  label: localeLabels[loc],
+}));
+---
+
+<!doctype html>
+<html lang={locale}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Rental Analytics Dashboard — Upload Airbnb CSV exports and view performance metrics"
+    />
+    <title>Rental Analytics</title>
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>"
+    />
+    {
+      locales.map((loc) => (
+        <link
+          rel="alternate"
+          hreflang={loc}
+          href={new URL(getRelativeLocaleUrl(loc, basePath), site).href}
+        />
+      ))
+    }
+    <link rel="alternate" hreflang="x-default" href={new URL(basePath, site).href} />
+    <link
+      rel="canonical"
+      href={new URL(currentLocaleHref, site).href}
+    />
+    <slot name="head" />
+  </head>
+  <body class="min-h-screen bg-background font-sans antialiased">
+    <header class="border-b bg-background/95 px-4 py-2">
+      <div class="mx-auto flex max-w-screen-2xl items-center justify-end">
+        <LanguageSwitcher client:load value={currentLocaleHref} options={localeOptions} />
+      </div>
+    </header>
+    <main>
+      <slot />
+    </main>
+  </body>
+</html>

@@ -1,17 +1,11 @@
 ---
-import "@/styles/globals.css";
 import App from "@/app/App";
+import Layout from "@/layouts/Layout.astro";
+import { defaultLocale, type Locale } from "@/i18n/config";
+
+const locale = (Astro.currentLocale ?? defaultLocale) as Locale;
 ---
 
-<html lang="zh">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content="Rental Analytics Dashboard — Upload Airbnb CSV exports and view performance metrics" />
-    <title>Rental Analytics</title>
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>" />
-  </head>
-  <body class="min-h-screen bg-background font-sans antialiased">
-    <App client:only="react" locale="zh" />
-  </body>
-</html>
+<Layout>
+  <App client:only="react" locale={locale} />
+</Layout>
