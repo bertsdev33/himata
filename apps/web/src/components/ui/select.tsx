@@ -44,7 +44,7 @@ const Select = React.forwardRef<HTMLButtonElement, SelectProps>(
         )}
       >
         <SelectPrimitive.Value
-          placeholder={placeholder ?? options[0]?.label ?? "Select"}
+          placeholder={placeholder ?? options[0]?.label ?? ""}
         />
         <SelectPrimitive.Icon asChild>
           <ChevronDown className="h-4 w-4 opacity-50" />

@@ -35,6 +35,11 @@ export function TransactionsExplorer({ transactions, currency }: TransactionsExp
   const [sortAsc, setSortAsc] = useState(false);
   const [page, setPage] = useState(0);
 
+  const getKindLabel = (kind: string) =>
+    t(`transactions.kinds.${kind}`, {
+      defaultValue: kind.replace(/_/g, " "),
+    });
+
   useEffect(() => {
     setPage(0);
   }, [transactions]);
@@ -45,10 +50,11 @@ export function TransactionsExplorer({ transactions, currency }: TransactionsExp
     return transactions.filter((tx) => {
       const name = tx.listing?.listingName?.toLowerCase() ?? "";
       const account = tx.listing?.accountId?.toLowerCase() ?? "";
-      const kind = tx.kind.toLowerCase();
-      return name.includes(q) || account.includes(q) || kind.includes(q);
+      const kindRaw = tx.kind.toLowerCase();
+      const kindLabel = getKindLabel(tx.kind).toLowerCase();
+      return name.includes(q) || account.includes(q) || kindRaw.includes(q) || kindLabel.includes(q);
     });
-  }, [transactions, search]);
+  }, [transactions, search, t]);
 
   const sorted = useMemo(() => {
     const copy = [...filtered];
@@ -143,7 +149,7 @@ export function TransactionsExplorer({ transactions, currency }: TransactionsExp
               <TableRow key={`${tx.transactionId}-${i}`}>
                 <TableCell className="whitespace-nowrap">{tx.occurredDate}</TableCell>
                 <TableCell className="text-xs capitalize">
-                  {tx.kind.replace(/_/g, " ")}
+                  {getKindLabel(tx.kind)}
                 </TableCell>
                 <TableCell className="text-xs">{tx.listing ? getAccountName(tx.listing.accountId) : "—"}</TableCell>
                 <TableCell className="max-w-[200px] truncate">

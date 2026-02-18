@@ -103,6 +103,11 @@ export function buildFeatureRows(data: MonthlyListingPerformance[]): FeatureBuil
         listingId: group.listingId,
         listingName: group.listingName,
         accountId: group.accountId,
+        reasonCode: "insufficient_listing_history",
+        reasonParams: {
+          monthsAvailable: n,
+          minMonths: MIN_MONTHS,
+        },
         reason: `Only ${n} month(s) of data (need at least ${MIN_MONTHS})`,
         monthsAvailable: n,
       });

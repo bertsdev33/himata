@@ -72,7 +72,11 @@
     },
     "excluded": {
       "toggle_one": "{{count}} anuncio excluido del pronostico",
-      "toggle_other": "{{count}} anuncios excluidos del pronostico"
+      "toggle_other": "{{count}} anuncios excluidos del pronostico",
+      "reasons": {
+        "insufficient_listing_history": "Solo {{monthsAvailable}} mes(es) de datos (se necesitan al menos {{minMonths}})",
+        "insufficient_training_data": "Datos de entrenamiento insuficientes ({{trainingRows}} filas en todos los anuncios; se necesitan {{minTrainingRows}})"
+      }
     }
   }
 }

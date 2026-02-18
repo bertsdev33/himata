@@ -63,6 +63,17 @@ export interface ExcludedListing {
   listingId: string;
   listingName: string;
   accountId: string;
+  /**
+   * Structured reason code for localization in UI.
+   */
+  reasonCode: "insufficient_listing_history" | "insufficient_training_data";
+  /**
+   * Optional interpolation values for the localized reason text.
+   */
+  reasonParams?: Record<string, string | number>;
+  /**
+   * Backward-compatible plain-text reason.
+   */
   reason: string;
   monthsAvailable: number;
 }

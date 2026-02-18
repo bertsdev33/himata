@@ -7,11 +7,23 @@ export interface MultiSelectOption {
   label: string;
 }
 
+export interface MultiSelectLabels {
+  selectPlaceholder: string;
+  all: string;
+  selected: string;
+  searchPlaceholder: string;
+  selectAll: string;
+  clearAll: string;
+  noResults: string;
+  clearSelectionAriaLabel: string;
+}
+
 interface MultiSelectProps {
   options: MultiSelectOption[];
   selected: string[];
   onChange: (selected: string[]) => void;
   placeholder?: string;
+  labels: MultiSelectLabels;
   searchable?: boolean;
   className?: string;
 }
@@ -20,7 +32,8 @@ function MultiSelect({
   options,
   selected,
   onChange,
-  placeholder = "Select...",
+  placeholder,
+  labels,
   searchable = false,
   className,
 }: MultiSelectProps) {
@@ -56,10 +69,10 @@ function MultiSelect({
   const clearAll = () => onChange([]);
 
   const displayText = noneSelected
-    ? `${placeholder} — All (${options.length})`
+    ? `${placeholder ?? labels.selectPlaceholder} - ${labels.all} (${options.length})`
     : selected.length <= 2
       ? selected.map((v) => options.find((o) => o.value === v)?.label ?? v).join(", ")
-      : `${selected.length} selected`;
+      : `${selected.length} ${labels.selected}`;
 
   return (
     <div ref={ref} className={cn("relative", className)}>
@@ -77,6 +90,7 @@ function MultiSelect({
           {!noneSelected && (
             <X
               className="h-3.5 w-3.5 opacity-50 hover:opacity-100"
+              aria-label={labels.clearSelectionAriaLabel}
               onClick={(e) => {
                 e.stopPropagation();
                 clearAll();
@@ -95,7 +109,7 @@ function MultiSelect({
               <input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search..."
+                placeholder={labels.searchPlaceholder}
                 className="flex h-6 w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
               />
             </div>
@@ -107,14 +121,14 @@ function MultiSelect({
               onClick={selectAll}
               className="text-xs text-muted-foreground hover:text-foreground"
             >
-              Select All
+              {labels.selectAll}
             </button>
             <button
               type="button"
               onClick={clearAll}
               className="text-xs text-muted-foreground hover:text-foreground"
             >
-              Clear All
+              {labels.clearAll}
             </button>
           </div>
 
@@ -147,7 +161,7 @@ function MultiSelect({
             })}
             {filtered.length === 0 && (
               <p className="px-2 py-4 text-center text-sm text-muted-foreground">
-                No results found.
+                {labels.noResults}
               </p>
             )}
           </div>

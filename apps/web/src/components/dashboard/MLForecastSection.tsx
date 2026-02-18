@@ -40,6 +40,18 @@ export function MLForecastSection({ forecast }: MLForecastSectionProps) {
     return settings.listingNames[listingId] || defaultName;
   };
 
+  const getExcludedReason = (reason: {
+    reasonCode?: string;
+    reasonParams?: Record<string, string | number>;
+    reason?: string;
+  }) =>
+    reason.reasonCode
+      ? t(`ml.excluded.reasons.${reason.reasonCode}`, {
+          ...(reason.reasonParams ?? {}),
+          defaultValue: reason.reason ?? reason.reasonCode,
+        })
+      : (reason.reason ?? "");
+
   return (
     <div className="space-y-4">
       <Alert className="border-purple-200 bg-purple-50">
@@ -167,7 +179,7 @@ export function MLForecastSection({ forecast }: MLForecastSectionProps) {
                     <span className="font-medium text-foreground">
                       {getDisplayName(e.listingId, e.listingName)}
                     </span>{" "}
-                    — {e.reason}
+                    — {getExcludedReason(e)}
                   </li>
                 ))}
               </ul>

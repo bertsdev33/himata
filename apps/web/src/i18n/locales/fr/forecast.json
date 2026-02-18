@@ -72,7 +72,11 @@
     },
     "excluded": {
       "toggle_one": "{{count}} bien exclu de la prevision",
-      "toggle_other": "{{count}} biens exclus de la prevision"
+      "toggle_other": "{{count}} biens exclus de la prevision",
+      "reasons": {
+        "insufficient_listing_history": "Seulement {{monthsAvailable}} mois de donnees (minimum {{minMonths}} requis)",
+        "insufficient_training_data": "Donnees d'entrainement insuffisantes ({{trainingRows}} lignes sur l'ensemble des biens, minimum {{minTrainingRows}})"
+      }
     }
   }
 }

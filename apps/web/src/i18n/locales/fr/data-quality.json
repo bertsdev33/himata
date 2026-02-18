@@ -15,6 +15,38 @@
     "dismiss": "Fermer les avertissements",
     "title_one": "Avertissement d'Import ({{count}})",
     "title_other": "Avertissements d'Import ({{count}})",
-    "and_more": "...et {{count}} de plus"
+    "and_more": "...et {{count}} de plus",
+    "codes": {
+      "MISSING_REQUIRED_FIELD": "Champ Requis Manquant",
+      "DEDUPLICATED_ROW": "Ligne Dupliquee Supprimee",
+      "MULTI_CURRENCY_PARTITIONED": "Partition Multi-Devises",
+      "UNKNOWN_TRANSACTION_TYPE": "Type de Transaction Inconnu",
+      "INVALID_DATE": "Date Invalide",
+      "MISSING_LISTING_FOR_PERFORMANCE_ROW": "Bien Manquant pour Ligne de Performance",
+      "INVALID_MONEY": "Montant Invalide"
+    },
+    "messages": {
+      "MISSING_REQUIRED_FIELD": "Un champ requis est manquant.",
+      "DEDUPLICATED_ROW": "Une ligne dupliquee a ete supprimee.",
+      "MULTI_CURRENCY_PARTITIONED": "Plusieurs devises detectees ; les resultats sont partitionnes par devise.",
+      "UNKNOWN_TRANSACTION_TYPE": "Un type de transaction inconnu a ete detecte.",
+      "INVALID_DATE": "La valeur de date est invalide.",
+      "MISSING_LISTING_FOR_PERFORMANCE_ROW": "La ligne de performance ne contient pas d'information de bien.",
+      "INVALID_MONEY": "La valeur monetaire est invalide."
+    },
+    "message_keys": {
+      "missing_required_column": "La colonne requise \"{{column}}\" est introuvable dans les en-tetes CSV",
+      "deduplicated_row": "Ligne dupliquee ignoree (empreinte : {{fingerprint}})",
+      "multi_currency_partitioned": "Plusieurs devises detectees ({{currencies}}). Les aggregations seront partitionnees par devise.",
+      "unknown_transaction_type": "Type de transaction inconnu : \"{{rawType}}\"",
+      "invalid_or_missing_date": "Champ Date invalide ou manquant",
+      "missing_currency_field": "Champ Currency manquant",
+      "missing_listing_for_performance_row": "La ligne de performance ({{kind}}) n'a pas de nom de bien",
+      "stay_end_not_after_start": "La date de fin ({{endDate}}) n'est pas posterieure a la date de debut ({{startDate}}) ; la periode de sejour est ignoree",
+      "nights_differs_from_date_range": "La colonne Nights ({{csvNights}}) differe de la plage de dates ({{computedNights}}) ; la valeur calculee est utilisee",
+      "missing_paid_out_and_amount_for_payout": "La ligne de paiement ({{kind}}) ne contient ni Paid out ni Amount",
+      "missing_amount_for_kind": "La ligne ({{kind}}) ne contient pas le champ requis Amount",
+      "malformed_money_value": "Valeur {{field}} mal formee : \"{{rawValue}}\""
+    }
   }
 }

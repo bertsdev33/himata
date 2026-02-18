@@ -372,6 +372,16 @@ export function FilterBar() {
   const showAccountQuickRow = hasAccountQuickFilters && (isExpanded || settings.quickFilterPinnedAccounts);
   const showListingQuickRow = hasListingQuickFilters && (isExpanded || settings.quickFilterPinnedListings);
   const showAnyQuickRows = showTimeQuickRow || showAccountQuickRow || showListingQuickRow;
+  const multiSelectLabels = {
+    selectPlaceholder: t("filter_bar.multi_select.select_placeholder"),
+    all: t("filter_bar.multi_select.all"),
+    selected: t("filter_bar.multi_select.selected"),
+    searchPlaceholder: t("filter_bar.multi_select.search_placeholder"),
+    selectAll: t("filter_bar.multi_select.select_all"),
+    clearAll: t("filter_bar.multi_select.clear_all"),
+    noResults: t("filter_bar.multi_select.no_results"),
+    clearSelectionAriaLabel: t("filter_bar.multi_select.clear_selection_aria"),
+  };
 
   return (
     <div className="bg-background border-b px-6 py-2 space-y-2">
@@ -431,6 +441,7 @@ export function FilterBar() {
             <MultiSelect
               options={accountOptions}
               selected={filter.selectedAccountIds}
+              labels={multiSelectLabels}
               onChange={(ids) =>
                 dispatch({
                   type: "SET_FILTER",
@@ -451,6 +462,7 @@ export function FilterBar() {
             <MultiSelect
               options={listingOptions}
               selected={filter.selectedListingIds}
+              labels={multiSelectLabels}
               onChange={(ids) =>
                 dispatch({
                   type: "SET_FILTER",

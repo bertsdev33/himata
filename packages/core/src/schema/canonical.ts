@@ -98,6 +98,15 @@ export interface ImportWarning {
     | "UNKNOWN_TRANSACTION_TYPE"
     | "MISSING_LISTING_FOR_PERFORMANCE_ROW"
     | "DEDUPLICATED_ROW";
+  /**
+   * Optional structured i18n message key.
+   * UIs should prefer this over raw message when present.
+   */
+  messageKey?: string;
+  /**
+   * Optional interpolation params for `messageKey`.
+   */
+  params?: Record<string, string | number>;
   message: string;
   fileName: string;
   rowNumber?: number;

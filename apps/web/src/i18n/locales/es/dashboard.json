@@ -67,6 +67,16 @@
       "pin_listings": "Fijar filtros rapidos de anuncios",
       "unpin_listings": "Soltar filtros rapidos de anuncios"
     },
+    "multi_select": {
+      "select_placeholder": "Seleccionar",
+      "all": "Todo",
+      "selected": "seleccionados",
+      "search_placeholder": "Buscar...",
+      "select_all": "Seleccionar Todo",
+      "clear_all": "Limpiar Todo",
+      "no_results": "No se encontraron resultados.",
+      "clear_selection_aria": "Limpiar seleccion"
+    },
     "listing_row_hidden": {
       "prefix": "Los filtros rapidos de anuncios estan ocultos porque hay demasiados anuncios. Activa",
       "show_all_listings": "Mostrar Todos los Anuncios",
@@ -211,6 +221,14 @@
       "gross": "Bruto",
       "service_fee": "Tarifa de Servicio",
       "cleaning": "Limpieza"
+    },
+    "kinds": {
+      "reservation": "Reserva",
+      "adjustment": "Ajuste",
+      "resolution_adjustment": "Ajuste de Resolucion",
+      "cancellation_fee": "Tarifa de Cancelacion",
+      "payout": "Pago",
+      "resolution_payout": "Pago de Resolucion"
     },
     "pagination": {
       "page_of": "Pagina {{page}} de {{totalPages}}",

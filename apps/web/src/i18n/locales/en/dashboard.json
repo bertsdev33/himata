@@ -67,6 +67,16 @@
       "pin_listings": "Pin listing quick filters",
       "unpin_listings": "Unpin listing quick filters"
     },
+    "multi_select": {
+      "select_placeholder": "Select",
+      "all": "All",
+      "selected": "selected",
+      "search_placeholder": "Search...",
+      "select_all": "Select All",
+      "clear_all": "Clear All",
+      "no_results": "No results found.",
+      "clear_selection_aria": "Clear selection"
+    },
     "listing_row_hidden": {
       "prefix": "Listing quick filters are hidden because there are too many listings. Enable",
       "show_all_listings": "Show All Listings",
@@ -211,6 +221,14 @@
       "gross": "Gross",
       "service_fee": "Service Fee",
       "cleaning": "Cleaning"
+    },
+    "kinds": {
+      "reservation": "Reservation",
+      "adjustment": "Adjustment",
+      "resolution_adjustment": "Resolution Adjustment",
+      "cancellation_fee": "Cancellation Fee",
+      "payout": "Payout",
+      "resolution_payout": "Resolution Payout"
     },
     "pagination": {
       "page_of": "Page {{page}} of {{totalPages}}",
