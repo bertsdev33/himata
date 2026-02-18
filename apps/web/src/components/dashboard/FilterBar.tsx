@@ -449,45 +449,51 @@ export function FilterBar() {
     <>
       {/* Custom date range */}
       <div className="flex w-full flex-wrap items-center gap-1.5 sm:w-auto sm:flex-nowrap">
-        <input
-          type="month"
-          value={filter.dateRange.start ?? ""}
-          min={monthBounds.min}
-          max={filter.dateRange.end ?? monthBounds.max}
-          onChange={(e) =>
-            dispatch({
-              type: "SET_FILTER",
-              filter: {
-                dateRange: { ...filter.dateRange, start: e.target.value || null },
-              },
-            })
-          }
-          className={`h-8 w-full min-w-0 rounded-md border px-2 text-xs transition-colors sm:w-[9.5rem] ${
-            startIsForecast
-              ? "border-yellow-400 bg-yellow-50 text-yellow-800"
-              : "border-input bg-background"
-          }`}
-        />
+        <label className="flex w-full items-center gap-1.5 sm:w-auto">
+          <span className="text-xs font-medium text-muted-foreground sm:hidden">{t("filter_bar.placeholders.date_from")}</span>
+          <input
+            type="month"
+            value={filter.dateRange.start ?? ""}
+            min={monthBounds.min}
+            max={filter.dateRange.end ?? monthBounds.max}
+            onChange={(e) =>
+              dispatch({
+                type: "SET_FILTER",
+                filter: {
+                  dateRange: { ...filter.dateRange, start: e.target.value || null },
+                },
+              })
+            }
+            className={`h-8 w-full min-w-0 rounded-md border px-2 text-xs transition-colors sm:w-[9.5rem] ${
+              startIsForecast
+                ? "border-yellow-400 bg-yellow-50 text-yellow-800"
+                : "border-input bg-background"
+            }`}
+          />
+        </label>
         <span className="text-xs text-muted-foreground">—</span>
-        <input
-          type="month"
-          value={filter.dateRange.end ?? ""}
-          min={filter.dateRange.start ?? monthBounds.min}
-          max={monthBounds.max}
-          onChange={(e) =>
-            dispatch({
-              type: "SET_FILTER",
-              filter: {
-                dateRange: { ...filter.dateRange, end: e.target.value || null },
-              },
-            })
-          }
-          className={`h-8 w-full min-w-0 rounded-md border px-2 text-xs transition-colors sm:w-[9.5rem] ${
-            endIsForecast
-              ? "border-yellow-400 bg-yellow-50 text-yellow-800"
-              : "border-input bg-background"
-          }`}
-        />
+        <label className="flex w-full items-center gap-1.5 sm:w-auto">
+          <span className="text-xs font-medium text-muted-foreground sm:hidden">{t("filter_bar.placeholders.date_to")}</span>
+          <input
+            type="month"
+            value={filter.dateRange.end ?? ""}
+            min={filter.dateRange.start ?? monthBounds.min}
+            max={monthBounds.max}
+            onChange={(e) =>
+              dispatch({
+                type: "SET_FILTER",
+                filter: {
+                  dateRange: { ...filter.dateRange, end: e.target.value || null },
+                },
+              })
+            }
+            className={`h-8 w-full min-w-0 rounded-md border px-2 text-xs transition-colors sm:w-[9.5rem] ${
+              endIsForecast
+                ? "border-yellow-400 bg-yellow-50 text-yellow-800"
+                : "border-input bg-background"
+            }`}
+          />
+        </label>
         {endInForecast && (
           <span className="text-[10px] font-medium text-yellow-600">
             {t("filter_bar.includes_forecast")}
