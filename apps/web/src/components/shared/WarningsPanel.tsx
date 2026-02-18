@@ -61,8 +61,8 @@ export function WarningsPanel({ warnings }: WarningsPanelProps) {
     <div
       className={`transition-all duration-300 ease-in-out ${
         isVisible
-          ? "opacity-100 max-h-[500px] translate-y-0"
-          : "opacity-0 max-h-0 -translate-y-2 overflow-hidden"
+          ? "opacity-100 max-h-[500px] translate-y-0 mb-4"
+          : "opacity-0 max-h-0 -translate-y-2 overflow-hidden mb-0"
       }`}
     >
       <Alert className="mt-4 relative">

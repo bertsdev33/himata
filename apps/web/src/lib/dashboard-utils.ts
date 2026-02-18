@@ -38,7 +38,10 @@ export function getPresetRange(
  * Returns the original value if the month is not the current month.
  */
 export function projectMonthValue(value: number, month: string): number {
-  const now = new Date();
+  return projectMonthValueAtDate(value, month, new Date());
+}
+
+function projectMonthValueAtDate(value: number, month: string, now: Date): number {
   const currentYm = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
   if (month !== currentYm) return value;
 
@@ -49,6 +52,78 @@ export function projectMonthValue(value: number, month: string): number {
 
   if (dayOfMonth === 0) return value;
   return Math.round((value / dayOfMonth) * daysInMonth);
+}
+
+/**
+ * Hospitality-style nowcast for the current month:
+ * projected = max(OTB, pace), where
+ *   OTB  = realized-to-date + upcoming-on-the-books
+ *   pace = linear run-rate projection from realized-to-date
+ *
+ * This is used for forecast training when "Project this Month" is enabled.
+ */
+export function applyNowcastProjectionToListingPerformance(args: {
+  realized: MonthlyListingPerformance[];
+  upcoming: MonthlyListingPerformance[];
+  now?: Date;
+}): MonthlyListingPerformance[] {
+  const { realized, upcoming, now = new Date() } = args;
+  if (realized.length === 0 && upcoming.length === 0) return [];
+
+  const currentYm = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+  const result = realized.map((row) => ({ ...row }));
+
+  const upcomingCurrent = new Map<string, MonthlyListingPerformance>();
+  for (const row of upcoming) {
+    if (row.month !== currentYm) continue;
+    upcomingCurrent.set(`${row.listingId}::${row.currency}`, row);
+  }
+
+  const realizedCurrentIndex = new Map<string, number>();
+  for (let i = 0; i < result.length; i++) {
+    const row = result[i];
+    if (row.month !== currentYm) continue;
+    const key = `${row.listingId}::${row.currency}`;
+    realizedCurrentIndex.set(key, i);
+  }
+
+  for (const [key, idx] of realizedCurrentIndex) {
+    const row = result[idx];
+    const upcomingRow = upcomingCurrent.get(key);
+
+    const otbGross = row.grossRevenueMinor + (upcomingRow?.grossRevenueMinor ?? 0);
+    const otbNet = row.netRevenueMinor + (upcomingRow?.netRevenueMinor ?? 0);
+    const otbNights = row.bookedNights + (upcomingRow?.bookedNights ?? 0);
+
+    const paceGross = projectMonthValueAtDate(row.grossRevenueMinor, row.month, now);
+    const paceNet = projectMonthValueAtDate(row.netRevenueMinor, row.month, now);
+    const paceNights = projectMonthValueAtDate(row.bookedNights, row.month, now);
+
+    result[idx] = {
+      ...row,
+      grossRevenueMinor: Math.max(otbGross, paceGross),
+      netRevenueMinor: Math.max(otbNet, paceNet),
+      bookedNights: Math.max(otbNights, paceNights),
+      cleaningFeesMinor: row.cleaningFeesMinor + (upcomingRow?.cleaningFeesMinor ?? 0),
+      serviceFeesMinor: row.serviceFeesMinor + (upcomingRow?.serviceFeesMinor ?? 0),
+      reservationRevenueMinor:
+        row.reservationRevenueMinor + (upcomingRow?.reservationRevenueMinor ?? 0),
+      adjustmentRevenueMinor:
+        row.adjustmentRevenueMinor + (upcomingRow?.adjustmentRevenueMinor ?? 0),
+      resolutionAdjustmentRevenueMinor:
+        row.resolutionAdjustmentRevenueMinor +
+        (upcomingRow?.resolutionAdjustmentRevenueMinor ?? 0),
+      cancellationFeeRevenueMinor:
+        row.cancellationFeeRevenueMinor + (upcomingRow?.cancellationFeeRevenueMinor ?? 0),
+    };
+  }
+
+  for (const [key, upcomingRow] of upcomingCurrent) {
+    if (realizedCurrentIndex.has(key)) continue;
+    result.push({ ...upcomingRow });
+  }
+
+  return result;
 }
 
 /**

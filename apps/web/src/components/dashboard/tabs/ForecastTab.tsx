@@ -15,7 +15,11 @@ import { CHART_COLORS } from "@/lib/chart-colors";
 import { formatMonth, formatMoneyCompact } from "@/lib/format";
 import { AlertTriangle, Loader2 } from "lucide-react";
 import { MLForecastSection } from "../MLForecastSection";
-import type { MonthlyPortfolioPerformance, MonthlyListingPerformance, YearMonth } from "@rental-analytics/core";
+import type {
+  MonthlyPortfolioPerformance,
+  MonthlyListingPerformance,
+  YearMonth,
+} from "@rental-analytics/core";
 import type { ForecastResult } from "@rental-analytics/forecasting";
 import type { MlForecastRefreshStatus, MlForecastSnapshot } from "@/lib/ml-forecast-refresh-types";
 
@@ -24,6 +28,7 @@ interface ForecastTabProps {
   listingPerf: MonthlyListingPerformance[];
   currency: string;
   mlForecast?: ForecastResult | null;
+  nowcastPoint?: { month: string; revenueMinor: number; projected: boolean } | null;
   mlRefreshStatus: MlForecastRefreshStatus;
   mlRefreshError: string | null;
   mlRefreshSnapshot: MlForecastSnapshot | null;
@@ -37,6 +42,7 @@ export function ForecastTab({
   listingPerf,
   currency,
   mlForecast,
+  nowcastPoint,
   mlRefreshStatus,
   mlRefreshError,
   mlRefreshSnapshot,
@@ -44,12 +50,12 @@ export function ForecastTab({
   mlWorkerReady,
   onRefreshMlForecast,
 }: ForecastTabProps) {
-  const revenueData = useMemo(
+  const upcomingRevenueData = useMemo(
     () =>
       [...portfolioPerf]
         .sort((a, b) => a.month.localeCompare(b.month))
         .map((d) => ({
-          label: formatMonth(d.month as YearMonth),
+          month: d.month,
           revenue: d.netRevenueMinor / 100,
         })),
     [portfolioPerf],
@@ -63,11 +69,54 @@ export function ForecastTab({
     return [...monthMap.entries()]
       .sort(([a], [b]) => a.localeCompare(b))
       .map(([month, nights]) => ({
-        label: formatMonth(month as YearMonth),
+        month,
         nights,
       }));
   }, [listingPerf]);
 
+  const revenueData = useMemo(
+    () => {
+      const rows: Array<{
+        month: string;
+        forecast: number;
+        low: number;
+        high: number;
+        source: string;
+      }> = [];
+
+      if (mlForecast && mlForecast.portfolio.targetMonth) {
+        rows.push({
+          month: mlForecast.portfolio.targetMonth,
+          forecast: mlForecast.portfolio.forecastGrossRevenueMinor / 100,
+          low: mlForecast.portfolio.lowerBandMinor / 100,
+          high: mlForecast.portfolio.upperBandMinor / 100,
+          source: "Model Forecast",
+        });
+      }
+
+      if (nowcastPoint) {
+        const source = nowcastPoint.projected ? "Projected Current Month" : "Current Month Actual";
+        const nowcastRow = {
+          month: nowcastPoint.month,
+          forecast: nowcastPoint.revenueMinor / 100,
+          low: nowcastPoint.revenueMinor / 100,
+          high: nowcastPoint.revenueMinor / 100,
+          source,
+        };
+        const existingIdx = rows.findIndex((row) => row.month === nowcastPoint.month);
+        if (existingIdx >= 0) {
+          rows[existingIdx] = nowcastRow;
+        } else {
+          rows.push(nowcastRow);
+        }
+      }
+
+      return rows.sort((a, b) => a.month.localeCompare(b.month));
+    },
+    [mlForecast, nowcastPoint],
+  );
+
+  const hasUpcomingData = upcomingRevenueData.length > 0 || nightsData.length > 0;
   const hasMlData = Boolean(mlForecast && mlForecast.listings.length > 0);
   const isFallbackFullHistory =
     mlRefreshSnapshot?.usedFallback ||
@@ -85,7 +134,8 @@ export function ForecastTab({
 
   let primaryBannerClass = "border-yellow-200 bg-yellow-50";
   let primaryTextClass = "text-yellow-800";
-  let primaryMessage = "Forecast data is based on upcoming/unfulfilled reservations and is subject to change.";
+  let primaryMessage = "Forecast status";
+  const requiredDisclaimer = "Forecast – subject to change (not finalized payouts).";
   let actionLabel: string | null = null;
   let actionDisabled = true;
   let actionLoading = false;
@@ -138,7 +188,10 @@ export function ForecastTab({
           <AlertTriangle className="h-4 w-4 text-yellow-600" />
         )}
         <AlertDescription className={`${primaryTextClass} flex flex-wrap items-center justify-between gap-3`}>
-          <span>{primaryMessage}</span>
+          <span>
+            {primaryMessage}
+            <span className="block text-xs font-normal">{requiredDisclaimer}</span>
+          </span>
           {actionLabel && (
             <Button
               size="sm"
@@ -179,16 +232,21 @@ export function ForecastTab({
         </div>
       )}
 
-      {revenueData.length > 0 && (
+      {hasUpcomingData && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Forward Revenue Projection</CardTitle>
+            <CardTitle className="text-base">Upcoming Reservations Revenue (Pipeline)</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={revenueData} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
+              <BarChart data={upcomingRevenueData} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                <XAxis dataKey="label" className="text-xs" />
+                <XAxis
+                  dataKey="month"
+                  tickFormatter={(value) => formatMonth(value as YearMonth)}
+                  className="text-xs"
+                  interval={0}
+                />
                 <YAxis
                   tickFormatter={(v) => formatMoneyCompact(v * 100, currency)}
                   className="text-xs"
@@ -201,7 +259,7 @@ export function ForecastTab({
                 <Bar
                   dataKey="revenue"
                   name="Net Revenue"
-                  fill={CHART_COLORS.forecast}
+                  fill={CHART_COLORS.gross}
                   radius={[4, 4, 0, 0]}
                 />
               </BarChart>
@@ -219,13 +277,61 @@ export function ForecastTab({
             <ResponsiveContainer width="100%" height={250}>
               <BarChart data={nightsData} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                <XAxis dataKey="label" className="text-xs" />
+                <XAxis
+                  dataKey="month"
+                  tickFormatter={(value) => formatMonth(value as YearMonth)}
+                  className="text-xs"
+                  interval={0}
+                />
                 <YAxis className="text-xs" />
                 <Tooltip />
                 <Bar
                   dataKey="nights"
                   name="Booked Nights"
                   fill={CHART_COLORS.gross}
+                  radius={[4, 4, 0, 0]}
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      )}
+
+      {revenueData.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Nowcast + Forecast Revenue</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={revenueData} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                <XAxis
+                  dataKey="month"
+                  tickFormatter={(value) => formatMonth(value as YearMonth)}
+                  className="text-xs"
+                  interval={0}
+                />
+                <YAxis
+                  tickFormatter={(v) => formatMoneyCompact(v * 100, currency)}
+                  className="text-xs"
+                />
+                <Tooltip
+                  formatter={(value: number, _name, payload) => {
+                    if (!payload) return new Intl.NumberFormat("en-US", { style: "currency", currency }).format(value);
+                    const row = payload.payload as { low: number; high: number; source: string };
+                    return [
+                      row.source === "Model Forecast"
+                        ? `${new Intl.NumberFormat("en-US", { style: "currency", currency }).format(value)} (range ${new Intl.NumberFormat("en-US", { style: "currency", currency }).format(row.low)} - ${new Intl.NumberFormat("en-US", { style: "currency", currency }).format(row.high)})`
+                        : new Intl.NumberFormat("en-US", { style: "currency", currency }).format(value),
+                      row.source,
+                    ];
+                  }}
+                />
+                <Bar
+                  dataKey="forecast"
+                  name="Predicted Revenue"
+                  fill={CHART_COLORS.forecast}
                   radius={[4, 4, 0, 0]}
                 />
               </BarChart>

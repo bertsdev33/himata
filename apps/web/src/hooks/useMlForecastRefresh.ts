@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { AnalyticsData } from "@/app/types";
+import type { MonthlyListingPerformance } from "@rental-analytics/core";
 import type {
   MlForecastRefreshStatus,
   MlForecastSnapshot,
@@ -92,6 +93,7 @@ export function deriveRefreshStatus(args: {
 
 export interface UseMlForecastRefreshArgs {
   analytics: AnalyticsData;
+  realizedListingPerformance?: MonthlyListingPerformance[];
   currency: string;
   selectedAccountIds: string[];
   selectedListingIds: string[];
@@ -114,6 +116,7 @@ interface UseMlForecastRefreshState {
 
 export function useMlForecastRefresh({
   analytics,
+  realizedListingPerformance,
   currency,
   selectedAccountIds,
   selectedListingIds,
@@ -289,7 +292,8 @@ export function useMlForecastRefresh({
     const initMessage: MlWorkerRequest = {
       type: "init",
       datasetId: nextDatasetId,
-      realizedListingPerformance: analytics.views.realized.listingPerformance,
+      realizedListingPerformance:
+        realizedListingPerformance ?? analytics.views.realized.listingPerformance,
       config: { minTrainingRows, minTrainingMonths, fallback },
     };
     worker.postMessage(initMessage);
@@ -301,6 +305,7 @@ export function useMlForecastRefresh({
     };
   }, [
     analytics,
+    realizedListingPerformance,
     minTrainingRows,
     minTrainingMonths,
     fallback,

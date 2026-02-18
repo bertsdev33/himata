@@ -3,6 +3,7 @@ import {
   getPresetRange,
   projectMonthValue,
   applyProjection,
+  applyNowcastProjectionToListingPerformance,
   filterCashflow,
   filterListingPerformance,
   filterTransactions,
@@ -132,6 +133,124 @@ describe("applyProjection", () => {
     expect(result[1].netRevenueMinor).toBe(Math.round(5000 * scale));
     expect(result[1].grossRevenueMinor).toBe(Math.round(6000 * scale));
     expect(result[1].bookedNights).toBe(Math.round(10 * scale));
+  });
+});
+
+// --- applyNowcastProjectionToListingPerformance ---
+
+function makeListingMonth(args: {
+  month: string;
+  listingId: string;
+  accountId?: string;
+  currency?: string;
+  gross?: number;
+  net?: number;
+  nights?: number;
+}): MonthlyListingPerformance {
+  return {
+    month: args.month as YearMonth,
+    accountId: args.accountId ?? "acc-1",
+    listingId: args.listingId,
+    listingName: `Listing ${args.listingId}`,
+    currency: args.currency ?? "USD",
+    bookedNights: args.nights ?? 0,
+    grossRevenueMinor: args.gross ?? 0,
+    netRevenueMinor: args.net ?? 0,
+    cleaningFeesMinor: 0,
+    serviceFeesMinor: 0,
+    reservationRevenueMinor: args.gross ?? 0,
+    adjustmentRevenueMinor: 0,
+    resolutionAdjustmentRevenueMinor: 0,
+    cancellationFeeRevenueMinor: 0,
+  };
+}
+
+describe("applyNowcastProjectionToListingPerformance", () => {
+  test("uses max(OTB, pace) for current month", () => {
+    const now = new Date("2026-02-15T12:00:00Z"); // 15/28
+    const realized = [
+      makeListingMonth({
+        month: "2026-02",
+        listingId: "l1",
+        gross: 100_000,
+        net: 90_000,
+        nights: 10,
+      }),
+    ];
+    const upcoming = [
+      makeListingMonth({
+        month: "2026-02",
+        listingId: "l1",
+        gross: 30_000,
+        net: 27_000,
+        nights: 2,
+      }),
+    ];
+
+    const result = applyNowcastProjectionToListingPerformance({ realized, upcoming, now });
+    expect(result).toHaveLength(1);
+
+    // pace gross = round(100000 / 15 * 28) = 186667, OTB gross = 130000
+    expect(result[0].grossRevenueMinor).toBe(186_667);
+    expect(result[0].netRevenueMinor).toBe(168_000);
+    expect(result[0].bookedNights).toBe(19);
+  });
+
+  test("keeps stronger on-the-books signal when OTB exceeds pace", () => {
+    const now = new Date("2026-02-20T12:00:00Z"); // 20/28
+    const realized = [
+      makeListingMonth({
+        month: "2026-02",
+        listingId: "l1",
+        gross: 100_000,
+        net: 90_000,
+        nights: 10,
+      }),
+    ];
+    const upcoming = [
+      makeListingMonth({
+        month: "2026-02",
+        listingId: "l1",
+        gross: 90_000,
+        net: 81_000,
+        nights: 8,
+      }),
+    ];
+
+    const result = applyNowcastProjectionToListingPerformance({ realized, upcoming, now });
+    expect(result).toHaveLength(1);
+    expect(result[0].grossRevenueMinor).toBe(190_000);
+    expect(result[0].netRevenueMinor).toBe(171_000);
+    expect(result[0].bookedNights).toBe(18);
+  });
+
+  test("adds a synthetic current-month row when only upcoming exists", () => {
+    const now = new Date("2026-02-10T12:00:00Z");
+    const realized = [
+      makeListingMonth({
+        month: "2026-01",
+        listingId: "l2",
+        gross: 80_000,
+        net: 72_000,
+        nights: 8,
+      }),
+    ];
+    const upcoming = [
+      makeListingMonth({
+        month: "2026-02",
+        listingId: "l2",
+        gross: 50_000,
+        net: 45_000,
+        nights: 5,
+      }),
+    ];
+
+    const result = applyNowcastProjectionToListingPerformance({ realized, upcoming, now });
+    const current = result.find((r) => r.month === "2026-02" && r.listingId === "l2");
+    expect(current).toBeDefined();
+    expect(current!.grossRevenueMinor).toBe(50_000);
+    expect(current!.netRevenueMinor).toBe(45_000);
+    expect(current!.bookedNights).toBe(5);
   });
 });
 

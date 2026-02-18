@@ -21,6 +21,7 @@ import { DataQualityTab } from "./tabs/DataQualityTab";
 import { SettingsTab } from "./tabs/SettingsTab";
 import {
   applyProjection,
+  applyNowcastProjectionToListingPerformance,
   filterCashflow,
   filterListingPerformance,
   filterTransactions,
@@ -47,6 +48,7 @@ export function DashboardLayout() {
 
   // Select pre-computed view data based on viewMode
   const viewData = analytics.views[filter.viewMode];
+  const forecastViewData = analytics.views.forecast;
 
   // Shared scope filtering for listing-level monthly data.
   const filteredListingPerf = useMemo(
@@ -131,15 +133,99 @@ export function DashboardLayout() {
     [filteredListingPerf],
   );
 
+  const mlTrainingListingPerformance = useMemo(() => {
+    if (!filter.projection) {
+      return analytics.views.realized.listingPerformance;
+    }
+
+    return applyNowcastProjectionToListingPerformance({
+      realized: analytics.views.realized.listingPerformance,
+      upcoming: analytics.views.forecast.listingPerformance,
+    });
+  }, [
+    filter.projection,
+    analytics.views.realized.listingPerformance,
+    analytics.views.forecast.listingPerformance,
+  ]);
+
+  // Forecast training scope:
+  // - always use realized rows in the worker
+  // - follow explicit date range when set
+  // - with no explicit range, train on full realized history
+  //   (avoids narrowing to future-only upcoming months that contain no training rows)
+  const mlTrainingDateRange = useMemo(() => {
+    return filter.dateRange;
+  }, [filter.dateRange]);
+
   const mlRefresh = useMlForecastRefresh({
     analytics,
+    realizedListingPerformance: mlTrainingListingPerformance,
     currency,
     selectedAccountIds: filter.selectedAccountIds,
     selectedListingIds: filter.selectedListingIds,
-    dateRange: filter.dateRange,
+    dateRange: mlTrainingDateRange,
     autoRefreshEnabled: settings.mlForecastAutoRefresh,
-    trainingFollowsDateRange: false,
+    trainingFollowsDateRange: true,
+    fallback: "none",
   });
+
+  // Current-month point shown in the Forecast chart.
+  // When projection is enabled, this reflects the nowcast-adjusted training rows.
+  const mlScopedTrainingListingPerf = useMemo(
+    () =>
+      filterListingPerformance(mlTrainingListingPerformance, {
+        currency,
+        selectedAccountIds: filter.selectedAccountIds,
+        selectedListingIds: filter.selectedListingIds,
+        dateRange: mlTrainingDateRange,
+      }),
+    [
+      mlTrainingListingPerformance,
+      currency,
+      filter.selectedAccountIds,
+      filter.selectedListingIds,
+      mlTrainingDateRange,
+    ],
+  );
+
+  const mlScopedTrainingPortfolioPerf = useMemo(
+    () => computeMonthlyPortfolioPerformance(mlScopedTrainingListingPerf),
+    [mlScopedTrainingListingPerf],
+  );
+
+  const mlNowcastPoint = useMemo(() => {
+    const now = new Date();
+    const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+
+    const scopedRawRealized = filterListingPerformance(analytics.views.realized.listingPerformance, {
+      currency,
+      selectedAccountIds: filter.selectedAccountIds,
+      selectedListingIds: filter.selectedListingIds,
+      dateRange: mlTrainingDateRange,
+    });
+    const scopedRawPortfolio = computeMonthlyPortfolioPerformance(scopedRawRealized);
+
+    const nowcast = mlScopedTrainingPortfolioPerf.find((p) => p.month === currentMonth);
+    const raw = scopedRawPortfolio.find((p) => p.month === currentMonth);
+    if (!nowcast) return null;
+
+    return {
+      month: currentMonth,
+      revenueMinor: nowcast.grossRevenueMinor,
+      projected:
+        filter.projection &&
+        raw !== undefined &&
+        nowcast.grossRevenueMinor !== raw.grossRevenueMinor,
+    };
+  }, [
+    analytics.views.realized.listingPerformance,
+    currency,
+    filter.selectedAccountIds,
+    filter.selectedListingIds,
+    mlTrainingDateRange,
+    mlScopedTrainingPortfolioPerf,
+    filter.projection,
+  ]);
 
   const baseMlForecast =
     mlRefresh.snapshot === null
@@ -152,13 +238,11 @@ export function DashboardLayout() {
         forecast: baseMlForecast,
         selectedAccountIds: filter.selectedAccountIds,
         selectedListingIds: filter.selectedListingIds,
-        dateRange: filter.dateRange,
+        // Date range drives model training scope; do not clip predicted target months in display.
+        dateRange: { start: null, end: null },
       }),
-    [baseMlForecast, filter.selectedAccountIds, filter.selectedListingIds, filter.dateRange],
+    [baseMlForecast, filter.selectedAccountIds, filter.selectedListingIds],
   );
-
-  // Forecast view data
-  const forecastViewData = analytics.views.forecast;
 
   // Projection detection: is the last month in the data the current month?
   const hasProjection = useMemo(() => {
@@ -174,7 +258,7 @@ export function DashboardLayout() {
   const tabs = useMemo<TabDef[]>(() => {
     const hasTransactions = filteredListingPerf.length > 0;
     const hasCashflow = filter.viewMode !== "forecast" && filteredCashflow.length > 0;
-    const hasForecast = forecastViewData.listingPerformance.length > 0;
+    const hasForecast = analytics.views.forecast.listingPerformance.length > 0;
     const hasBaselineMl = (analytics.mlForecasts[currency]?.listings.length ?? 0) > 0;
     const hasMlSnapshot = mlRefresh.snapshot !== null;
     const hasDisplayedMl = (filteredMlForecast?.listings.length ?? 0) > 0;
@@ -227,13 +311,9 @@ export function DashboardLayout() {
           hasBaselineMl ||
           hasMlTrainingData,
         reason:
-          hasForecast ||
-          hasDisplayedMl ||
-          hasMlSnapshot ||
-          hasBaselineMl ||
-          hasMlTrainingData
+          hasForecast || hasDisplayedMl || hasMlSnapshot || hasBaselineMl || hasMlTrainingData
           ? undefined
-          : "No upcoming or realized data available for forecast",
+          : "No realized data available to train forecast",
       },
       {
         id: "transactions",
@@ -257,7 +337,7 @@ export function DashboardLayout() {
     filteredListingPerf,
     distinctListingIds,
     filteredCashflow,
-    forecastViewData,
+    analytics.views.forecast.listingPerformance,
     filteredTransactions,
     filter.viewMode,
     filteredMlForecast,
@@ -395,6 +475,7 @@ export function DashboardLayout() {
               listingPerf={filteredForecastListingPerf}
               currency={currency}
               mlForecast={filteredMlForecast}
+              nowcastPoint={mlNowcastPoint}
               mlRefreshStatus={mlRefresh.status}
               mlRefreshError={mlRefresh.error}
               mlRefreshSnapshot={mlRefresh.snapshot}
