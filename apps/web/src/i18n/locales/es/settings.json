@@ -1,1 +1,44 @@
-{}
+{
+  "page": {
+    "title": "Configuracion",
+    "actions": {
+      "reset_all": "Restablecer Todo"
+    }
+  },
+  "fields": {
+    "custom_alias_placeholder": "Alias personalizado...",
+    "clear_alias": "Borrar alias"
+  },
+  "listings": {
+    "title": "Anuncios",
+    "description": "Arrastra para reordenar. Los nombres personalizados aparecen en todo el dashboard.",
+    "columns": {
+      "original_name": "Nombre Original",
+      "custom_alias": "Alias Personalizado"
+    }
+  },
+  "forecast_refresh": {
+    "title": "Actualizacion de Pronostico ML",
+    "description": "El modo automatico actualiza pronosticos ML en segundo plano mientras la UI esta inactiva. El modo manual nunca se ejecuta automaticamente, incluso al cargar.",
+    "actions": {
+      "auto_async": "Automatico (Async)",
+      "manual_only": "Solo Manual"
+    }
+  },
+  "quick_filters": {
+    "title": "Filtros Rapidos",
+    "description": "Muestra todos los botones de anuncios en filtros rapidos incluso cuando la lista es grande.",
+    "actions": {
+      "show_all_listings": "Mostrar Todos los Anuncios",
+      "auto_limit": "Limite Automatico"
+    }
+  },
+  "accounts": {
+    "title": "Cuentas",
+    "description": "Arrastra para reordenar. Los nombres personalizados aparecen en filtros y tablas.",
+    "columns": {
+      "account_id": "ID de Cuenta",
+      "custom_alias": "Alias Personalizado"
+    }
+  }
+}

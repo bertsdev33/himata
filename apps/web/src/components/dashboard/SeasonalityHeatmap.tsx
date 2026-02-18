@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { formatMoneyCompact } from "@/lib/format";
 import { useLocaleContext } from "@/i18n/LocaleProvider";
+import { useTranslation } from "react-i18next";
 import type { MonthlyPortfolioPerformance } from "@rental-analytics/core";
 import type { RevenueBasis } from "@/app/types";
 
@@ -11,7 +12,6 @@ interface SeasonalityHeatmapProps {
   revenueBasis?: RevenueBasis;
 }
 
-const MONTH_LABELS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const LEGEND_STEPS = [0, 0.1, 0.2, 0.35, 0.5, 0.65, 0.8, 1];
 
 /**
@@ -32,6 +32,11 @@ function heatmapText(ratio: number): string {
 
 export function SeasonalityHeatmap({ data, currency, revenueBasis = "net" }: SeasonalityHeatmapProps) {
   const { locale } = useLocaleContext();
+  const { t } = useTranslation("dashboard", { lng: locale });
+  const monthLabels = useMemo(() => {
+    const formatter = new Intl.DateTimeFormat(locale, { month: "short" });
+    return Array.from({ length: 12 }, (_, idx) => formatter.format(new Date(2024, idx, 1)));
+  }, [locale]);
   const { grid, years, minVal, maxVal } = useMemo(() => {
     const map = new Map<string, number>();
     for (const d of data) {
@@ -80,16 +85,18 @@ export function SeasonalityHeatmap({ data, currency, revenueBasis = "net" }: Sea
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">Seasonality Heatmap</CardTitle>
-        <CardDescription>Revenue intensity by month across years</CardDescription>
+        <CardTitle className="text-base">{t("seasonality_heatmap.title")}</CardTitle>
+        <CardDescription>{t("seasonality_heatmap.description")}</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr>
-                <th className="text-left text-xs text-muted-foreground font-medium pb-2 pr-4">Year</th>
-                {MONTH_LABELS.map((m) => (
+                <th className="text-left text-xs text-muted-foreground font-medium pb-2 pr-4">
+                  {t("seasonality_heatmap.year")}
+                </th>
+                {monthLabels.map((m) => (
                   <th key={m} className="text-center text-xs text-muted-foreground font-medium pb-2 px-1 min-w-[60px]">
                     {m}
                   </th>
@@ -130,7 +137,7 @@ export function SeasonalityHeatmap({ data, currency, revenueBasis = "net" }: Sea
 
         {/* Color legend */}
         <div className="flex items-center gap-2 mt-4 pt-3 border-t">
-          <span className="text-xs text-muted-foreground">Low</span>
+          <span className="text-xs text-muted-foreground">{t("seasonality_heatmap.low")}</span>
           <div className="flex gap-0.5">
             {LEGEND_STEPS.map((ratio) => (
               <div
@@ -140,7 +147,7 @@ export function SeasonalityHeatmap({ data, currency, revenueBasis = "net" }: Sea
               />
             ))}
           </div>
-          <span className="text-xs text-muted-foreground">High</span>
+          <span className="text-xs text-muted-foreground">{t("seasonality_heatmap.high")}</span>
           <span className="text-xs text-muted-foreground ml-2">
             {formatMoneyCompact(minVal, currency, locale)} — {formatMoneyCompact(maxVal, currency, locale)}
           </span>

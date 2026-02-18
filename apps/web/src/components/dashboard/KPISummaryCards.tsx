@@ -4,6 +4,7 @@ import { Tooltip } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
 import { formatMoney, formatPercent, formatDeltaPercent } from "@/lib/format";
 import { useLocaleContext } from "@/i18n/LocaleProvider";
+import { useTranslation } from "react-i18next";
 import type { MonthlyPortfolioPerformance, EstimatedOccupancy } from "@rental-analytics/core";
 import { Info } from "lucide-react";
 import type { RevenueBasis } from "@/app/types";
@@ -24,6 +25,7 @@ export function KPISummaryCards({
   hasProjection = false,
 }: KPISummaryCardsProps) {
   const { locale } = useLocaleContext();
+  const { t } = useTranslation("dashboard", { lng: locale });
   const totalNet = portfolioPerf.reduce((sum, p) => sum + p.netRevenueMinor, 0);
   const totalGross = portfolioPerf.reduce((sum, p) => sum + p.grossRevenueMinor, 0);
   const totalNights = portfolioPerf.reduce((sum, p) => sum + p.bookedNights, 0);
@@ -51,38 +53,40 @@ export function KPISummaryCards({
   }, [portfolioPerf, revenueBasis]);
 
   const projBadge = hasProjection ? (
-    <Badge variant="outline" className="ml-1 text-[10px] px-1 py-0">projected</Badge>
+    <Badge variant="outline" className="ml-1 text-[10px] px-1 py-0">
+      {t("kpi.badges.projected")}
+    </Badge>
   ) : null;
 
   const cards = [
     {
-      title: "Total Net Revenue",
+      title: t("kpi.cards.total_net_revenue"),
       value: formatMoney(totalNet, currency, locale),
       badge: projBadge,
     },
     {
-      title: "Total Gross Revenue",
+      title: t("kpi.cards.total_gross_revenue"),
       value: formatMoney(totalGross, currency, locale),
       badge: projBadge,
     },
     {
-      title: "Booked Nights",
+      title: t("kpi.cards.booked_nights"),
       value: totalNights.toLocaleString(locale),
     },
     {
-      title: "Est. Occupancy",
+      title: t("kpi.cards.estimated_occupancy"),
       value: formatPercent(avgOccupancy, locale),
-      tooltip: "booked nights / (days_in_month * listings_in_service); not true occupancy",
+      tooltip: t("kpi.tooltips.estimated_occupancy"),
     },
     {
-      title: "Avg. Daily Rate",
+      title: t("kpi.cards.avg_daily_rate"),
       value: formatMoney(adr, currency, locale),
     },
     {
-      title: "MoM Change",
+      title: t("kpi.cards.mom_change"),
       value: formatDeltaPercent(momChange, locale),
       color: momChange === null ? undefined : momChange >= 0 ? "text-green-600" : "text-red-600",
-      tooltip: `Month-over-month ${revenueBasis} revenue change`,
+      tooltip: t("kpi.tooltips.mom_change", { revenueBasis }),
     },
   ];
 

@@ -1,1 +1,221 @@
-{}
+{
+  "tabs": {
+    "portfolio": "Portefeuille",
+    "comparison": "Comparaison",
+    "listing_detail": "Detail du Bien",
+    "cashflow": "Tresorerie",
+    "forecast": "Prevision",
+    "transactions": "Transactions",
+    "data_quality": "Qualite des Donnees",
+    "settings": "Parametres",
+    "not_available": "Non disponible",
+    "reasons": {
+      "no_data_matches_filters": "Aucune donnee ne correspond aux filtres actuels",
+      "need_two_or_more_listings": "Il faut 2+ biens dans l'ensemble filtre",
+      "select_exactly_one_listing": "Selectionnez exactement 1 bien",
+      "not_available_in_forecast_view": "Non disponible en vue Prevision",
+      "no_cashflow_data": "Aucune donnee de tresorerie",
+      "no_realized_data_for_forecast": "Aucune donnee realisee disponible pour entrainer la prevision",
+      "no_transactions_match_filters": "Aucune transaction ne correspond aux filtres"
+    }
+  },
+  "filter_bar": {
+    "includes_forecast": "Inclut la prevision",
+    "data_scope": "Perimetre des donnees",
+    "view": {
+      "realized": {
+        "label": "Realise",
+        "description": "Seulement les donnees passees/payees."
+      },
+      "upcoming": {
+        "label": "A venir",
+        "description": "Seulement les reservations a venir/non finalisees."
+      },
+      "all": {
+        "label": "Tout",
+        "description": "Analyse combinee des donnees realisees et a venir."
+      }
+    },
+    "quick_time": {
+      "all": "Toute Periode",
+      "last_12_months": "12 Derniers Mois",
+      "last_6_months": "6 Derniers Mois",
+      "last_3_months": "3 Derniers Mois",
+      "ytd": "YTD",
+      "last_month": "Mois Dernier",
+      "current_month": "Mois Actuel"
+    },
+    "placeholders": {
+      "accounts": "Comptes",
+      "listings": "Biens"
+    },
+    "rows": {
+      "time": "Temps",
+      "accounts": "Comptes",
+      "all_accounts": "Tous les Comptes",
+      "listings": "Biens",
+      "all_listings": "Tous les Biens"
+    },
+    "actions": {
+      "clear": "Effacer",
+      "project_this_month": "Projeter ce Mois",
+      "quick_filters": "Filtres Rapides",
+      "pin_time": "Epingler les filtres rapides de temps",
+      "unpin_time": "Desepingler les filtres rapides de temps",
+      "pin_accounts": "Epingler les filtres rapides de comptes",
+      "unpin_accounts": "Desepingler les filtres rapides de comptes",
+      "pin_listings": "Epingler les filtres rapides de biens",
+      "unpin_listings": "Desepingler les filtres rapides de biens"
+    },
+    "listing_row_hidden": {
+      "prefix": "Les filtres rapides des biens sont masques car il y a trop de biens. Activez",
+      "show_all_listings": "Afficher Tous les Biens",
+      "suffix": "dans Parametres pour forcer l'affichage."
+    }
+  },
+  "kpi": {
+    "badges": {
+      "projected": "projete"
+    },
+    "cards": {
+      "total_net_revenue": "Revenu Net Total",
+      "total_gross_revenue": "Revenu Brut Total",
+      "booked_nights": "Nuits Reservees",
+      "estimated_occupancy": "Occupation Est.",
+      "avg_daily_rate": "Tarif Journalier Moyen",
+      "mom_change": "Variation MoM"
+    },
+    "tooltips": {
+      "estimated_occupancy": "nuits reservees / (jours_du_mois * biens_en_service); ce n'est pas l'occupation reelle",
+      "mom_change": "Variation du revenu {{revenueBasis}} d'un mois a l'autre"
+    }
+  },
+  "listings_table": {
+    "title": "Performance des Biens",
+    "columns": {
+      "listing": "Bien",
+      "account": "Compte",
+      "nights": "Nuits",
+      "gross_revenue": "Revenu Brut",
+      "net_revenue": "Revenu Net",
+      "adr": "ADR",
+      "occupancy": "Occupation",
+      "vs_trailing": "vs Historique",
+      "share": "Part"
+    },
+    "actions": {
+      "view_listing": "Voir le detail du bien"
+    }
+  },
+  "charts": {
+    "revenue_by_listing": {
+      "title": "Revenu par Bien",
+      "actions": {
+        "show_all": "Afficher Tout ({{count}})",
+        "top_5": "Top 5"
+      },
+      "projected_name": "{{name}} (proj.)",
+      "projection_note": "Les lignes pointillees montrent les valeurs projetees en fin de mois"
+    },
+    "nights_vs_adr": {
+      "title": "Nuits vs ADR",
+      "booked_nights": "Nuits Reservees",
+      "adr": "ADR",
+      "projection_note": "La derniere barre montre les valeurs projetees en fin de mois"
+    },
+    "revenue_breakdown": {
+      "title": "Repartition du Revenu",
+      "legend": {
+        "reservations": "Reservations",
+        "adjustments": "Ajustements",
+        "resolutions": "Resolutions",
+        "cancellations": "Annulations",
+        "projected": "Projete"
+      }
+    },
+    "revenue_trend": {
+      "title": "Tendance du Revenu",
+      "basis": {
+        "both": "Les deux",
+        "net": "Net",
+        "gross": "Brut"
+      },
+      "legend": {
+        "gross_revenue": "Revenu Brut",
+        "net_revenue": "Revenu Net",
+        "trailing_avg": "Moy 6 mois"
+      }
+    }
+  },
+  "occupancy_display": {
+    "title": "Occupation Estimee",
+    "breakdown": "{{nights}}n / {{listings}} biens"
+  },
+  "occupancy_heatmaps": {
+    "by_weekday": {
+      "title": "Occupation par Jour de la Semaine",
+      "description": "Taux d'occupation estime par jour"
+    },
+    "by_month_day": {
+      "title": "Occupation par Jour du Mois",
+      "description": "Taux d'occupation estime par jour calendaire"
+    }
+  },
+  "seasonality_heatmap": {
+    "title": "Carte de Saisonnalite",
+    "description": "Intensite du revenu par mois a travers les annees",
+    "year": "Annee",
+    "low": "Faible",
+    "high": "Eleve"
+  },
+  "top_movers": {
+    "title": "Top Variations (MoM)",
+    "projected_note": "Les valeurs du mois actuel sont projetees selon le rythme actuel",
+    "columns": {
+      "listing": "Bien",
+      "current": "Actuel",
+      "previous": "Precedent",
+      "delta": "Delta",
+      "percent": "%",
+      "nights": "Nuits",
+      "adr": "ADR"
+    }
+  },
+  "trailing_comparisons": {
+    "title": "Comparaisons Glissantes - {{month}}",
+    "metric": {
+      "net_revenue": "Revenu Net",
+      "gross_revenue": "Revenu Brut"
+    },
+    "baseline": "Base: {{amount}}"
+  },
+  "listing_detail": {
+    "fallback_listing_name": "Bien",
+    "performance_vs_trailing": "Performance vs Moyenne Glissante",
+    "outperforming": "Surperformance",
+    "underperforming": "Sous-performance",
+    "current": "Actuel",
+    "projected": "projete",
+    "trailing_avg": "Moyenne Glissante"
+  },
+  "transactions": {
+    "title": "Transactions ({{count}})",
+    "search_placeholder": "Rechercher bien, compte ou type...",
+    "columns": {
+      "date": "Date",
+      "type": "Type",
+      "account": "Compte",
+      "listing": "Bien",
+      "nights": "Nuits",
+      "net": "Net",
+      "gross": "Brut",
+      "service_fee": "Frais de Service",
+      "cleaning": "Menage"
+    },
+    "pagination": {
+      "page_of": "Page {{page}} sur {{totalPages}}",
+      "prev": "Prec.",
+      "next": "Suiv."
+    }
+  }
+}

@@ -8,6 +8,8 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
+import { useTranslation } from "react-i18next";
+import { useLocaleContext } from "@/i18n/LocaleProvider";
 import type { ImportWarning } from "@rental-analytics/core";
 
 interface WarningsPanelProps {
@@ -15,6 +17,8 @@ interface WarningsPanelProps {
 }
 
 export function WarningsPanel({ warnings }: WarningsPanelProps) {
+  const { locale } = useLocaleContext();
+  const { t } = useTranslation("data-quality", { lng: locale });
   const [isDismissed, setIsDismissed] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
   const prevWarningsRef = useRef(warnings);
@@ -78,14 +82,14 @@ export function WarningsPanel({ warnings }: WarningsPanelProps) {
           size="icon"
           onClick={handleDismiss}
           className="absolute right-2 top-2 h-7 w-7 text-muted-foreground hover:text-foreground"
-          aria-label="Dismiss warnings"
+          aria-label={t("warnings.dismiss")}
         >
           <X className="h-4 w-4" />
         </Button>
         <Accordion type="single" collapsible className="w-full">
           <AccordionItem value="warnings" className="border-b-0">
             <AccordionTrigger className="py-0 pr-10 hover:no-underline">
-              <AlertTitle>Import Warnings ({warnings.length})</AlertTitle>
+              <AlertTitle>{t("warnings.title", { count: warnings.length })}</AlertTitle>
             </AccordionTrigger>
             <AccordionContent className="pb-0 pt-0">
               <AlertDescription>
@@ -104,7 +108,7 @@ export function WarningsPanel({ warnings }: WarningsPanelProps) {
                         ))}
                         {items.length > 10 && (
                           <li className="text-xs text-muted-foreground italic">
-                            ...and {items.length - 10} more
+                            {t("warnings.and_more", { count: items.length - 10 })}
                           </li>
                         )}
                       </ul>

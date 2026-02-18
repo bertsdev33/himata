@@ -15,6 +15,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CHART_COLORS } from "@/lib/chart-colors";
 import { formatMoney, formatMonth, formatMoneyCompact } from "@/lib/format";
 import { useLocaleContext } from "@/i18n/LocaleProvider";
+import { useTranslation } from "react-i18next";
 import type { MonthlyListingPerformance, YearMonth } from "@rental-analytics/core";
 
 interface NightsVsAdrChartProps {
@@ -25,6 +26,7 @@ interface NightsVsAdrChartProps {
 
 export function NightsVsAdrChart({ data, currency, projection = false }: NightsVsAdrChartProps) {
   const { locale } = useLocaleContext();
+  const { t } = useTranslation("dashboard", { lng: locale });
   const { chartData, hasProjection } = useMemo(() => {
     const now = new Date();
     const currentYm = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
@@ -64,7 +66,7 @@ export function NightsVsAdrChart({ data, currency, projection = false }: NightsV
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">Nights vs ADR</CardTitle>
+        <CardTitle className="text-base">{t("charts.nights_vs_adr.title")}</CardTitle>
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={300}>
@@ -86,11 +88,11 @@ export function NightsVsAdrChart({ data, currency, projection = false }: NightsV
               }
             />
             <Legend />
-            <Bar
-              yAxisId="left"
-              dataKey="nights"
-              name="Booked Nights"
-              fill={CHART_COLORS.gross}
+                <Bar
+                  yAxisId="left"
+                  dataKey="nights"
+                  name={t("charts.nights_vs_adr.booked_nights")}
+                  fill={CHART_COLORS.gross}
               fillOpacity={0.7}
               radius={[4, 4, 0, 0]}
             >
@@ -104,12 +106,12 @@ export function NightsVsAdrChart({ data, currency, projection = false }: NightsV
                 />
               ))}
             </Bar>
-            <Line
-              yAxisId="right"
-              type="monotone"
-              dataKey="adr"
-              name="ADR"
-              stroke={CHART_COLORS.net}
+              <Line
+                yAxisId="right"
+                type="monotone"
+                dataKey="adr"
+                name={t("charts.nights_vs_adr.adr")}
+                stroke={CHART_COLORS.net}
               strokeWidth={2}
               dot
             />
@@ -118,7 +120,7 @@ export function NightsVsAdrChart({ data, currency, projection = false }: NightsV
         {hasProjection && (
           <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1.5">
             <span className="inline-block w-4 border-t-2 border-dashed" style={{ borderColor: CHART_COLORS.gross }} />
-            Last bar shows projected month-end values
+            {t("charts.nights_vs_adr.projection_note")}
           </p>
         )}
       </CardContent>

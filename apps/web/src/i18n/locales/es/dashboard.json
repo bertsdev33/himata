@@ -1,1 +1,221 @@
-{}
+{
+  "tabs": {
+    "portfolio": "Portafolio",
+    "comparison": "Comparacion",
+    "listing_detail": "Detalle del Anuncio",
+    "cashflow": "Flujo de Caja",
+    "forecast": "Pronostico",
+    "transactions": "Transacciones",
+    "data_quality": "Calidad de Datos",
+    "settings": "Configuracion",
+    "not_available": "No disponible",
+    "reasons": {
+      "no_data_matches_filters": "No hay datos para los filtros actuales",
+      "need_two_or_more_listings": "Se necesitan 2+ anuncios en el conjunto filtrado",
+      "select_exactly_one_listing": "Selecciona exactamente 1 anuncio",
+      "not_available_in_forecast_view": "No disponible en vista de Pronostico",
+      "no_cashflow_data": "No hay datos de flujo de caja",
+      "no_realized_data_for_forecast": "No hay datos reales para entrenar el pronostico",
+      "no_transactions_match_filters": "No hay transacciones para los filtros"
+    }
+  },
+  "filter_bar": {
+    "includes_forecast": "Incluye pronostico",
+    "data_scope": "Alcance de datos",
+    "view": {
+      "realized": {
+        "label": "Real",
+        "description": "Solo datos pasados/pagados."
+      },
+      "upcoming": {
+        "label": "Proximas",
+        "description": "Solo reservas proximas/no completadas."
+      },
+      "all": {
+        "label": "Todo",
+        "description": "Analisis combinado de datos reales y proximos."
+      }
+    },
+    "quick_time": {
+      "all": "Todo el Tiempo",
+      "last_12_months": "Ultimos 12 Meses",
+      "last_6_months": "Ultimos 6 Meses",
+      "last_3_months": "Ultimos 3 Meses",
+      "ytd": "YTD",
+      "last_month": "Mes Pasado",
+      "current_month": "Mes Actual"
+    },
+    "placeholders": {
+      "accounts": "Cuentas",
+      "listings": "Anuncios"
+    },
+    "rows": {
+      "time": "Tiempo",
+      "accounts": "Cuentas",
+      "all_accounts": "Todas las Cuentas",
+      "listings": "Anuncios",
+      "all_listings": "Todos los Anuncios"
+    },
+    "actions": {
+      "clear": "Limpiar",
+      "project_this_month": "Proyectar este Mes",
+      "quick_filters": "Filtros Rapidos",
+      "pin_time": "Fijar filtros rapidos de tiempo",
+      "unpin_time": "Soltar filtros rapidos de tiempo",
+      "pin_accounts": "Fijar filtros rapidos de cuentas",
+      "unpin_accounts": "Soltar filtros rapidos de cuentas",
+      "pin_listings": "Fijar filtros rapidos de anuncios",
+      "unpin_listings": "Soltar filtros rapidos de anuncios"
+    },
+    "listing_row_hidden": {
+      "prefix": "Los filtros rapidos de anuncios estan ocultos porque hay demasiados anuncios. Activa",
+      "show_all_listings": "Mostrar Todos los Anuncios",
+      "suffix": "en Configuracion para forzar su visualizacion."
+    }
+  },
+  "kpi": {
+    "badges": {
+      "projected": "proyectado"
+    },
+    "cards": {
+      "total_net_revenue": "Ingresos Netos Totales",
+      "total_gross_revenue": "Ingresos Brutos Totales",
+      "booked_nights": "Noches Reservadas",
+      "estimated_occupancy": "Ocupacion Estimada",
+      "avg_daily_rate": "Tarifa Diaria Prom.",
+      "mom_change": "Cambio Mes a Mes"
+    },
+    "tooltips": {
+      "estimated_occupancy": "noches reservadas / (dias_del_mes * anuncios_en_servicio); no es ocupacion real",
+      "mom_change": "Cambio de ingresos {{revenueBasis}} mes a mes"
+    }
+  },
+  "listings_table": {
+    "title": "Rendimiento de Anuncios",
+    "columns": {
+      "listing": "Anuncio",
+      "account": "Cuenta",
+      "nights": "Noches",
+      "gross_revenue": "Ingresos Brutos",
+      "net_revenue": "Ingresos Netos",
+      "adr": "ADR",
+      "occupancy": "Ocupacion",
+      "vs_trailing": "vs Historial",
+      "share": "Participacion"
+    },
+    "actions": {
+      "view_listing": "Ver detalle del anuncio"
+    }
+  },
+  "charts": {
+    "revenue_by_listing": {
+      "title": "Ingresos por Anuncio",
+      "actions": {
+        "show_all": "Mostrar Todos ({{count}})",
+        "top_5": "Top 5"
+      },
+      "projected_name": "{{name}} (proy.)",
+      "projection_note": "Las lineas punteadas muestran valores proyectados al cierre del mes"
+    },
+    "nights_vs_adr": {
+      "title": "Noches vs ADR",
+      "booked_nights": "Noches Reservadas",
+      "adr": "ADR",
+      "projection_note": "La ultima barra muestra valores proyectados al cierre del mes"
+    },
+    "revenue_breakdown": {
+      "title": "Desglose de Ingresos",
+      "legend": {
+        "reservations": "Reservas",
+        "adjustments": "Ajustes",
+        "resolutions": "Resoluciones",
+        "cancellations": "Cancelaciones",
+        "projected": "Proyectado"
+      }
+    },
+    "revenue_trend": {
+      "title": "Tendencia de Ingresos",
+      "basis": {
+        "both": "Ambos",
+        "net": "Neto",
+        "gross": "Bruto"
+      },
+      "legend": {
+        "gross_revenue": "Ingresos Brutos",
+        "net_revenue": "Ingresos Netos",
+        "trailing_avg": "Prom 6 meses"
+      }
+    }
+  },
+  "occupancy_display": {
+    "title": "Ocupacion Estimada",
+    "breakdown": "{{nights}}n / {{listings}} anuncios"
+  },
+  "occupancy_heatmaps": {
+    "by_weekday": {
+      "title": "Ocupacion por Dia de la Semana",
+      "description": "Tasa de ocupacion estimada por dia"
+    },
+    "by_month_day": {
+      "title": "Ocupacion por Dia del Mes",
+      "description": "Tasa de ocupacion estimada por dia calendario"
+    }
+  },
+  "seasonality_heatmap": {
+    "title": "Mapa de Estacionalidad",
+    "description": "Intensidad de ingresos por mes a traves de los anos",
+    "year": "Ano",
+    "low": "Bajo",
+    "high": "Alto"
+  },
+  "top_movers": {
+    "title": "Mayores Cambios (MoM)",
+    "projected_note": "Los valores del mes actual estan proyectados segun el ritmo actual",
+    "columns": {
+      "listing": "Anuncio",
+      "current": "Actual",
+      "previous": "Previo",
+      "delta": "Delta",
+      "percent": "%",
+      "nights": "Noches",
+      "adr": "ADR"
+    }
+  },
+  "trailing_comparisons": {
+    "title": "Comparaciones Moviles - {{month}}",
+    "metric": {
+      "net_revenue": "Ingresos Netos",
+      "gross_revenue": "Ingresos Brutos"
+    },
+    "baseline": "Base: {{amount}}"
+  },
+  "listing_detail": {
+    "fallback_listing_name": "Anuncio",
+    "performance_vs_trailing": "Rendimiento vs Promedio Historico",
+    "outperforming": "Rendimiento Superior",
+    "underperforming": "Rendimiento Inferior",
+    "current": "Actual",
+    "projected": "proyectado",
+    "trailing_avg": "Promedio Historico"
+  },
+  "transactions": {
+    "title": "Transacciones ({{count}})",
+    "search_placeholder": "Buscar anuncio, cuenta o tipo...",
+    "columns": {
+      "date": "Fecha",
+      "type": "Tipo",
+      "account": "Cuenta",
+      "listing": "Anuncio",
+      "nights": "Noches",
+      "net": "Neto",
+      "gross": "Bruto",
+      "service_fee": "Tarifa de Servicio",
+      "cleaning": "Limpieza"
+    },
+    "pagination": {
+      "page_of": "Pagina {{page}} de {{totalPages}}",
+      "prev": "Anterior",
+      "next": "Siguiente"
+    }
+  }
+}

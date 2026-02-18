@@ -14,6 +14,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CHART_COLORS } from "@/lib/chart-colors";
 import { formatMoney, formatMonth, formatMoneyCompact } from "@/lib/format";
 import { useLocaleContext } from "@/i18n/LocaleProvider";
+import { useTranslation } from "react-i18next";
 import type { MonthlyPortfolioPerformance, YearMonth } from "@rental-analytics/core";
 import type { RevenueBasis } from "@/app/types";
 
@@ -23,11 +24,7 @@ interface RevenueTrendChartProps {
   projection?: boolean;
 }
 
-const BASIS_OPTIONS: { value: RevenueBasis; label: string }[] = [
-  { value: "both", label: "Both" },
-  { value: "net", label: "Net" },
-  { value: "gross", label: "Gross" },
-];
+const BASIS_OPTIONS: RevenueBasis[] = ["both", "net", "gross"];
 
 export function RevenueTrendChart({
   data,
@@ -35,6 +32,7 @@ export function RevenueTrendChart({
   projection = false,
 }: RevenueTrendChartProps) {
   const { locale } = useLocaleContext();
+  const { t } = useTranslation("dashboard", { lng: locale });
   const [revenueBasis, setRevenueBasis] = useState<RevenueBasis>("both");
   const isBoth = revenueBasis === "both";
 
@@ -64,20 +62,20 @@ export function RevenueTrendChart({
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-base">Revenue Trend</CardTitle>
+        <CardTitle className="text-base">{t("charts.revenue_trend.title")}</CardTitle>
         <div className="flex items-center gap-0.5 rounded-lg border p-0.5">
           {BASIS_OPTIONS.map((opt) => (
             <button
-              key={opt.value}
+              key={opt}
               type="button"
-              onClick={() => setRevenueBasis(opt.value)}
+              onClick={() => setRevenueBasis(opt)}
               className={`px-2 py-0.5 text-xs font-medium rounded-md transition-colors ${
-                revenueBasis === opt.value
+                revenueBasis === opt
                   ? "bg-primary text-primary-foreground"
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
-              {opt.label}
+              {t(`charts.revenue_trend.basis.${opt}`)}
             </button>
           ))}
         </div>
@@ -102,7 +100,7 @@ export function RevenueTrendChart({
               <Area
                 type="monotone"
                 dataKey="gross"
-                name="Gross Revenue"
+                name={t("charts.revenue_trend.legend.gross_revenue")}
                 stroke={CHART_COLORS.gross}
                 fill={CHART_COLORS.gross}
                 fillOpacity={0.15}
@@ -116,7 +114,7 @@ export function RevenueTrendChart({
               <Area
                 type="monotone"
                 dataKey="net"
-                name="Net Revenue"
+                name={t("charts.revenue_trend.legend.net_revenue")}
                 stroke={CHART_COLORS.net}
                 fill={CHART_COLORS.net}
                 fillOpacity={0.15}
@@ -129,7 +127,7 @@ export function RevenueTrendChart({
             <Line
               type="monotone"
               dataKey="trailingAvg"
-              name="6-mo Avg"
+              name={t("charts.revenue_trend.legend.trailing_avg")}
               stroke={CHART_COLORS.trailingAvg}
               strokeWidth={1.5}
               strokeDasharray="4 4"

@@ -1,1 +1,20 @@
-{}
+{
+  "summary": {
+    "none": "-",
+    "not_available": "N/A",
+    "date_range_value": "{{start}} to {{end}}",
+    "cards": {
+      "total_rows": "Total Rows",
+      "type_breakdown": "Type Breakdown",
+      "duplicates_flagged": "Duplicates Flagged",
+      "currencies": "Currencies",
+      "date_range": "Date Range"
+    }
+  },
+  "warnings": {
+    "dismiss": "Dismiss warnings",
+    "title_one": "Import Warning ({{count}})",
+    "title_other": "Import Warnings ({{count}})",
+    "and_more": "...and {{count}} more"
+  }
+}

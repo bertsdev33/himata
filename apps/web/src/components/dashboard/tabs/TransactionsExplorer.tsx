@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { formatMoney } from "@/lib/format";
 import { useLocaleContext } from "@/i18n/LocaleProvider";
+import { useTranslation } from "react-i18next";
 import type { CanonicalTransaction } from "@rental-analytics/core";
 
 interface TransactionsExplorerProps {
@@ -28,6 +29,7 @@ const PAGE_SIZE = 25;
 export function TransactionsExplorer({ transactions, currency }: TransactionsExplorerProps) {
   const { getListingName, getAccountName } = useSettingsContext();
   const { locale } = useLocaleContext();
+  const { t } = useTranslation("dashboard", { lng: locale });
   const [search, setSearch] = useState("");
   const [sortKey, setSortKey] = useState<SortKey>("date");
   const [sortAsc, setSortAsc] = useState(false);
@@ -108,14 +110,16 @@ export function TransactionsExplorer({ transactions, currency }: TransactionsExp
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle className="text-base">Transactions ({filtered.length})</CardTitle>
+        <CardTitle className="text-base">
+          {t("transactions.title", { count: filtered.length })}
+        </CardTitle>
         <Input
           value={search}
           onChange={(e) => {
             setSearch(e.target.value);
             setPage(0);
           }}
-          placeholder="Search listing, account, or type..."
+          placeholder={t("transactions.search_placeholder")}
           className="w-72"
         />
       </CardHeader>
@@ -123,15 +127,15 @@ export function TransactionsExplorer({ transactions, currency }: TransactionsExp
         <Table>
           <TableHeader>
             <TableRow>
-              <SortHeader label="Date" col="date" />
-              <SortHeader label="Type" col="kind" />
-              <SortHeader label="Account" col="accountId" />
-              <SortHeader label="Listing" col="listingName" />
-              <SortHeader label="Nights" col="nights" />
-              <SortHeader label="Net" col="netAmount" />
-              <SortHeader label="Gross" col="grossAmount" />
-              <TableHead className="whitespace-nowrap">Service Fee</TableHead>
-              <TableHead className="whitespace-nowrap">Cleaning</TableHead>
+              <SortHeader label={t("transactions.columns.date")} col="date" />
+              <SortHeader label={t("transactions.columns.type")} col="kind" />
+              <SortHeader label={t("transactions.columns.account")} col="accountId" />
+              <SortHeader label={t("transactions.columns.listing")} col="listingName" />
+              <SortHeader label={t("transactions.columns.nights")} col="nights" />
+              <SortHeader label={t("transactions.columns.net")} col="netAmount" />
+              <SortHeader label={t("transactions.columns.gross")} col="grossAmount" />
+              <TableHead className="whitespace-nowrap">{t("transactions.columns.service_fee")}</TableHead>
+              <TableHead className="whitespace-nowrap">{t("transactions.columns.cleaning")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -164,7 +168,7 @@ export function TransactionsExplorer({ transactions, currency }: TransactionsExp
         {totalPages > 1 && (
           <div className="flex items-center justify-between mt-4">
             <p className="text-sm text-muted-foreground">
-              Page {page + 1} of {totalPages}
+              {t("transactions.pagination.page_of", { page: page + 1, totalPages })}
             </p>
             <div className="flex gap-2">
               <Button
@@ -174,7 +178,7 @@ export function TransactionsExplorer({ transactions, currency }: TransactionsExp
                 onClick={() => setPage(page - 1)}
               >
                 <ChevronLeft className="h-4 w-4" />
-                Prev
+                {t("transactions.pagination.prev")}
               </Button>
               <Button
                 variant="outline"
@@ -182,7 +186,7 @@ export function TransactionsExplorer({ transactions, currency }: TransactionsExp
                 disabled={page >= totalPages - 1}
                 onClick={() => setPage(page + 1)}
               >
-                Next
+                {t("transactions.pagination.next")}
                 <ChevronRight className="h-4 w-4" />
               </Button>
             </div>

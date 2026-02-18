@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/table";
 import { formatMoney, formatMonth } from "@/lib/format";
 import { useLocaleContext } from "@/i18n/LocaleProvider";
+import { useTranslation } from "react-i18next";
 import type { MonthlyCashflow, YearMonth } from "@rental-analytics/core";
 
 interface CashflowTabProps {
@@ -21,6 +22,7 @@ interface CashflowTabProps {
 
 export function CashflowTab({ cashflow, currency, projection = false }: CashflowTabProps) {
   const { locale } = useLocaleContext();
+  const { t } = useTranslation("cashflow", { lng: locale });
   const payoutSummary = useMemo(() => {
     const monthMap = new Map<string, { totalPaid: number; eventCount: number }>();
     for (const cf of cashflow) {
@@ -46,15 +48,19 @@ export function CashflowTab({ cashflow, currency, projection = false }: Cashflow
       {payoutSummary.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Payout Summary</CardTitle>
+            <CardTitle className="text-base">{t("tab.payout_summary.title")}</CardTitle>
           </CardHeader>
           <CardContent>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Month</TableHead>
-                  <TableHead className="text-right">Total Paid Out</TableHead>
-                  <TableHead className="text-right">Payout Events</TableHead>
+                  <TableHead>{t("tab.payout_summary.columns.month")}</TableHead>
+                  <TableHead className="text-right">
+                    {t("tab.payout_summary.columns.total_paid_out")}
+                  </TableHead>
+                  <TableHead className="text-right">
+                    {t("tab.payout_summary.columns.payout_events")}
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

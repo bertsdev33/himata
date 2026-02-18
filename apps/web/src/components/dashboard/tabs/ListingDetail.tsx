@@ -6,6 +6,7 @@ import { NightsVsAdrChart } from "../NightsVsAdrChart";
 import { formatMoney, formatDeltaPercent } from "@/lib/format";
 import { projectMonthValue } from "@/lib/dashboard-utils";
 import { useLocaleContext } from "@/i18n/LocaleProvider";
+import { useTranslation } from "react-i18next";
 import {
   computeMonthlyPortfolioPerformance,
 } from "@rental-analytics/core";
@@ -23,6 +24,7 @@ export function ListingDetail({
   projection,
 }: ListingDetailProps) {
   const { locale } = useLocaleContext();
+  const { t } = useTranslation("dashboard", { lng: locale });
   // Convert listing perf to portfolio perf for RevenueTrendChart
   const portfolioPerf = useMemo(
     () => computeMonthlyPortfolioPerformance(listingPerf),
@@ -31,7 +33,8 @@ export function ListingDetail({
 
   const { getListingName } = useSettingsContext();
 
-  const rawListingName = listingPerf.length > 0 ? listingPerf[0].listingName : "Listing";
+  const rawListingName =
+    listingPerf.length > 0 ? listingPerf[0].listingName : t("listing_detail.fallback_listing_name");
   const listingId = listingPerf.length > 0 ? listingPerf[0].listingId : "";
   const listingName = listingId ? getListingName(listingId, rawListingName) : rawListingName;
 
@@ -102,7 +105,7 @@ export function ListingDetail({
       {indicator && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Performance vs Trailing Average</CardTitle>
+            <CardTitle className="text-base">{t("listing_detail.performance_vs_trailing")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-4">
@@ -125,18 +128,23 @@ export function ListingDetail({
                     indicator.isOver ? "text-green-600" : "text-red-600"
                   }`}
                 >
-                  {indicator.isOver ? "Outperforming" : "Underperforming"}
+                  {indicator.isOver
+                    ? t("listing_detail.outperforming")
+                    : t("listing_detail.underperforming")}
                 </p>
               </div>
               <div className="text-sm text-muted-foreground space-y-1">
                 <p>
-                  Current: {formatMoney(indicator.currentVal, currency, locale)}
+                  {t("listing_detail.current")}: {formatMoney(indicator.currentVal, currency, locale)}
                   {indicator.isProjected && (
-                    <span className="ml-1 text-xs text-yellow-600">(projected)</span>
+                    <span className="ml-1 text-xs text-yellow-600">
+                      ({t("listing_detail.projected")})
+                    </span>
                   )}
                 </p>
                 <p>
-                  Trailing Avg: {formatMoney(Math.round(indicator.trailingAvg), currency, locale)}
+                  {t("listing_detail.trailing_avg")}:{" "}
+                  {formatMoney(Math.round(indicator.trailingAvg), currency, locale)}
                 </p>
               </div>
             </div>

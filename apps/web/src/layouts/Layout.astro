@@ -3,10 +3,13 @@ import "@/styles/globals.css";
 import { getRelativeLocaleUrl } from "astro:i18n";
 import { defaultLocale, locales, type Locale } from "@/i18n/config";
 import { getLocaleAgnosticPath } from "@/i18n/routing";
+import { createServerI18n } from "@/i18n/server";
 
 const locale = (Astro.currentLocale ?? defaultLocale) as Locale;
 const site = Astro.site ?? new URL("https://example.com");
 const basePath = getLocaleAgnosticPath(Astro.url.pathname);
+const i18n = await createServerI18n(locale);
+const t = i18n.t.bind(i18n);
 ---
 
 <!doctype html>
@@ -14,11 +17,8 @@ const basePath = getLocaleAgnosticPath(Astro.url.pathname);
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta
-      name="description"
-      content="Rental Analytics Dashboard — Upload Airbnb CSV exports and view performance metrics"
-    />
-    <title>Rental Analytics</title>
+    <meta name="description" content={t("meta.description", { ns: "common" })} />
+    <title>{t("meta.title", { ns: "common" })}</title>
     <link
       rel="icon"
       type="image/svg+xml"

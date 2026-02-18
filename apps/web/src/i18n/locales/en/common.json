@@ -1,4 +1,8 @@
 {
+  "meta": {
+    "title": "Rental Analytics",
+    "description": "Rental Analytics Dashboard - Upload Airbnb CSV exports and view performance metrics"
+  },
   "app": {
     "title": "Rental Analytics"
   },

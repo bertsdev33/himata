@@ -8,6 +8,8 @@ import {
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Tooltip } from "@/components/ui/tooltip";
 import { useSettingsContext } from "@/app/settings-context";
+import { useTranslation } from "react-i18next";
+import { useLocaleContext } from "@/i18n/LocaleProvider";
 import { DashboardHeader } from "./DashboardHeader";
 import { FilterBar } from "./FilterBar";
 import { WarningsPanel } from "@/components/shared/WarningsPanel";
@@ -40,6 +42,8 @@ interface TabDef {
 export function DashboardLayout() {
   const { state, dispatch } = useAppContext();
   const { settings } = useSettingsContext();
+  const { locale } = useLocaleContext();
+  const { t } = useTranslation("dashboard", { lng: locale });
   const { analytics, filter } = state;
 
   if (!analytics) return null;
@@ -269,41 +273,41 @@ export function DashboardLayout() {
     return [
       {
         id: "portfolio-overview",
-        label: "Portfolio",
+        label: t("tabs.portfolio"),
         enabled: hasTransactions,
-        reason: hasTransactions ? undefined : "No data matches current filters",
+        reason: hasTransactions ? undefined : t("tabs.reasons.no_data_matches_filters"),
       },
       {
         id: "listing-comparison",
-        label: "Comparison",
+        label: t("tabs.comparison"),
         enabled: distinctListingIds.length >= 2,
         reason:
           distinctListingIds.length >= 2
             ? undefined
-            : "Need 2+ listings in filtered set",
+            : t("tabs.reasons.need_two_or_more_listings"),
       },
       {
         id: "listing-detail",
-        label: "Listing Detail",
+        label: t("tabs.listing_detail"),
         enabled: distinctListingIds.length === 1,
         reason:
           distinctListingIds.length === 1
             ? undefined
-            : "Select exactly 1 listing",
+            : t("tabs.reasons.select_exactly_one_listing"),
       },
       {
         id: "cashflow",
-        label: "Cashflow",
+        label: t("tabs.cashflow"),
         enabled: hasCashflow,
         reason: hasCashflow
           ? undefined
           : filter.viewMode === "forecast"
-            ? "Not available in Forecast view"
-            : "No cashflow data",
+            ? t("tabs.reasons.not_available_in_forecast_view")
+            : t("tabs.reasons.no_cashflow_data"),
       },
       {
         id: "forecast",
-        label: "Forecast",
+        label: t("tabs.forecast"),
         enabled:
           hasForecast ||
           hasDisplayedMl ||
@@ -313,23 +317,23 @@ export function DashboardLayout() {
         reason:
           hasForecast || hasDisplayedMl || hasMlSnapshot || hasBaselineMl || hasMlTrainingData
           ? undefined
-          : "No realized data available to train forecast",
+          : t("tabs.reasons.no_realized_data_for_forecast"),
       },
       {
         id: "transactions",
-        label: "Transactions",
+        label: t("tabs.transactions"),
         enabled: filteredTransactions.length > 0,
         reason:
-          filteredTransactions.length > 0 ? undefined : "No transactions match filters",
+          filteredTransactions.length > 0 ? undefined : t("tabs.reasons.no_transactions_match_filters"),
       },
       {
         id: "data-quality",
-        label: "Data Quality",
+        label: t("tabs.data_quality"),
         enabled: true,
       },
       {
         id: "settings",
-        label: "Settings",
+        label: t("tabs.settings"),
         enabled: true,
       },
     ];
@@ -345,6 +349,7 @@ export function DashboardLayout() {
     analytics.views.realized.listingPerformance,
     currency,
     mlRefresh.snapshot,
+    t,
   ]);
 
   // Auto-fallback: if current tab becomes disabled, switch to portfolio-overview
@@ -421,7 +426,7 @@ export function DashboardLayout() {
                     {tab.label}
                   </TabsTrigger>
                 ) : (
-                  <Tooltip key={tab.id} content={tab.reason ?? "Not available"}>
+                  <Tooltip key={tab.id} content={tab.reason ?? t("tabs.not_available")}>
                     <TabsTrigger value={tab.id} disabled className="opacity-50">
                       {tab.label}
                     </TabsTrigger>

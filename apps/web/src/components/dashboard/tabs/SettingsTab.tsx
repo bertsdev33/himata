@@ -22,15 +22,26 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { GripVertical, RotateCcw, X } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { useLocaleContext } from "@/i18n/LocaleProvider";
 
 interface SortableItemProps {
   id: string;
   originalName: string;
   customName: string;
   onNameChange: (name: string) => void;
+  aliasPlaceholder: string;
+  clearAliasLabel: string;
 }
 
-function SortableItem({ id, originalName, customName, onNameChange }: SortableItemProps) {
+function SortableItem({
+  id,
+  originalName,
+  customName,
+  onNameChange,
+  aliasPlaceholder,
+  clearAliasLabel,
+}: SortableItemProps) {
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id });
 
   const style = {
@@ -58,7 +69,7 @@ function SortableItem({ id, originalName, customName, onNameChange }: SortableIt
       <Input
         value={customName}
         onChange={(e) => onNameChange(e.target.value)}
-        placeholder="Custom alias..."
+        placeholder={aliasPlaceholder}
         className="h-8 text-sm"
       />
       <button
@@ -69,8 +80,8 @@ function SortableItem({ id, originalName, customName, onNameChange }: SortableIt
         }`}
         tabIndex={customName ? 0 : -1}
         aria-hidden={!customName}
-        aria-label="Clear alias"
-        title="Clear alias"
+        aria-label={clearAliasLabel}
+        title={clearAliasLabel}
       >
         <X className="h-3.5 w-3.5" />
       </button>
@@ -80,6 +91,8 @@ function SortableItem({ id, originalName, customName, onNameChange }: SortableIt
 
 export function SettingsTab() {
   const { state } = useAppContext();
+  const { locale } = useLocaleContext();
+  const { t } = useTranslation("settings", { lng: locale });
   const {
     settings,
     setListingName,
@@ -167,26 +180,26 @@ export function SettingsTab() {
   return (
     <div className="space-y-6 max-w-4xl">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold">Settings</h2>
+        <h2 className="text-lg font-semibold">{t("page.title")}</h2>
         <Button variant="outline" size="sm" onClick={resetAll}>
           <RotateCcw className="mr-1.5 h-3.5 w-3.5" />
-          Reset All
+          {t("page.actions.reset_all")}
         </Button>
       </div>
 
       {/* Listings section */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Listings</CardTitle>
+          <CardTitle className="text-base">{t("listings.title")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
           <p className="text-sm text-muted-foreground mb-3">
-            Drag to reorder. Custom names appear everywhere in the dashboard.
+            {t("listings.description")}
           </p>
           <div className="grid grid-cols-[auto_1fr_1fr_auto] gap-3 px-3 pb-1 text-xs font-medium text-muted-foreground">
             <span />
-            <span>Original Name</span>
-            <span>Custom Alias</span>
+            <span>{t("listings.columns.original_name")}</span>
+            <span>{t("listings.columns.custom_alias")}</span>
             <span />
           </div>
           <DndContext
@@ -206,6 +219,8 @@ export function SettingsTab() {
                     originalName={l.listingName}
                     customName={settings.listingNames[l.listingId] ?? ""}
                     onNameChange={(name) => setListingName(l.listingId, name)}
+                    aliasPlaceholder={t("fields.custom_alias_placeholder")}
+                    clearAliasLabel={t("fields.clear_alias")}
                   />
                 ))}
               </div>
@@ -219,12 +234,11 @@ export function SettingsTab() {
       {/* Forecast behavior */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">ML Forecast Refresh</CardTitle>
+          <CardTitle className="text-base">{t("forecast_refresh.title")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           <p className="text-sm text-muted-foreground">
-            Auto mode refreshes ML forecasts in the background while the UI is idle.
-            Manual mode never auto-runs, including on load.
+            {t("forecast_refresh.description")}
           </p>
           <div className="flex flex-wrap items-center gap-2">
             <Button
@@ -232,14 +246,14 @@ export function SettingsTab() {
               variant={settings.mlForecastAutoRefresh ? "default" : "outline"}
               onClick={() => setMlForecastAutoRefresh(true)}
             >
-              Auto (Async)
+              {t("forecast_refresh.actions.auto_async")}
             </Button>
             <Button
               size="sm"
               variant={!settings.mlForecastAutoRefresh ? "default" : "outline"}
               onClick={() => setMlForecastAutoRefresh(false)}
             >
-              Manual Only
+              {t("forecast_refresh.actions.manual_only")}
             </Button>
           </div>
         </CardContent>
@@ -250,11 +264,11 @@ export function SettingsTab() {
       {/* Quick filter behavior */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Quick Filters</CardTitle>
+          <CardTitle className="text-base">{t("quick_filters.title")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           <p className="text-sm text-muted-foreground">
-            Show all listing buttons in quick filters even when the list is large.
+            {t("quick_filters.description")}
           </p>
           <div className="flex flex-wrap items-center gap-2">
             <Button
@@ -262,14 +276,14 @@ export function SettingsTab() {
               variant={settings.showAllQuickListings ? "default" : "outline"}
               onClick={() => setShowAllQuickListings(true)}
             >
-              Show All Listings
+              {t("quick_filters.actions.show_all_listings")}
             </Button>
             <Button
               size="sm"
               variant={!settings.showAllQuickListings ? "default" : "outline"}
               onClick={() => setShowAllQuickListings(false)}
             >
-              Auto Limit
+              {t("quick_filters.actions.auto_limit")}
             </Button>
           </div>
         </CardContent>
@@ -280,16 +294,16 @@ export function SettingsTab() {
       {/* Accounts section */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Accounts</CardTitle>
+          <CardTitle className="text-base">{t("accounts.title")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
           <p className="text-sm text-muted-foreground mb-3">
-            Drag to reorder. Custom names appear in filters and tables.
+            {t("accounts.description")}
           </p>
           <div className="grid grid-cols-[auto_1fr_1fr_auto] gap-3 px-3 pb-1 text-xs font-medium text-muted-foreground">
             <span />
-            <span>Account ID</span>
-            <span>Custom Alias</span>
+            <span>{t("accounts.columns.account_id")}</span>
+            <span>{t("accounts.columns.custom_alias")}</span>
             <span />
           </div>
           <DndContext
@@ -309,6 +323,8 @@ export function SettingsTab() {
                     originalName={id}
                     customName={settings.accountNames[id] ?? ""}
                     onNameChange={(name) => setAccountName(id, name)}
+                    aliasPlaceholder={t("fields.custom_alias_placeholder")}
+                    clearAliasLabel={t("fields.clear_alias")}
                   />
                 ))}
               </div>

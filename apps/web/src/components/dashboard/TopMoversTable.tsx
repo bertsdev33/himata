@@ -12,6 +12,7 @@ import {
 import { formatMoney, formatDeltaPercent } from "@/lib/format";
 import { projectMonthValue } from "@/lib/dashboard-utils";
 import { useLocaleContext } from "@/i18n/LocaleProvider";
+import { useTranslation } from "react-i18next";
 import type { MonthlyListingPerformance } from "@rental-analytics/core";
 
 interface TopMoversTableProps {
@@ -34,6 +35,7 @@ interface MoverRow {
 export function TopMoversTable({ listingPerf, currency, projection = false }: TopMoversTableProps) {
   const { getListingName } = useSettingsContext();
   const { locale } = useLocaleContext();
+  const { t } = useTranslation("dashboard", { lng: locale });
 
   const movers = useMemo(() => {
     if (listingPerf.length === 0) return [];
@@ -126,10 +128,10 @@ export function TopMoversTable({ listingPerf, currency, projection = false }: To
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">Top Movers (MoM)</CardTitle>
+        <CardTitle className="text-base">{t("top_movers.title")}</CardTitle>
         {isProjected && (
           <CardDescription className="text-xs text-yellow-600">
-            Current month values are projected based on pace so far
+            {t("top_movers.projected_note")}
           </CardDescription>
         )}
       </CardHeader>
@@ -137,13 +139,13 @@ export function TopMoversTable({ listingPerf, currency, projection = false }: To
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Listing</TableHead>
-              <TableHead className="text-right">Current</TableHead>
-              <TableHead className="text-right">Previous</TableHead>
-              <TableHead className="text-right">Delta</TableHead>
-              <TableHead className="text-right">%</TableHead>
-              <TableHead className="text-right">Nights</TableHead>
-              <TableHead className="text-right">ADR</TableHead>
+              <TableHead>{t("top_movers.columns.listing")}</TableHead>
+              <TableHead className="text-right">{t("top_movers.columns.current")}</TableHead>
+              <TableHead className="text-right">{t("top_movers.columns.previous")}</TableHead>
+              <TableHead className="text-right">{t("top_movers.columns.delta")}</TableHead>
+              <TableHead className="text-right">{t("top_movers.columns.percent")}</TableHead>
+              <TableHead className="text-right">{t("top_movers.columns.nights")}</TableHead>
+              <TableHead className="text-right">{t("top_movers.columns.adr")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>

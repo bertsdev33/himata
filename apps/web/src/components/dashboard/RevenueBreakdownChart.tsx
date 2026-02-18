@@ -13,6 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CHART_COLORS } from "@/lib/chart-colors";
 import { formatMoney, formatMonth, formatMoneyCompact } from "@/lib/format";
 import { useLocaleContext } from "@/i18n/LocaleProvider";
+import { useTranslation } from "react-i18next";
 import type { MonthlyListingPerformance, YearMonth } from "@rental-analytics/core";
 
 interface RevenueBreakdownChartProps {
@@ -23,6 +24,7 @@ interface RevenueBreakdownChartProps {
 
 export function RevenueBreakdownChart({ data, currency, projection = false }: RevenueBreakdownChartProps) {
   const { locale } = useLocaleContext();
+  const { t } = useTranslation("dashboard", { lng: locale });
   const chartData = useMemo(() => {
     // Aggregate by month across all listings
     const monthMap = new Map<
@@ -82,7 +84,7 @@ export function RevenueBreakdownChart({ data, currency, projection = false }: Re
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">Revenue Breakdown</CardTitle>
+        <CardTitle className="text-base">{t("charts.revenue_breakdown.title")}</CardTitle>
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={300}>
@@ -97,13 +99,34 @@ export function RevenueBreakdownChart({ data, currency, projection = false }: Re
               formatter={(value: number) => formatMoney(Math.round(value * 100), currency, locale)}
             />
             <Legend />
-            <Bar dataKey="Reservations" stackId="a" fill={CHART_COLORS.reservation} />
-            <Bar dataKey="Adjustments" stackId="a" fill={CHART_COLORS.adjustment} />
-            <Bar dataKey="Resolutions" stackId="a" fill={CHART_COLORS.resolution} />
-            <Bar dataKey="Cancellations" stackId="a" fill={CHART_COLORS.cancellation} />
+            <Bar
+              dataKey="Reservations"
+              name={t("charts.revenue_breakdown.legend.reservations")}
+              stackId="a"
+              fill={CHART_COLORS.reservation}
+            />
+            <Bar
+              dataKey="Adjustments"
+              name={t("charts.revenue_breakdown.legend.adjustments")}
+              stackId="a"
+              fill={CHART_COLORS.adjustment}
+            />
+            <Bar
+              dataKey="Resolutions"
+              name={t("charts.revenue_breakdown.legend.resolutions")}
+              stackId="a"
+              fill={CHART_COLORS.resolution}
+            />
+            <Bar
+              dataKey="Cancellations"
+              name={t("charts.revenue_breakdown.legend.cancellations")}
+              stackId="a"
+              fill={CHART_COLORS.cancellation}
+            />
             {hasProjection && (
               <Bar
                 dataKey="Projected"
+                name={t("charts.revenue_breakdown.legend.projected")}
                 stackId="a"
                 fill={CHART_COLORS.forecast}
                 fillOpacity={0.6}

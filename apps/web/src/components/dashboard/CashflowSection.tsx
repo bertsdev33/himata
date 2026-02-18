@@ -13,6 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CHART_COLORS } from "@/lib/chart-colors";
 import { formatMoney, formatMonth, formatMoneyCompact } from "@/lib/format";
 import { useLocaleContext } from "@/i18n/LocaleProvider";
+import { useTranslation } from "react-i18next";
 import type { MonthlyCashflow, YearMonth } from "@rental-analytics/core";
 
 interface CashflowSectionProps {
@@ -23,6 +24,7 @@ interface CashflowSectionProps {
 
 export function CashflowSection({ data, currency, projection = false }: CashflowSectionProps) {
   const { locale } = useLocaleContext();
+  const { t } = useTranslation("cashflow", { lng: locale });
   const { chartData, hasProjection } = useMemo(() => {
     // Aggregate cashflow by month
     const monthMap = new Map<string, number>();
@@ -59,7 +61,7 @@ export function CashflowSection({ data, currency, projection = false }: Cashflow
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">Monthly Payouts</CardTitle>
+        <CardTitle className="text-base">{t("section.monthly_payouts.title")}</CardTitle>
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={250}>
@@ -71,12 +73,19 @@ export function CashflowSection({ data, currency, projection = false }: Cashflow
               className="text-xs"
             />
             <Tooltip
-              formatter={(value: number, name: string) => [
+              formatter={(value: number, _name: string, props: { dataKey?: string }) => [
                 formatMoney(Math.round(value * 100), currency, locale),
-                name === "Projected" ? "Projected Payouts" : "Payouts",
+                props.dataKey === "Projected"
+                  ? t("section.monthly_payouts.legend.projected_payouts")
+                  : t("section.monthly_payouts.legend.payouts"),
               ]}
             />
-            <Bar dataKey="Payouts" fill={CHART_COLORS.payout} radius={[4, 4, 0, 0]}>
+            <Bar
+              dataKey="Payouts"
+              name={t("section.monthly_payouts.legend.payouts")}
+              fill={CHART_COLORS.payout}
+              radius={[4, 4, 0, 0]}
+            >
               {chartData.map((entry) => (
                 <Cell
                   key={entry.month}
@@ -88,6 +97,7 @@ export function CashflowSection({ data, currency, projection = false }: Cashflow
             {hasProjection && (
               <Bar
                 dataKey="Projected"
+                name={t("section.monthly_payouts.legend.projected_payouts")}
                 fill={CHART_COLORS.forecast}
                 radius={[4, 4, 0, 0]}
                 fillOpacity={0.5}
@@ -100,7 +110,7 @@ export function CashflowSection({ data, currency, projection = false }: Cashflow
         {hasProjection && (
           <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1.5">
             <span className="inline-block w-4 border-t-2 border-dashed" style={{ borderColor: CHART_COLORS.forecast }} />
-            Dashed bar shows projected month-end payout
+            {t("section.monthly_payouts.projection_note")}
           </p>
         )}
       </CardContent>

@@ -1,1 +1,22 @@
-{}
+{
+  "section": {
+    "monthly_payouts": {
+      "title": "Monthly Payouts",
+      "legend": {
+        "payouts": "Payouts",
+        "projected_payouts": "Projected Payouts"
+      },
+      "projection_note": "Dashed bar shows projected month-end payout"
+    }
+  },
+  "tab": {
+    "payout_summary": {
+      "title": "Payout Summary",
+      "columns": {
+        "month": "Month",
+        "total_paid_out": "Total Paid Out",
+        "payout_events": "Payout Events"
+      }
+    }
+  }
+}
