@@ -73,7 +73,7 @@ export function CashflowSection({ data, currency, projection = false }: Cashflow
               className="text-xs"
             />
             <Tooltip
-              formatter={(value: number, _name: string, props: { dataKey?: string }) => [
+              formatter={(value: number, _name: string, props: { dataKey?: string | number }) => [
                 formatMoney(Math.round(value * 100), currency, locale),
                 props.dataKey === "Projected"
                   ? t("section.monthly_payouts.legend.projected_payouts")
