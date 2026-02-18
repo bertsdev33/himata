@@ -13,6 +13,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatMoney, formatPercent, formatDeltaPercent } from "@/lib/format";
+import { useLocaleContext } from "@/i18n/LocaleProvider";
+import { useTranslation } from "react-i18next";
 import type { MonthlyListingPerformance } from "@rental-analytics/core";
 
 interface ListingsTableProps {
@@ -49,6 +51,8 @@ interface ListingSummary {
 
 export function ListingsTable({ data, currency, onSelectListing }: ListingsTableProps) {
   const { getListingName, getAccountName } = useSettingsContext();
+  const { locale } = useLocaleContext();
+  const { t } = useTranslation("dashboard", { lng: locale });
   const [sortKey, setSortKey] = useState<SortKey>("netRevenue");
   const [sortAsc, setSortAsc] = useState(false);
 
@@ -202,21 +206,21 @@ export function ListingsTable({ data, currency, onSelectListing }: ListingsTable
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">Listings Performance</CardTitle>
+        <CardTitle className="text-base">{t("listings_table.title")}</CardTitle>
       </CardHeader>
       <CardContent>
         <Table>
           <TableHeader>
             <TableRow>
-              <SortHeader label="Listing" col="listingName" />
-              <SortHeader label="Account" col="accountId" />
-              <SortHeader label="Nights" col="bookedNights" />
-              <SortHeader label="Gross Revenue" col="grossRevenue" />
-              <SortHeader label="Net Revenue" col="netRevenue" />
-              <SortHeader label="ADR" col="adr" />
-              <SortHeader label="Occupancy" col="occupancy" />
-              <SortHeader label="vs Trailing" col="vsTrailing" />
-              <SortHeader label="Share" col="portfolioShare" />
+              <SortHeader label={t("listings_table.columns.listing")} col="listingName" />
+              <SortHeader label={t("listings_table.columns.account")} col="accountId" />
+              <SortHeader label={t("listings_table.columns.nights")} col="bookedNights" />
+              <SortHeader label={t("listings_table.columns.gross_revenue")} col="grossRevenue" />
+              <SortHeader label={t("listings_table.columns.net_revenue")} col="netRevenue" />
+              <SortHeader label={t("listings_table.columns.adr")} col="adr" />
+              <SortHeader label={t("listings_table.columns.occupancy")} col="occupancy" />
+              <SortHeader label={t("listings_table.columns.vs_trailing")} col="vsTrailing" />
+              <SortHeader label={t("listings_table.columns.share")} col="portfolioShare" />
               {onSelectListing && <TableHead />}
             </TableRow>
           </TableHeader>
@@ -232,12 +236,12 @@ export function ListingsTable({ data, currency, onSelectListing }: ListingsTable
                   </Badge>
                 </TableCell>
                 <TableCell>{s.bookedNights}</TableCell>
-                <TableCell>{formatMoney(s.grossRevenue, currency)}</TableCell>
-                <TableCell>{formatMoney(s.netRevenue, currency)}</TableCell>
-                <TableCell>{formatMoney(s.adr, currency)}</TableCell>
+                <TableCell>{formatMoney(s.grossRevenue, currency, locale)}</TableCell>
+                <TableCell>{formatMoney(s.netRevenue, currency, locale)}</TableCell>
+                <TableCell>{formatMoney(s.adr, currency, locale)}</TableCell>
                 <TableCell>
                   {s.occupancy !== null ? (
-                    formatPercent(s.occupancy)
+                    formatPercent(s.occupancy, locale)
                   ) : (
                     <span className="text-muted-foreground">—</span>
                   )}
@@ -245,19 +249,21 @@ export function ListingsTable({ data, currency, onSelectListing }: ListingsTable
                 <TableCell>
                   {s.vsTrailing !== null ? (
                     <span className={s.vsTrailing >= 0 ? "text-green-600" : "text-red-600"}>
-                      {formatDeltaPercent(s.vsTrailing)}
+                      {formatDeltaPercent(s.vsTrailing, locale)}
                     </span>
                   ) : (
                     <span className="text-muted-foreground">—</span>
                   )}
                 </TableCell>
-                <TableCell>{formatPercent(s.portfolioShare)}</TableCell>
+                <TableCell>{formatPercent(s.portfolioShare, locale)}</TableCell>
                 {onSelectListing && (
                   <TableCell>
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => onSelectListing(s.listingId)}
+                      aria-label={t("listings_table.actions.view_listing")}
+                      title={t("listings_table.actions.view_listing")}
                     >
                       <Eye className="h-4 w-4" />
                     </Button>

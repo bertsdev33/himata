@@ -63,6 +63,11 @@ export function computeRevenueForecast(
         listingId: p.listingId,
         listingName: p.listingName,
         accountId: p.accountId,
+        reasonCode: "insufficient_training_data" as const,
+        reasonParams: {
+          trainingRows: trainingRows.length,
+          minTrainingRows: MIN_TRAINING_ROWS,
+        },
         reason: `Insufficient training data (${trainingRows.length} rows across all listings, need ${MIN_TRAINING_ROWS})`,
         monthsAvailable: p.trainingMonths,
       })),

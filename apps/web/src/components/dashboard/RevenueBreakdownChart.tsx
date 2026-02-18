@@ -11,7 +11,9 @@ import {
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CHART_COLORS } from "@/lib/chart-colors";
-import { formatMonth, formatMoneyCompact } from "@/lib/format";
+import { formatMoney, formatMonth, formatMoneyCompact } from "@/lib/format";
+import { useLocaleContext } from "@/i18n/LocaleProvider";
+import { useTranslation } from "react-i18next";
 import type { MonthlyListingPerformance, YearMonth } from "@rental-analytics/core";
 
 interface RevenueBreakdownChartProps {
@@ -21,6 +23,8 @@ interface RevenueBreakdownChartProps {
 }
 
 export function RevenueBreakdownChart({ data, currency, projection = false }: RevenueBreakdownChartProps) {
+  const { locale } = useLocaleContext();
+  const { t } = useTranslation("dashboard", { lng: locale });
   const chartData = useMemo(() => {
     // Aggregate by month across all listings
     const monthMap = new Map<
@@ -56,7 +60,7 @@ export function RevenueBreakdownChart({ data, currency, projection = false }: Re
 
         // Actual values (always shown)
         const entry: Record<string, string | number> = {
-          label: formatMonth(month as YearMonth),
+          label: formatMonth(month as YearMonth, locale),
           Reservations: values.reservation / 100,
           Adjustments: values.adjustment / 100,
           Resolutions: values.resolution / 100,
@@ -73,40 +77,56 @@ export function RevenueBreakdownChart({ data, currency, projection = false }: Re
 
         return entry;
       });
-  }, [data, projection]);
+  }, [data, locale, projection]);
 
   const hasProjection = chartData.some((d) => (d.Projected as number) > 0);
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">Revenue Breakdown</CardTitle>
+        <CardTitle className="text-base">{t("charts.revenue_breakdown.title")}</CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="min-w-0 overflow-hidden">
         <ResponsiveContainer width="100%" height={300}>
           <BarChart data={chartData} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
             <XAxis dataKey="label" className="text-xs" />
             <YAxis
-              tickFormatter={(v) => formatMoneyCompact(v * 100, currency)}
+              tickFormatter={(v) => formatMoneyCompact(v * 100, currency, locale)}
               className="text-xs"
             />
             <Tooltip
-              formatter={(value: number) =>
-                new Intl.NumberFormat("en-US", {
-                  style: "currency",
-                  currency,
-                }).format(value)
-              }
+              formatter={(value: number) => formatMoney(Math.round(value * 100), currency, locale)}
             />
             <Legend />
-            <Bar dataKey="Reservations" stackId="a" fill={CHART_COLORS.reservation} />
-            <Bar dataKey="Adjustments" stackId="a" fill={CHART_COLORS.adjustment} />
-            <Bar dataKey="Resolutions" stackId="a" fill={CHART_COLORS.resolution} />
-            <Bar dataKey="Cancellations" stackId="a" fill={CHART_COLORS.cancellation} />
+            <Bar
+              dataKey="Reservations"
+              name={t("charts.revenue_breakdown.legend.reservations")}
+              stackId="a"
+              fill={CHART_COLORS.reservation}
+            />
+            <Bar
+              dataKey="Adjustments"
+              name={t("charts.revenue_breakdown.legend.adjustments")}
+              stackId="a"
+              fill={CHART_COLORS.adjustment}
+            />
+            <Bar
+              dataKey="Resolutions"
+              name={t("charts.revenue_breakdown.legend.resolutions")}
+              stackId="a"
+              fill={CHART_COLORS.resolution}
+            />
+            <Bar
+              dataKey="Cancellations"
+              name={t("charts.revenue_breakdown.legend.cancellations")}
+              stackId="a"
+              fill={CHART_COLORS.cancellation}
+            />
             {hasProjection && (
               <Bar
                 dataKey="Projected"
+                name={t("charts.revenue_breakdown.legend.projected")}
                 stackId="a"
                 fill={CHART_COLORS.forecast}
                 fillOpacity={0.6}

@@ -5,6 +5,8 @@ import { TopMoversTable } from "../TopMoversTable";
 import { TrailingComparisons } from "../TrailingComparisons";
 import { SeasonalityHeatmap } from "../SeasonalityHeatmap";
 import { OccupancyHeatmaps } from "../OccupancyHeatmaps";
+import { InsightsPanel } from "../InsightsPanel";
+import { ChatPanel } from "../ChatPanel";
 import type {
   MonthlyPortfolioPerformance,
   MonthlyListingPerformance,
@@ -12,6 +14,7 @@ import type {
   EstimatedOccupancy,
   CanonicalTransaction,
 } from "@rental-analytics/core";
+import type { AnalyticsData } from "@/app/types";
 
 interface PortfolioOverviewProps {
   portfolioPerf: MonthlyPortfolioPerformance[];
@@ -22,6 +25,7 @@ interface PortfolioOverviewProps {
   currency: string;
   projection: boolean;
   hasProjection: boolean;
+  analytics: AnalyticsData;
 }
 
 export function PortfolioOverview({
@@ -33,6 +37,7 @@ export function PortfolioOverview({
   currency,
   projection,
   hasProjection,
+  analytics,
 }: PortfolioOverviewProps) {
   return (
     <div className="space-y-6">
@@ -43,7 +48,7 @@ export function PortfolioOverview({
         hasProjection={hasProjection}
       />
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 [&>*]:min-w-0">
         <RevenueTrendChart
           data={portfolioPerf}
           currency={currency}
@@ -54,12 +59,17 @@ export function PortfolioOverview({
 
       <TopMoversTable listingPerf={listingPerf} currency={currency} projection={projection} />
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 [&>*]:min-w-0">
         <SeasonalityHeatmap data={portfolioPerf} currency={currency} />
         <OccupancyHeatmaps transactions={transactions} />
       </div>
 
       <TrailingComparisons data={trailing} currency={currency} />
+
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 [&>*]:min-w-0">
+        <InsightsPanel analytics={analytics} />
+        <ChatPanel analytics={analytics} />
+      </div>
     </div>
   );
 }

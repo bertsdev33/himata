@@ -1,0 +1,82 @@
+{
+  "confidence": {
+    "high": "Alta",
+    "medium": "Media",
+    "low": "Baja"
+  },
+  "actions": {
+    "calculating": "Calculando...",
+    "preparing": "Preparando...",
+    "retry_update": "Reintentar actualización",
+    "refresh_forecast": "Actualizar pronóstico",
+    "refresh_now": "Actualizar ahora",
+    "up_to_date": "Actualizado"
+  },
+  "status": {
+    "forecast_status": "Estado del pronóstico",
+    "required_disclaimer": "Pronóstico — sujeto a cambios (no son pagos finalizados).",
+    "calculating_in_background": "Calculando el pronóstico para los filtros actuales en segundo plano.",
+    "preparing_engine": "Preparando motor de pronóstico...",
+    "failed": "No se pudo actualizar el pronóstico.",
+    "failed_with_error": "No se pudo actualizar el pronóstico: {{error}}",
+    "outdated_manual": "El pronóstico está desactualizado para los filtros actuales. Haz clic en Actualizar.",
+    "outdated_auto": "El pronóstico está desactualizado para los filtros actuales. La actualización automática correrá cuando la app esté inactiva.",
+    "up_to_date": "Los datos están actualizados.",
+    "fallback_full_history": "No hay suficientes datos reales en el rango de fechas seleccionado. Se entrenó con el historial completo de los anuncios seleccionados.",
+    "unavailable_for_scope": "El pronóstico ML no está disponible para el alcance actual por historial real insuficiente."
+  },
+  "meta": {
+    "summary": "Entrenado: {{trainedAt}} — Ventana {{start}} a {{end}} — Filas {{rowCount}} — Anuncios {{listingCount}}"
+  },
+  "cards": {
+    "upcoming_revenue": {
+      "title": "Ingresos de Reservas Próximas (Pipeline)",
+      "net_revenue": "Ingresos Netos"
+    },
+    "upcoming_nights": {
+      "title": "Noches Próximas por Mes",
+      "booked_nights": "Noches Reservadas"
+    },
+    "nowcast_forecast": {
+      "title": "Nowcast + Pronóstico de Ingresos",
+      "predicted_revenue": "Ingresos Pronosticados",
+      "range_value": "{{value}} (rango {{low}} — {{high}})",
+      "source": {
+        "model_forecast": "Pronóstico del Modelo",
+        "projected_current_month": "Mes Actual Proyectado",
+        "current_month_actual": "Mes Actual Real"
+      }
+    }
+  },
+  "ml": {
+    "alert": {
+      "description": "Predicciones de ingresos entrenadas con tus datos históricos usando Ridge Regression. La confianza refleja los meses de datos de entrenamiento disponibles."
+    },
+    "summary": {
+      "title": "Pronóstico ML — {{month}}",
+      "predicted_gross_revenue": "Ingresos Brutos Pronosticados",
+      "total_for_subset": "Total para {{included}} de {{total}} anuncios con objetivo en {{month}}",
+      "confidence_range": "Rango de Confianza",
+      "listings_forecast": "Anuncios Pronosticados"
+    },
+    "table": {
+      "title": "Pronósticos por Anuncio",
+      "columns": {
+        "listing": "Anuncio",
+        "predicted_revenue": "Ingreso Pronosticado",
+        "range": "Rango",
+        "target": "Objetivo",
+        "confidence": "Confianza",
+        "months": "Meses"
+      }
+    },
+    "excluded": {
+      "toggle_one": "{{count}} anuncio excluido del pronóstico",
+      "toggle_other": "{{count}} anuncios excluidos del pronóstico",
+      "reasons": {
+        "insufficient_listing_history": "Solo {{monthsAvailable}} mes(es) de datos (se necesitan al menos {{minMonths}})",
+        "insufficient_training_data": "Datos de entrenamiento insuficientes ({{trainingRows}} filas en todos los anuncios; se necesitan {{minTrainingRows}})"
+      }
+    }
+  }
+}

@@ -10,6 +10,7 @@ import type {
   ListingServiceRange,
 } from "@rental-analytics/core";
 import type { ForecastResult } from "@rental-analytics/forecasting";
+import type { Locale } from "@/i18n/config";
 
 /** Represents a file entry in the upload flow */
 export interface FileEntry {
@@ -99,4 +100,6 @@ export interface SettingsData {
   quickFilterPinnedListings: boolean;
   /** Show all listing quick filters even when there are many listings. */
   showAllQuickListings: boolean;
+  /** Selected UI locale (optional for backward-compat with existing stored settings). */
+  locale?: Locale;
 }

@@ -1,0 +1,18 @@
+{
+  "meta": {
+    "title": "Analyse Locative",
+    "description": "Tableau de bord d'Analyse Locative - Importez des exports CSV Airbnb et consultez les indicateurs de performance"
+  },
+  "app": {
+    "title": "Analyse Locative"
+  },
+  "actions": {
+    "upload_new_files": "Importer de Nouveaux Fichiers"
+  },
+  "language": {
+    "label": "Langue"
+  },
+  "errors": {
+    "unexpected": "Une erreur inattendue est survenue"
+  }
+}

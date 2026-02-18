@@ -1,0 +1,52 @@
+{
+  "summary": {
+    "none": "-",
+    "not_available": "N/A",
+    "date_range_value": "{{start}} to {{end}}",
+    "cards": {
+      "total_rows": "Total Rows",
+      "type_breakdown": "Type Breakdown",
+      "duplicates_flagged": "Duplicates Flagged",
+      "currencies": "Currencies",
+      "date_range": "Date Range"
+    }
+  },
+  "warnings": {
+    "dismiss": "Dismiss warnings",
+    "title_one": "Import Warning ({{count}})",
+    "title_other": "Import Warnings ({{count}})",
+    "and_more": "...and {{count}} more",
+    "codes": {
+      "MISSING_REQUIRED_FIELD": "Missing Required Field",
+      "DEDUPLICATED_ROW": "Deduplicated Row",
+      "MULTI_CURRENCY_PARTITIONED": "Multi-Currency Partitioned",
+      "UNKNOWN_TRANSACTION_TYPE": "Unknown Transaction Type",
+      "INVALID_DATE": "Invalid Date",
+      "MISSING_LISTING_FOR_PERFORMANCE_ROW": "Missing Listing for Performance Row",
+      "INVALID_MONEY": "Invalid Money"
+    },
+    "messages": {
+      "MISSING_REQUIRED_FIELD": "A required field is missing.",
+      "DEDUPLICATED_ROW": "Duplicate row was removed.",
+      "MULTI_CURRENCY_PARTITIONED": "Multiple currencies detected; results are partitioned by currency.",
+      "UNKNOWN_TRANSACTION_TYPE": "Unknown transaction type encountered.",
+      "INVALID_DATE": "Date value is invalid.",
+      "MISSING_LISTING_FOR_PERFORMANCE_ROW": "Performance row is missing listing information.",
+      "INVALID_MONEY": "Money value is malformed."
+    },
+    "message_keys": {
+      "missing_required_column": "Required column \"{{column}}\" not found in CSV headers",
+      "deduplicated_row": "Duplicate row dropped (fingerprint: {{fingerprint}})",
+      "multi_currency_partitioned": "Multiple currencies detected ({{currencies}}). Aggregations will be partitioned by currency.",
+      "unknown_transaction_type": "Unknown transaction type: \"{{rawType}}\"",
+      "invalid_or_missing_date": "Invalid or missing Date field",
+      "missing_currency_field": "Missing Currency field",
+      "missing_listing_for_performance_row": "Performance row ({{kind}}) has no listing name",
+      "stay_end_not_after_start": "End date ({{endDate}}) is not after Start date ({{startDate}}); stay window ignored",
+      "nights_differs_from_date_range": "Nights column ({{csvNights}}) differs from date range ({{computedNights}}); using date-computed value",
+      "missing_paid_out_and_amount_for_payout": "Payout row ({{kind}}) is missing both Paid out and Amount fields",
+      "missing_amount_for_kind": "Row ({{kind}}) is missing required Amount field",
+      "malformed_money_value": "Malformed {{field}} value: \"{{rawValue}}\""
+    }
+  }
+}

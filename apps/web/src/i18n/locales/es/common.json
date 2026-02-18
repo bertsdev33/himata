@@ -1,0 +1,18 @@
+{
+  "meta": {
+    "title": "Analítica de Alquileres",
+    "description": "Panel de Analítica de Alquileres — Sube exportaciones CSV de Airbnb y revisa métricas de rendimiento"
+  },
+  "app": {
+    "title": "Analítica de Alquileres"
+  },
+  "actions": {
+    "upload_new_files": "Subir Archivos Nuevos"
+  },
+  "language": {
+    "label": "Idioma"
+  },
+  "errors": {
+    "unexpected": "Ocurrió un error inesperado"
+  }
+}

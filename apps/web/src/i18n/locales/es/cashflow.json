@@ -1,0 +1,22 @@
+{
+  "section": {
+    "monthly_payouts": {
+      "title": "Pagos Mensuales",
+      "legend": {
+        "payouts": "Pagos",
+        "projected_payouts": "Pagos Proyectados"
+      },
+      "projection_note": "La barra punteada muestra el pago proyectado al cierre del mes"
+    }
+  },
+  "tab": {
+    "payout_summary": {
+      "title": "Resumen de Pagos",
+      "columns": {
+        "month": "Mes",
+        "total_paid_out": "Total Pagado",
+        "payout_events": "Eventos de Pago"
+      }
+    }
+  }
+}

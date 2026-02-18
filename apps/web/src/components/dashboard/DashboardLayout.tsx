@@ -1,4 +1,4 @@
-import { useMemo, useEffect } from "react";
+import { useMemo, useEffect, useState } from "react";
 import { useAppContext } from "@/app/state";
 import {
   computeMonthlyPortfolioPerformance,
@@ -8,6 +8,8 @@ import {
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Tooltip } from "@/components/ui/tooltip";
 import { useSettingsContext } from "@/app/settings-context";
+import { useTranslation } from "react-i18next";
+import { useLocaleContext } from "@/i18n/LocaleProvider";
 import { DashboardHeader } from "./DashboardHeader";
 import { FilterBar } from "./FilterBar";
 import { WarningsPanel } from "@/components/shared/WarningsPanel";
@@ -29,6 +31,8 @@ import {
 import type { DashboardTab } from "@/app/types";
 import { transformMlForecastForDisplay } from "@/lib/ml-forecast-display-transform";
 import { useMlForecastRefresh } from "@/hooks/useMlForecastRefresh";
+import { Button } from "@/components/ui/button";
+import { Menu, X } from "lucide-react";
 
 interface TabDef {
   id: DashboardTab;
@@ -40,7 +44,10 @@ interface TabDef {
 export function DashboardLayout() {
   const { state, dispatch } = useAppContext();
   const { settings } = useSettingsContext();
+  const { locale } = useLocaleContext();
+  const { t } = useTranslation("dashboard", { lng: locale });
   const { analytics, filter } = state;
+  const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
 
   if (!analytics) return null;
 
@@ -269,41 +276,41 @@ export function DashboardLayout() {
     return [
       {
         id: "portfolio-overview",
-        label: "Portfolio",
+        label: t("tabs.portfolio"),
         enabled: hasTransactions,
-        reason: hasTransactions ? undefined : "No data matches current filters",
+        reason: hasTransactions ? undefined : t("tabs.reasons.no_data_matches_filters"),
       },
       {
         id: "listing-comparison",
-        label: "Comparison",
+        label: t("tabs.comparison"),
         enabled: distinctListingIds.length >= 2,
         reason:
           distinctListingIds.length >= 2
             ? undefined
-            : "Need 2+ listings in filtered set",
+            : t("tabs.reasons.need_two_or_more_listings"),
       },
       {
         id: "listing-detail",
-        label: "Listing Detail",
+        label: t("tabs.listing_detail"),
         enabled: distinctListingIds.length === 1,
         reason:
           distinctListingIds.length === 1
             ? undefined
-            : "Select exactly 1 listing",
+            : t("tabs.reasons.select_exactly_one_listing"),
       },
       {
         id: "cashflow",
-        label: "Cashflow",
+        label: t("tabs.cashflow"),
         enabled: hasCashflow,
         reason: hasCashflow
           ? undefined
           : filter.viewMode === "forecast"
-            ? "Not available in Forecast view"
-            : "No cashflow data",
+            ? t("tabs.reasons.not_available_in_forecast_view")
+            : t("tabs.reasons.no_cashflow_data"),
       },
       {
         id: "forecast",
-        label: "Forecast",
+        label: t("tabs.forecast"),
         enabled:
           hasForecast ||
           hasDisplayedMl ||
@@ -313,23 +320,23 @@ export function DashboardLayout() {
         reason:
           hasForecast || hasDisplayedMl || hasMlSnapshot || hasBaselineMl || hasMlTrainingData
           ? undefined
-          : "No realized data available to train forecast",
+          : t("tabs.reasons.no_realized_data_for_forecast"),
       },
       {
         id: "transactions",
-        label: "Transactions",
+        label: t("tabs.transactions"),
         enabled: filteredTransactions.length > 0,
         reason:
-          filteredTransactions.length > 0 ? undefined : "No transactions match filters",
+          filteredTransactions.length > 0 ? undefined : t("tabs.reasons.no_transactions_match_filters"),
       },
       {
         id: "data-quality",
-        label: "Data Quality",
+        label: t("tabs.data_quality"),
         enabled: true,
       },
       {
         id: "settings",
-        label: "Settings",
+        label: t("tabs.settings"),
         enabled: true,
       },
     ];
@@ -345,22 +352,30 @@ export function DashboardLayout() {
     analytics.views.realized.listingPerformance,
     currency,
     mlRefresh.snapshot,
+    t,
   ]);
 
   // Auto-fallback: if current tab becomes disabled, switch to portfolio-overview
   const activeTab = filter.activeTab;
   const currentTabDef = tabs.find((t) => t.id === activeTab);
+  const setActiveTab = (tab: DashboardTab) =>
+    dispatch({
+      type: "SET_FILTER",
+      filter: { activeTab: tab },
+    });
+
   useEffect(() => {
     if (currentTabDef && !currentTabDef.enabled) {
       const firstEnabled = tabs.find((t) => t.enabled);
       if (firstEnabled) {
-        dispatch({
-          type: "SET_FILTER",
-          filter: { activeTab: firstEnabled.id },
-        });
+        setActiveTab(firstEnabled.id);
       }
     }
   }, [currentTabDef, tabs, dispatch]);
+
+  useEffect(() => {
+    setIsMobileNavOpen(false);
+  }, [activeTab]);
 
   // Handle "Show only this listing" from ListingsTable
   const handleSelectListing = (listingId: string) => {
@@ -397,31 +412,85 @@ export function DashboardLayout() {
   );
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="flex min-h-screen min-w-0 flex-col overflow-x-hidden">
       <DashboardHeader />
 
       <Tabs
         value={activeTab}
-        onValueChange={(v) =>
-          dispatch({
-            type: "SET_FILTER",
-            filter: { activeTab: v as DashboardTab },
-          })
-        }
-        className="flex-1 flex flex-col"
+        onValueChange={(v) => setActiveTab(v as DashboardTab)}
+        className="flex flex-1 min-w-0 flex-col"
       >
         {/* Sticky header: filters + tabs */}
-        <div className="sticky top-0 z-40">
+        <div className="sticky top-0 z-40 min-w-0">
           <FilterBar />
-          <div className="bg-background border-b px-6 py-2">
-            <TabsList className="flex-wrap h-auto gap-1">
+
+          <div className="border-b bg-background px-4 py-2 sm:hidden">
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full justify-between"
+              onClick={() => setIsMobileNavOpen(true)}
+            >
+              <span className="truncate">{currentTabDef?.label ?? activeTab}</span>
+              <Menu className="h-4 w-4 shrink-0" />
+            </Button>
+          </div>
+
+          {isMobileNavOpen && (
+            <div className="fixed inset-0 z-50 bg-black/45 sm:hidden" role="dialog" aria-modal="true">
+              <div
+                className="absolute inset-0"
+                onClick={() => setIsMobileNavOpen(false)}
+                aria-hidden="true"
+              />
+              <div className="absolute left-0 top-0 flex h-full w-[min(85vw,320px)] flex-col border-r bg-background shadow-xl">
+                <div className="flex items-center justify-between border-b px-4 py-3">
+                  <p className="text-sm font-medium">{currentTabDef?.label ?? activeTab}</p>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setIsMobileNavOpen(false)}
+                    aria-label="Close navigation"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+                <div className="flex-1 space-y-2 overflow-y-auto p-3">
+                  {tabs.map((tab) => (
+                    <button
+                      key={tab.id}
+                      type="button"
+                      onClick={() => tab.enabled && setActiveTab(tab.id)}
+                      disabled={!tab.enabled}
+                      className={`w-full rounded-md border px-3 py-2 text-left text-sm transition-colors ${
+                        activeTab === tab.id
+                          ? "border-primary bg-primary text-primary-foreground"
+                          : tab.enabled
+                            ? "border-border hover:bg-accent hover:text-accent-foreground"
+                            : "border-border bg-muted/40 text-muted-foreground"
+                      }`}
+                    >
+                      <p>{tab.label}</p>
+                      {!tab.enabled && tab.reason && (
+                        <p className="mt-1 text-xs font-normal text-muted-foreground">{tab.reason}</p>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="hidden border-b bg-background px-6 py-2 sm:block">
+            <TabsList className="h-auto flex-wrap gap-1">
               {tabs.map((tab) =>
                 tab.enabled ? (
                   <TabsTrigger key={tab.id} value={tab.id}>
                     {tab.label}
                   </TabsTrigger>
                 ) : (
-                  <Tooltip key={tab.id} content={tab.reason ?? "Not available"}>
+                  <Tooltip key={tab.id} content={tab.reason ?? t("tabs.not_available")}>
                     <TabsTrigger value={tab.id} disabled className="opacity-50">
                       {tab.label}
                     </TabsTrigger>
@@ -432,7 +501,7 @@ export function DashboardLayout() {
           </div>
         </div>
 
-        <main className="flex-1 p-6">
+        <main className="flex-1 min-w-0 p-4 sm:p-6">
           <WarningsPanel warnings={analytics.warnings} />
 
           <TabsContent value="portfolio-overview" className="mt-0">
@@ -445,6 +514,7 @@ export function DashboardLayout() {
               currency={currency}
               projection={filter.projection}
               hasProjection={hasProjection}
+              analytics={analytics}
             />
           </TabsContent>
 

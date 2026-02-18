@@ -1,0 +1,26 @@
+{
+  "subtitle": "Importez vos exports CSV Airbnb pour analyser la performance locative",
+  "files_count": "Fichiers ({{count}})",
+  "dropzone": {
+    "title": "Déposez des fichiers CSV ici ou cliquez pour parcourir",
+    "hint": "Importez vos exports de transactions Airbnb (.csv, max {{maxMb}} MB)"
+  },
+  "dataset": {
+    "paid": "Payé (Finalisé)",
+    "upcoming": "À Venir (Prévision)"
+  },
+  "fields": {
+    "account_id": "ID du Compte",
+    "dataset_kind": "Type d’ensemble de données"
+  },
+  "actions": {
+    "analyze": "Analyser",
+    "analyzing": "Analyse en cours...",
+    "remove_file": "Supprimer le fichier"
+  },
+  "errors": {
+    "rejected_prefix": "Fichiers rejetés : {{files}}",
+    "not_csv": "{{name}} : n'est pas un fichier CSV",
+    "too_large": "{{name}} : dépasse la limite de {{maxMb}} MB ({{sizeMb}} MB)"
+  }
+}

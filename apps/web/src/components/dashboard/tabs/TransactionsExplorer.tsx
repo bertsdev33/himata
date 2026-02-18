@@ -13,6 +13,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { formatMoney } from "@/lib/format";
+import { useLocaleContext } from "@/i18n/LocaleProvider";
+import { useTranslation } from "react-i18next";
 import type { CanonicalTransaction } from "@rental-analytics/core";
 
 interface TransactionsExplorerProps {
@@ -26,10 +28,17 @@ const PAGE_SIZE = 25;
 
 export function TransactionsExplorer({ transactions, currency }: TransactionsExplorerProps) {
   const { getListingName, getAccountName } = useSettingsContext();
+  const { locale } = useLocaleContext();
+  const { t } = useTranslation("dashboard", { lng: locale });
   const [search, setSearch] = useState("");
   const [sortKey, setSortKey] = useState<SortKey>("date");
   const [sortAsc, setSortAsc] = useState(false);
   const [page, setPage] = useState(0);
+
+  const getKindLabel = (kind: string) =>
+    t(`transactions.kinds.${kind}`, {
+      defaultValue: kind.replace(/_/g, " "),
+    });
 
   useEffect(() => {
     setPage(0);
@@ -41,10 +50,11 @@ export function TransactionsExplorer({ transactions, currency }: TransactionsExp
     return transactions.filter((tx) => {
       const name = tx.listing?.listingName?.toLowerCase() ?? "";
       const account = tx.listing?.accountId?.toLowerCase() ?? "";
-      const kind = tx.kind.toLowerCase();
-      return name.includes(q) || account.includes(q) || kind.includes(q);
+      const kindRaw = tx.kind.toLowerCase();
+      const kindLabel = getKindLabel(tx.kind).toLowerCase();
+      return name.includes(q) || account.includes(q) || kindRaw.includes(q) || kindLabel.includes(q);
     });
-  }, [transactions, search]);
+  }, [transactions, search, t]);
 
   const sorted = useMemo(() => {
     const copy = [...filtered];
@@ -105,31 +115,33 @@ export function TransactionsExplorer({ transactions, currency }: TransactionsExp
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle className="text-base">Transactions ({filtered.length})</CardTitle>
+      <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <CardTitle className="text-base">
+          {t("transactions.title", { count: filtered.length })}
+        </CardTitle>
         <Input
           value={search}
           onChange={(e) => {
             setSearch(e.target.value);
             setPage(0);
           }}
-          placeholder="Search listing, account, or type..."
-          className="w-72"
+          placeholder={t("transactions.search_placeholder")}
+          className="w-full sm:w-72"
         />
       </CardHeader>
       <CardContent>
         <Table>
           <TableHeader>
             <TableRow>
-              <SortHeader label="Date" col="date" />
-              <SortHeader label="Type" col="kind" />
-              <SortHeader label="Account" col="accountId" />
-              <SortHeader label="Listing" col="listingName" />
-              <SortHeader label="Nights" col="nights" />
-              <SortHeader label="Net" col="netAmount" />
-              <SortHeader label="Gross" col="grossAmount" />
-              <TableHead className="whitespace-nowrap">Service Fee</TableHead>
-              <TableHead className="whitespace-nowrap">Cleaning</TableHead>
+              <SortHeader label={t("transactions.columns.date")} col="date" />
+              <SortHeader label={t("transactions.columns.type")} col="kind" />
+              <SortHeader label={t("transactions.columns.account")} col="accountId" />
+              <SortHeader label={t("transactions.columns.listing")} col="listingName" />
+              <SortHeader label={t("transactions.columns.nights")} col="nights" />
+              <SortHeader label={t("transactions.columns.net")} col="netAmount" />
+              <SortHeader label={t("transactions.columns.gross")} col="grossAmount" />
+              <TableHead className="whitespace-nowrap">{t("transactions.columns.service_fee")}</TableHead>
+              <TableHead className="whitespace-nowrap">{t("transactions.columns.cleaning")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -137,7 +149,7 @@ export function TransactionsExplorer({ transactions, currency }: TransactionsExp
               <TableRow key={`${tx.transactionId}-${i}`}>
                 <TableCell className="whitespace-nowrap">{tx.occurredDate}</TableCell>
                 <TableCell className="text-xs capitalize">
-                  {tx.kind.replace(/_/g, " ")}
+                  {getKindLabel(tx.kind)}
                 </TableCell>
                 <TableCell className="text-xs">{tx.listing ? getAccountName(tx.listing.accountId) : "—"}</TableCell>
                 <TableCell className="max-w-[200px] truncate">
@@ -145,24 +157,24 @@ export function TransactionsExplorer({ transactions, currency }: TransactionsExp
                 </TableCell>
                 <TableCell>{tx.stay?.nights ?? "—"}</TableCell>
                 <TableCell className={tx.netAmount.amountMinor >= 0 ? "text-green-600" : "text-red-600"}>
-                  {formatMoney(tx.netAmount.amountMinor, currency)}
+                  {formatMoney(tx.netAmount.amountMinor, currency, locale)}
                 </TableCell>
                 <TableCell className={tx.grossAmount.amountMinor >= 0 ? "text-green-600" : "text-red-600"}>
-                  {formatMoney(tx.grossAmount.amountMinor, currency)}
+                  {formatMoney(tx.grossAmount.amountMinor, currency, locale)}
                 </TableCell>
                 <TableCell className={tx.hostServiceFeeAmount.amountMinor >= 0 ? "" : "text-red-600"}>
-                  {formatMoney(tx.hostServiceFeeAmount.amountMinor, currency)}
+                  {formatMoney(tx.hostServiceFeeAmount.amountMinor, currency, locale)}
                 </TableCell>
-                <TableCell>{formatMoney(tx.cleaningFeeAmount.amountMinor, currency)}</TableCell>
+                <TableCell>{formatMoney(tx.cleaningFeeAmount.amountMinor, currency, locale)}</TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
 
         {totalPages > 1 && (
-          <div className="flex items-center justify-between mt-4">
+          <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-sm text-muted-foreground">
-              Page {page + 1} of {totalPages}
+              {t("transactions.pagination.page_of", { page: page + 1, totalPages })}
             </p>
             <div className="flex gap-2">
               <Button
@@ -172,7 +184,7 @@ export function TransactionsExplorer({ transactions, currency }: TransactionsExp
                 onClick={() => setPage(page - 1)}
               >
                 <ChevronLeft className="h-4 w-4" />
-                Prev
+                {t("transactions.pagination.prev")}
               </Button>
               <Button
                 variant="outline"
@@ -180,7 +192,7 @@ export function TransactionsExplorer({ transactions, currency }: TransactionsExp
                 disabled={page >= totalPages - 1}
                 onClick={() => setPage(page + 1)}
               >
-                Next
+                {t("transactions.pagination.next")}
                 <ChevronRight className="h-4 w-4" />
               </Button>
             </div>

@@ -1,0 +1,52 @@
+{
+  "summary": {
+    "none": "-",
+    "not_available": "N/D",
+    "date_range_value": "{{start}} à {{end}}",
+    "cards": {
+      "total_rows": "Lignes Totales",
+      "type_breakdown": "Répartition par Type",
+      "duplicates_flagged": "Doublons Signalés",
+      "currencies": "Devises",
+      "date_range": "Plage de Dates"
+    }
+  },
+  "warnings": {
+    "dismiss": "Fermer les avertissements",
+    "title_one": "Avertissement d'Import ({{count}})",
+    "title_other": "Avertissements d'Import ({{count}})",
+    "and_more": "...et {{count}} de plus",
+    "codes": {
+      "MISSING_REQUIRED_FIELD": "Champ Requis Manquant",
+      "DEDUPLICATED_ROW": "Ligne Dupliquée Supprimée",
+      "MULTI_CURRENCY_PARTITIONED": "Partition Multi-Devises",
+      "UNKNOWN_TRANSACTION_TYPE": "Type de Transaction Inconnu",
+      "INVALID_DATE": "Date Invalide",
+      "MISSING_LISTING_FOR_PERFORMANCE_ROW": "Bien Manquant pour Ligne de Performance",
+      "INVALID_MONEY": "Montant Invalide"
+    },
+    "messages": {
+      "MISSING_REQUIRED_FIELD": "Un champ requis est manquant.",
+      "DEDUPLICATED_ROW": "Une ligne dupliquée a été supprimée.",
+      "MULTI_CURRENCY_PARTITIONED": "Plusieurs devises détectées ; les résultats sont partitionnés par devise.",
+      "UNKNOWN_TRANSACTION_TYPE": "Un type de transaction inconnu a été détecté.",
+      "INVALID_DATE": "La valeur de date est invalide.",
+      "MISSING_LISTING_FOR_PERFORMANCE_ROW": "La ligne de performance ne contient pas d'information de bien.",
+      "INVALID_MONEY": "La valeur monétaire est invalide."
+    },
+    "message_keys": {
+      "missing_required_column": "La colonne requise \"{{column}}\" est introuvable dans les en-têtes CSV",
+      "deduplicated_row": "Ligne dupliquée ignorée (empreinte : {{fingerprint}})",
+      "multi_currency_partitioned": "Plusieurs devises détectées ({{currencies}}). Les agrégations seront partitionnées par devise.",
+      "unknown_transaction_type": "Type de transaction inconnu : \"{{rawType}}\"",
+      "invalid_or_missing_date": "Champ Date invalide ou manquant",
+      "missing_currency_field": "Champ Currency manquant",
+      "missing_listing_for_performance_row": "La ligne de performance ({{kind}}) n'a pas de nom de bien",
+      "stay_end_not_after_start": "La date de fin ({{endDate}}) n'est pas postérieure à la date de début ({{startDate}}) ; la période de séjour est ignorée",
+      "nights_differs_from_date_range": "La colonne Nights ({{csvNights}}) diffère de la plage de dates ({{computedNights}}) ; la valeur calculée est utilisée",
+      "missing_paid_out_and_amount_for_payout": "La ligne de paiement ({{kind}}) ne contient ni Paid out ni Amount",
+      "missing_amount_for_kind": "La ligne ({{kind}}) ne contient pas le champ requis Amount",
+      "malformed_money_value": "Valeur {{field}} mal formée : \"{{rawValue}}\""
+    }
+  }
+}

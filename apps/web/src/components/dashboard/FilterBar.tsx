@@ -7,6 +7,8 @@ import { Select } from "@/components/ui/select";
 import { MultiSelect } from "@/components/ui/multi-select";
 import { Button } from "@/components/ui/button";
 import { RotateCcw, ChevronDown, SlidersHorizontal, Pin, PinOff } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { useLocaleContext } from "@/i18n/LocaleProvider";
 import type { ViewMode } from "@/app/types";
 import { getPresetRange, type DatePreset } from "@/lib/dashboard-utils";
 
@@ -16,6 +18,8 @@ const MAX_INLINE_LISTING_QUICK_FILTERS = 12;
 export function FilterBar() {
   const { state, dispatch } = useAppContext();
   const { filter, analytics } = state;
+  const { locale } = useLocaleContext();
+  const { t } = useTranslation("dashboard", { lng: locale });
   const {
     settings,
     getListingName,
@@ -57,18 +61,18 @@ export function FilterBar() {
   const viewOptions: { value: ViewMode; label: string; description: string }[] = [
     {
       value: "realized",
-      label: "Realized",
-      description: "Only past/paid data.",
+      label: t("filter_bar.view.realized.label"),
+      description: t("filter_bar.view.realized.description"),
     },
     {
       value: "forecast",
-      label: "Upcoming",
-      description: "Only upcoming/unfulfilled reservations.",
+      label: t("filter_bar.view.upcoming.label"),
+      description: t("filter_bar.view.upcoming.description"),
     },
     {
       value: "all",
-      label: "All",
-      description: "Combined analysis from realized and upcoming data.",
+      label: t("filter_bar.view.all.label"),
+      description: t("filter_bar.view.all.description"),
     },
   ];
 
@@ -165,13 +169,13 @@ export function FilterBar() {
   };
 
   const quickTimeOptions = [
-    { key: "all", label: "All Time" },
-    { key: "12m", label: "Last 12 Months" },
-    { key: "6m", label: "Last 6 Months" },
-    { key: "3m", label: "Last 3 Months" },
-    { key: "ytd", label: "YTD" },
-    { key: "last-month", label: "Last Month" },
-    { key: "current-month", label: "Current Month" },
+    { key: "all", label: t("filter_bar.quick_time.all") },
+    { key: "12m", label: t("filter_bar.quick_time.last_12_months") },
+    { key: "6m", label: t("filter_bar.quick_time.last_6_months") },
+    { key: "3m", label: t("filter_bar.quick_time.last_3_months") },
+    { key: "ytd", label: t("filter_bar.quick_time.ytd") },
+    { key: "last-month", label: t("filter_bar.quick_time.last_month") },
+    { key: "current-month", label: t("filter_bar.quick_time.current_month") },
   ];
 
   // ------- Contextual filtering -------
@@ -368,13 +372,23 @@ export function FilterBar() {
   const showAccountQuickRow = hasAccountQuickFilters && (isExpanded || settings.quickFilterPinnedAccounts);
   const showListingQuickRow = hasListingQuickFilters && (isExpanded || settings.quickFilterPinnedListings);
   const showAnyQuickRows = showTimeQuickRow || showAccountQuickRow || showListingQuickRow;
+  const multiSelectLabels = {
+    selectPlaceholder: t("filter_bar.multi_select.select_placeholder"),
+    all: t("filter_bar.multi_select.all"),
+    selected: t("filter_bar.multi_select.selected"),
+    searchPlaceholder: t("filter_bar.multi_select.search_placeholder"),
+    selectAll: t("filter_bar.multi_select.select_all"),
+    clearAll: t("filter_bar.multi_select.clear_all"),
+    noResults: t("filter_bar.multi_select.no_results"),
+    clearSelectionAriaLabel: t("filter_bar.multi_select.clear_selection_aria"),
+  };
 
   return (
-    <div className="bg-background border-b px-6 py-2 space-y-2">
+    <div className="space-y-2 border-b bg-background px-4 py-2 sm:px-6">
       {/* Row 1: Main filters — always visible */}
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="flex flex-wrap items-center gap-2 sm:gap-3">
         {/* Custom date range */}
-        <div className="flex items-center gap-1.5">
+        <div className="flex w-full flex-wrap items-center gap-1.5 sm:w-auto sm:flex-nowrap">
           <input
             type="month"
             value={filter.dateRange.start ?? ""}
@@ -388,7 +402,7 @@ export function FilterBar() {
                 },
               })
             }
-            className={`h-8 rounded-md border px-2 text-xs transition-colors ${
+            className={`h-8 w-full min-w-0 rounded-md border px-2 text-xs transition-colors sm:w-[9.5rem] ${
               startIsForecast
                 ? "border-yellow-400 bg-yellow-50 text-yellow-800"
                 : "border-input bg-background"
@@ -408,25 +422,26 @@ export function FilterBar() {
                 },
               })
             }
-            className={`h-8 rounded-md border px-2 text-xs transition-colors ${
+            className={`h-8 w-full min-w-0 rounded-md border px-2 text-xs transition-colors sm:w-[9.5rem] ${
               endIsForecast
                 ? "border-yellow-400 bg-yellow-50 text-yellow-800"
                 : "border-input bg-background"
             }`}
           />
           {endInForecast && (
-            <span className="text-[10px] font-medium text-yellow-600 whitespace-nowrap">
-              Includes forecast
+            <span className="text-[10px] font-medium text-yellow-600">
+              {t("filter_bar.includes_forecast")}
             </span>
           )}
         </div>
 
         {/* Account multi-select */}
         {analytics.accountIds.length > 1 && (
-          <div className="w-48">
+          <div className="w-full sm:w-48">
             <MultiSelect
               options={accountOptions}
               selected={filter.selectedAccountIds}
+              labels={multiSelectLabels}
               onChange={(ids) =>
                 dispatch({
                   type: "SET_FILTER",
@@ -436,24 +451,25 @@ export function FilterBar() {
                   },
                 })
               }
-              placeholder="Accounts"
+              placeholder={t("filter_bar.placeholders.accounts")}
             />
           </div>
         )}
 
         {/* Listing multi-select */}
         {listingOptions.length > 1 && (
-          <div className="w-64">
+          <div className="w-full sm:w-64">
             <MultiSelect
               options={listingOptions}
               selected={filter.selectedListingIds}
+              labels={multiSelectLabels}
               onChange={(ids) =>
                 dispatch({
                   type: "SET_FILTER",
                   filter: { selectedListingIds: ids },
                 })
               }
-              placeholder="Listings"
+              placeholder={t("filter_bar.placeholders.listings")}
               searchable
             />
           </div>
@@ -468,7 +484,7 @@ export function FilterBar() {
             className="text-muted-foreground"
           >
             <RotateCcw className="mr-1 h-3.5 w-3.5" />
-            Clear
+            {t("filter_bar.actions.clear")}
           </Button>
         )}
 
@@ -483,12 +499,12 @@ export function FilterBar() {
               })
             }
             options={analytics.currencies.map((c) => ({ value: c, label: c }))}
-            className="w-24"
+            className="w-full sm:w-24"
           />
         )}
 
         {/* Projection toggle */}
-        <label className="flex items-center gap-2 text-sm cursor-pointer">
+        <label className="flex cursor-pointer items-center gap-2 text-sm">
           <input
             type="checkbox"
             checked={filter.projection}
@@ -500,11 +516,13 @@ export function FilterBar() {
             }
             className="h-4 w-4 rounded border-input"
           />
-          <span className="text-muted-foreground whitespace-nowrap">Project this Month</span>
+          <span className="text-muted-foreground whitespace-nowrap">
+            {t("filter_bar.actions.project_this_month")}
+          </span>
         </label>
 
         {/* Quick filters toggle + View mode — pushed right */}
-        <div className="ml-auto flex items-center gap-3">
+        <div className="flex w-full flex-wrap items-center gap-2 sm:ml-auto sm:w-auto sm:justify-end sm:gap-3">
           <Button
             variant="outline"
             size="sm"
@@ -512,20 +530,23 @@ export function FilterBar() {
             className="gap-1.5 text-xs"
           >
             <SlidersHorizontal className="h-3.5 w-3.5" />
-              Quick Filters
+            {t("filter_bar.actions.quick_filters")}
             <ChevronDown className={`h-3.5 w-3.5 transition-transform duration-200 ${isExpanded ? "" : "-rotate-90"}`} />
           </Button>
-          <span className="text-xs text-muted-foreground whitespace-nowrap">Data scope</span>
+          <span className="hidden whitespace-nowrap text-xs text-muted-foreground sm:inline">
+            {t("filter_bar.data_scope")}
+          </span>
           <Tabs
             value={filter.viewMode}
             onValueChange={(v) =>
               dispatch({ type: "SET_FILTER", filter: { viewMode: v as ViewMode } })
             }
+            className="w-full sm:w-auto"
           >
-            <TabsList>
+            <TabsList className="h-auto w-full flex-wrap sm:w-auto">
               {viewOptions.map((opt) => (
                 <Tooltip key={opt.value} content={opt.description}>
-                  <TabsTrigger value={opt.value}>
+                  <TabsTrigger value={opt.value} className="flex-1 sm:flex-none">
                     {opt.label}
                   </TabsTrigger>
                 </Tooltip>
@@ -544,8 +565,10 @@ export function FilterBar() {
         <div className="overflow-hidden">
           <div className="space-y-1 pb-1 text-sm">
             {showTimeQuickRow && (
-              <div className="flex items-center gap-2">
-                <span className="w-16 shrink-0 text-xs font-medium text-muted-foreground">Time</span>
+              <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-center">
+                <span className="w-full text-xs font-medium text-muted-foreground sm:w-16 sm:shrink-0">
+                  {t("filter_bar.rows.time")}
+                </span>
                 <div className="flex min-w-0 flex-1 items-center gap-1.5 overflow-x-auto whitespace-nowrap">
                   {activeTimePresets.map((opt) => (
                     <button
@@ -566,9 +589,13 @@ export function FilterBar() {
                   type="button"
                   variant={settings.quickFilterPinnedTime ? "secondary" : "ghost"}
                   size="sm"
-                  className="h-7 shrink-0 px-2"
+                  className="h-7 shrink-0 self-end px-2 sm:self-auto"
                   onClick={() => setQuickFilterPinnedTime(!settings.quickFilterPinnedTime)}
-                  aria-label={settings.quickFilterPinnedTime ? "Unpin time quick filters" : "Pin time quick filters"}
+                  aria-label={
+                    settings.quickFilterPinnedTime
+                      ? t("filter_bar.actions.unpin_time")
+                      : t("filter_bar.actions.pin_time")
+                  }
                 >
                   {settings.quickFilterPinnedTime ? <Pin className="h-3.5 w-3.5" /> : <PinOff className="h-3.5 w-3.5" />}
                 </Button>
@@ -576,8 +603,10 @@ export function FilterBar() {
             )}
 
             {showAccountQuickRow && (
-              <div className="flex items-center gap-2">
-                <span className="w-16 shrink-0 text-xs font-medium text-muted-foreground">Accounts</span>
+              <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-center">
+                <span className="w-full text-xs font-medium text-muted-foreground sm:w-16 sm:shrink-0">
+                  {t("filter_bar.rows.accounts")}
+                </span>
                 <div className="flex min-w-0 flex-1 items-center gap-1.5 overflow-x-auto whitespace-nowrap">
                   <button
                     type="button"
@@ -596,7 +625,7 @@ export function FilterBar() {
                         : "border-border text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                     }`}
                   >
-                    All Accounts
+                    {t("filter_bar.rows.all_accounts")}
                   </button>
                   {quickAccounts.map((opt) => (
                     <button
@@ -628,9 +657,13 @@ export function FilterBar() {
                   type="button"
                   variant={settings.quickFilterPinnedAccounts ? "secondary" : "ghost"}
                   size="sm"
-                  className="h-7 shrink-0 px-2"
+                  className="h-7 shrink-0 self-end px-2 sm:self-auto"
                   onClick={() => setQuickFilterPinnedAccounts(!settings.quickFilterPinnedAccounts)}
-                  aria-label={settings.quickFilterPinnedAccounts ? "Unpin account quick filters" : "Pin account quick filters"}
+                  aria-label={
+                    settings.quickFilterPinnedAccounts
+                      ? t("filter_bar.actions.unpin_accounts")
+                      : t("filter_bar.actions.pin_accounts")
+                  }
                 >
                   {settings.quickFilterPinnedAccounts ? <Pin className="h-3.5 w-3.5" /> : <PinOff className="h-3.5 w-3.5" />}
                 </Button>
@@ -638,8 +671,10 @@ export function FilterBar() {
             )}
 
             {showListingQuickRow && (
-              <div className="flex items-center gap-2">
-                <span className="w-16 shrink-0 text-xs font-medium text-muted-foreground">Listings</span>
+              <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-center">
+                <span className="w-full text-xs font-medium text-muted-foreground sm:w-16 sm:shrink-0">
+                  {t("filter_bar.rows.listings")}
+                </span>
                 <div className="flex min-w-0 flex-1 items-center gap-1.5 overflow-x-auto whitespace-nowrap">
                   <button
                     type="button"
@@ -655,7 +690,7 @@ export function FilterBar() {
                         : "border-border text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                     }`}
                   >
-                    All Listings
+                    {t("filter_bar.rows.all_listings")}
                   </button>
                   {quickListings.map((opt) => (
                     <button
@@ -687,9 +722,13 @@ export function FilterBar() {
                   type="button"
                   variant={settings.quickFilterPinnedListings ? "secondary" : "ghost"}
                   size="sm"
-                  className="h-7 shrink-0 px-2"
+                  className="h-7 shrink-0 self-end px-2 sm:self-auto"
                   onClick={() => setQuickFilterPinnedListings(!settings.quickFilterPinnedListings)}
-                  aria-label={settings.quickFilterPinnedListings ? "Unpin listing quick filters" : "Pin listing quick filters"}
+                  aria-label={
+                    settings.quickFilterPinnedListings
+                      ? t("filter_bar.actions.unpin_listings")
+                      : t("filter_bar.actions.pin_listings")
+                  }
                 >
                   {settings.quickFilterPinnedListings ? <Pin className="h-3.5 w-3.5" /> : <PinOff className="h-3.5 w-3.5" />}
                 </Button>
@@ -697,10 +736,10 @@ export function FilterBar() {
             )}
 
             {isExpanded && !listingQuickRowEnabled && (
-              <p className="text-xs text-muted-foreground pl-[4.5rem]">
-                Listing quick filters are hidden because there are too many listings. Enable
-                <span className="font-medium"> Show All Listings </span>
-                in Settings to force display.
+              <p className="pl-0 text-xs text-muted-foreground sm:pl-[4.5rem]">
+                {t("filter_bar.listing_row_hidden.prefix")}
+                <span className="font-medium"> {t("filter_bar.listing_row_hidden.show_all_listings")} </span>
+                {t("filter_bar.listing_row_hidden.suffix")}
               </p>
             )}
           </div>

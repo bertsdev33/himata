@@ -1,0 +1,82 @@
+{
+  "confidence": {
+    "high": "Élevée",
+    "medium": "Moyenne",
+    "low": "Faible"
+  },
+  "actions": {
+    "calculating": "Calcul en cours...",
+    "preparing": "Préparation...",
+    "retry_update": "Réessayer la mise à jour",
+    "refresh_forecast": "Actualiser la prévision",
+    "refresh_now": "Actualiser maintenant",
+    "up_to_date": "À jour"
+  },
+  "status": {
+    "forecast_status": "Statut de la prévision",
+    "required_disclaimer": "Prévision - sujette à changement (paiements non finalisés).",
+    "calculating_in_background": "Calcul de la prévision pour les filtres actuels en arrière-plan.",
+    "preparing_engine": "Préparation du moteur de prévision...",
+    "failed": "Impossible de mettre à jour la prévision.",
+    "failed_with_error": "Impossible de mettre à jour la prévision: {{error}}",
+    "outdated_manual": "La prévision est obsolète pour les filtres actuels. Cliquez sur Actualiser pour mettre à jour.",
+    "outdated_auto": "La prévision est obsolète pour les filtres actuels. L'actualisation automatique s'exécutera quand l'app sera inactive.",
+    "up_to_date": "Les données sont à jour.",
+    "fallback_full_history": "Pas assez de données réalisées dans la plage de dates sélectionnée. Entraînement effectué sur l'historique complet des biens sélectionnés.",
+    "unavailable_for_scope": "La prévision ML n'est pas disponible pour ce périmètre à cause d'un historique réalisé insuffisant."
+  },
+  "meta": {
+    "summary": "Entraîné: {{trainedAt}} - Fenêtre {{start}} à {{end}} - Lignes {{rowCount}} - Biens {{listingCount}}"
+  },
+  "cards": {
+    "upcoming_revenue": {
+      "title": "Revenu des Réservations à Venir (Pipeline)",
+      "net_revenue": "Revenu Net"
+    },
+    "upcoming_nights": {
+      "title": "Nuits à Venir par Mois",
+      "booked_nights": "Nuits Réservées"
+    },
+    "nowcast_forecast": {
+      "title": "Nowcast + Prévision de Revenu",
+      "predicted_revenue": "Revenu Prévu",
+      "range_value": "{{value}} (plage {{low}} - {{high}})",
+      "source": {
+        "model_forecast": "Prévision du Modèle",
+        "projected_current_month": "Mois Actuel Projeté",
+        "current_month_actual": "Mois Actuel Réel"
+      }
+    }
+  },
+  "ml": {
+    "alert": {
+      "description": "Prédictions de revenu entraînées sur vos données historiques avec Ridge Regression. La confiance reflète le nombre de mois de données d'entraînement disponibles."
+    },
+    "summary": {
+      "title": "Prévision ML - {{month}}",
+      "predicted_gross_revenue": "Revenu Brut Prévu",
+      "total_for_subset": "Total pour {{included}} biens sur {{total}} cibles sur {{month}}",
+      "confidence_range": "Plage de Confiance",
+      "listings_forecast": "Biens Prévus"
+    },
+    "table": {
+      "title": "Prévisions par Bien",
+      "columns": {
+        "listing": "Bien",
+        "predicted_revenue": "Revenu Prévu",
+        "range": "Plage",
+        "target": "Cible",
+        "confidence": "Confiance",
+        "months": "Mois"
+      }
+    },
+    "excluded": {
+      "toggle_one": "{{count}} bien exclu de la prévision",
+      "toggle_other": "{{count}} biens exclus de la prévision",
+      "reasons": {
+        "insufficient_listing_history": "Seulement {{monthsAvailable}} mois de données (minimum {{minMonths}} requis)",
+        "insufficient_training_data": "Données d'entraînement insuffisantes ({{trainingRows}} lignes sur l'ensemble des biens, minimum {{minTrainingRows}})"
+      }
+    }
+  }
+}

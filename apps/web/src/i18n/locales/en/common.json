@@ -1,0 +1,18 @@
+{
+  "meta": {
+    "title": "Rental Analytics",
+    "description": "Rental Analytics Dashboard - Upload Airbnb CSV exports and view performance metrics"
+  },
+  "app": {
+    "title": "Rental Analytics"
+  },
+  "actions": {
+    "upload_new_files": "Upload New Files"
+  },
+  "language": {
+    "label": "Language"
+  },
+  "errors": {
+    "unexpected": "An unexpected error occurred"
+  }
+}
