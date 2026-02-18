@@ -21,7 +21,7 @@
     "title": "Actualización de Pronóstico ML",
     "description": "El modo automático actualiza pronósticos ML en segundo plano mientras la UI está inactiva. El modo manual nunca se ejecuta automáticamente, incluso al cargar.",
     "actions": {
-      "auto_async": "Automático (Async)",
+      "auto_async": "Automático (Asíncrono)",
       "manual_only": "Solo Manual"
     }
   },
