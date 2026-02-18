@@ -67,6 +67,16 @@
       "pin_listings": "Epingler les filtres rapides de biens",
       "unpin_listings": "Desepingler les filtres rapides de biens"
     },
+    "multi_select": {
+      "select_placeholder": "Selectionner",
+      "all": "Tout",
+      "selected": "selectionnes",
+      "search_placeholder": "Rechercher...",
+      "select_all": "Tout Selectionner",
+      "clear_all": "Tout Effacer",
+      "no_results": "Aucun resultat trouve.",
+      "clear_selection_aria": "Effacer la selection"
+    },
     "listing_row_hidden": {
       "prefix": "Les filtres rapides des biens sont masques car il y a trop de biens. Activez",
       "show_all_listings": "Afficher Tous les Biens",
@@ -211,6 +221,14 @@
       "gross": "Brut",
       "service_fee": "Frais de Service",
       "cleaning": "Menage"
+    },
+    "kinds": {
+      "reservation": "Reservation",
+      "adjustment": "Ajustement",
+      "resolution_adjustment": "Ajustement de Resolution",
+      "cancellation_fee": "Frais d'Annulation",
+      "payout": "Paiement",
+      "resolution_payout": "Paiement de Resolution"
     },
     "pagination": {
       "page_of": "Page {{page}} sur {{totalPages}}",

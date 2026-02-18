@@ -52,6 +52,27 @@ const ADJUSTMENT_KINDS = new Set<TransactionKind>([
   "resolution_adjustment",
 ]);
 
+type WarningCode = ImportWarning["code"];
+type WarningParams = NonNullable<ImportWarning["params"]>;
+
+function createWarning(input: {
+  code: WarningCode;
+  message: string;
+  fileName: string;
+  rowNumber?: number;
+  messageKey: string;
+  params?: WarningParams;
+}): ImportWarning {
+  return {
+    code: input.code,
+    message: input.message,
+    fileName: input.fileName,
+    rowNumber: input.rowNumber,
+    messageKey: input.messageKey,
+    params: input.params,
+  };
+}
+
 /**
  * Import a single Airbnb v1 CSV file into canonical transactions.
  */
@@ -71,11 +92,15 @@ export function importAirbnbV1(input: ImportAirbnbV1Input): ImportResult {
   const requiredColumns = ["Date", "Type", "Currency"];
   for (const col of requiredColumns) {
     if (!(col in firstRow)) {
-      warnings.push({
-        code: "MISSING_REQUIRED_FIELD",
-        message: `Required column "${col}" not found in CSV headers`,
-        fileName,
-      });
+      warnings.push(
+        createWarning({
+          code: "MISSING_REQUIRED_FIELD",
+          message: `Required column "${col}" not found in CSV headers`,
+          fileName,
+          messageKey: "missing_required_column",
+          params: { column: col },
+        }),
+      );
       return { transactions: [], warnings };
     }
   }
@@ -111,12 +136,16 @@ export function importAirbnbV1Session(
 
     for (const tx of result.transactions) {
       if (seenFingerprints.has(tx.transactionId)) {
-        allWarnings.push({
-          code: "DEDUPLICATED_ROW",
-          message: `Duplicate row dropped (fingerprint: ${tx.transactionId})`,
-          fileName: tx.rawRowRef.fileName,
-          rowNumber: tx.rawRowRef.rowNumber,
-        });
+        allWarnings.push(
+          createWarning({
+            code: "DEDUPLICATED_ROW",
+            message: `Duplicate row dropped (fingerprint: ${tx.transactionId})`,
+            fileName: tx.rawRowRef.fileName,
+            rowNumber: tx.rawRowRef.rowNumber,
+            messageKey: "deduplicated_row",
+            params: { fingerprint: tx.transactionId },
+          }),
+        );
         continue;
       }
       seenFingerprints.add(tx.transactionId);
@@ -126,11 +155,15 @@ export function importAirbnbV1Session(
   }
 
   if (currencies.size > 1) {
-    allWarnings.push({
-      code: "MULTI_CURRENCY_PARTITIONED",
-      message: `Multiple currencies detected (${[...currencies].sort().join(", ")}). Aggregations will be partitioned by currency.`,
-      fileName: inputs.map((i) => i.fileName).join(", "),
-    });
+    allWarnings.push(
+      createWarning({
+        code: "MULTI_CURRENCY_PARTITIONED",
+        message: `Multiple currencies detected (${[...currencies].sort().join(", ")}). Aggregations will be partitioned by currency.`,
+        fileName: inputs.map((i) => i.fileName).join(", "),
+        messageKey: "multi_currency_partitioned",
+        params: { currencies: [...currencies].sort().join(", ") },
+      }),
+    );
   }
 
   return { transactions: allTransactions, warnings: allWarnings };
@@ -149,12 +182,16 @@ function mapRow(
 
   if (!kind) {
     if (rawType !== "") {
-      warnings.push({
-        code: "UNKNOWN_TRANSACTION_TYPE",
-        message: `Unknown transaction type: "${rawType}"`,
-        fileName,
-        rowNumber,
-      });
+      warnings.push(
+        createWarning({
+          code: "UNKNOWN_TRANSACTION_TYPE",
+          message: `Unknown transaction type: "${rawType}"`,
+          fileName,
+          rowNumber,
+          messageKey: "unknown_transaction_type",
+          params: { rawType },
+        }),
+      );
     }
     return null;
   }
@@ -162,23 +199,29 @@ function mapRow(
   // Parse occurred date
   const occurredDate = parseAirbnbDate(row["Date"] ?? "");
   if (!occurredDate) {
-    warnings.push({
-      code: "INVALID_DATE",
-      message: `Invalid or missing Date field`,
-      fileName,
-      rowNumber,
-    });
+    warnings.push(
+      createWarning({
+        code: "INVALID_DATE",
+        message: "Invalid or missing Date field",
+        fileName,
+        rowNumber,
+        messageKey: "invalid_or_missing_date",
+      }),
+    );
     return null;
   }
 
   const currency = (row["Currency"] ?? "").trim();
   if (!currency) {
-    warnings.push({
-      code: "MISSING_REQUIRED_FIELD",
-      message: `Missing Currency field`,
-      fileName,
-      rowNumber,
-    });
+    warnings.push(
+      createWarning({
+        code: "MISSING_REQUIRED_FIELD",
+        message: "Missing Currency field",
+        fileName,
+        rowNumber,
+        messageKey: "missing_currency_field",
+      }),
+    );
     return null;
   }
 
@@ -190,12 +233,16 @@ function mapRow(
 
   // Warn if performance row has no listing
   if (!listing && PERFORMANCE_KINDS.has(kind)) {
-    warnings.push({
-      code: "MISSING_LISTING_FOR_PERFORMANCE_ROW",
-      message: `Performance row (${kind}) has no listing name`,
-      fileName,
-      rowNumber,
-    });
+    warnings.push(
+      createWarning({
+        code: "MISSING_LISTING_FOR_PERFORMANCE_ROW",
+        message: `Performance row (${kind}) has no listing name`,
+        fileName,
+        rowNumber,
+        messageKey: "missing_listing_for_performance_row",
+        params: { kind },
+      }),
+    );
   }
 
   // Parse stay window
@@ -209,12 +256,16 @@ function mapRow(
 
     if (computedNights <= 0) {
       // End date <= Start date: invalid stay window, skip stay entirely
-      warnings.push({
-        code: "INVALID_DATE",
-        message: `End date (${endDate}) is not after Start date (${startDate}); stay window ignored`,
-        fileName,
-        rowNumber,
-      });
+      warnings.push(
+        createWarning({
+          code: "INVALID_DATE",
+          message: `End date (${endDate}) is not after Start date (${startDate}); stay window ignored`,
+          fileName,
+          rowNumber,
+          messageKey: "stay_end_not_after_start",
+          params: { startDate, endDate },
+        }),
+      );
     } else {
       // Warn if CSV nights column disagrees with date-computed nights
       if (
@@ -222,12 +273,16 @@ function mapRow(
         rawNights > 0 &&
         rawNights !== computedNights
       ) {
-        warnings.push({
-          code: "INVALID_DATE",
-          message: `Nights column (${rawNights}) differs from date range (${computedNights}); using date-computed value`,
-          fileName,
-          rowNumber,
-        });
+        warnings.push(
+          createWarning({
+            code: "INVALID_DATE",
+            message: `Nights column (${rawNights}) differs from date range (${computedNights}); using date-computed value`,
+            fileName,
+            rowNumber,
+            messageKey: "nights_differs_from_date_range",
+            params: { csvNights: rawNights, computedNights },
+          }),
+        );
       }
 
       stay = {
@@ -246,22 +301,30 @@ function mapRow(
   const paidOutRaw = (row["Paid out"] ?? "").trim();
 
   if (isPayoutKind && paidOutRaw === "" && amountRaw === "") {
-    warnings.push({
-      code: "MISSING_REQUIRED_FIELD",
-      message: `Payout row (${kind}) is missing both Paid out and Amount fields`,
-      fileName,
-      rowNumber,
-    });
+    warnings.push(
+      createWarning({
+        code: "MISSING_REQUIRED_FIELD",
+        message: `Payout row (${kind}) is missing both Paid out and Amount fields`,
+        fileName,
+        rowNumber,
+        messageKey: "missing_paid_out_and_amount_for_payout",
+        params: { kind },
+      }),
+    );
     return null;
   }
 
   if (!isPayoutKind && amountRaw === "") {
-    warnings.push({
-      code: "MISSING_REQUIRED_FIELD",
-      message: `Row (${kind}) is missing required Amount field`,
-      fileName,
-      rowNumber,
-    });
+    warnings.push(
+      createWarning({
+        code: "MISSING_REQUIRED_FIELD",
+        message: `Row (${kind}) is missing required Amount field`,
+        fileName,
+        rowNumber,
+        messageKey: "missing_amount_for_kind",
+        params: { kind },
+      }),
+    );
     return null;
   }
 
@@ -288,12 +351,16 @@ function mapRow(
   ];
   for (const { name, result } of moneyFields) {
     if (result.invalid) {
-      warnings.push({
-        code: "INVALID_MONEY",
-        message: `Malformed ${name} value: "${row[name]}"`,
-        fileName,
-        rowNumber,
-      });
+      warnings.push(
+        createWarning({
+          code: "INVALID_MONEY",
+          message: `Malformed ${name} value: "${row[name]}"`,
+          fileName,
+          rowNumber,
+          messageKey: "malformed_money_value",
+          params: { field: name, rawValue: row[name] ?? "" },
+        }),
+      );
     }
   }
 

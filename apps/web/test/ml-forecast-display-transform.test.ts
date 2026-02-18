@@ -37,8 +37,22 @@ function sampleForecast(): ForecastResult {
     portfolio: buildPortfolio(listings.filter((l) => l.targetMonth === "2025-01")),
     listings,
     excluded: [
-      { listingId: "ex-a1", listingName: "Excluded A1", accountId: "a1", reason: "too_few_months", monthsAvailable: 2 },
-      { listingId: "ex-a2", listingName: "Excluded A2", accountId: "a2", reason: "too_few_months", monthsAvailable: 2 },
+      {
+        listingId: "ex-a1",
+        listingName: "Excluded A1",
+        accountId: "a1",
+        reasonCode: "insufficient_listing_history",
+        reason: "too_few_months",
+        monthsAvailable: 2,
+      },
+      {
+        listingId: "ex-a2",
+        listingName: "Excluded A2",
+        accountId: "a2",
+        reasonCode: "insufficient_listing_history",
+        reason: "too_few_months",
+        monthsAvailable: 2,
+      },
     ],
   };
 }

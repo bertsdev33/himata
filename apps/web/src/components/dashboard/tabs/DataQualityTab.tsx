@@ -43,7 +43,12 @@ export function DataQualityTab({ transactions, warnings }: DataQualityTabProps) 
     {
       title: t("summary.cards.type_breakdown"),
       value: summary.typeBreakdown
-        .map(([type, count]) => `${type}: ${count}`)
+        .map(([type, count]) =>
+          `${t(`transactions.kinds.${type}`, {
+            ns: "dashboard",
+            defaultValue: type.replace(/_/g, " "),
+          })}: ${count}`,
+        )
         .join(", ") || t("summary.none"),
     },
     {

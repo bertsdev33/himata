@@ -1,1 +1,4 @@
-{}
+{
+  "unexpected": "Ocurrio un error inesperado",
+  "load_failed": "Error al cargar datos"
+}

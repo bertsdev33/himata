@@ -67,6 +67,22 @@ export function WarningsPanel({ warnings }: WarningsPanelProps) {
     grouped.set(w.code, existing);
   }
 
+  const formatWarningCode = (code: string) =>
+    t(`warnings.codes.${code}`, {
+      defaultValue: code.replace(/_/g, " "),
+    });
+
+  const formatWarningMessage = (warning: ImportWarning) =>
+    warning.messageKey
+      ? t(`warnings.message_keys.${warning.messageKey}`, {
+          ...(warning.params ?? {}),
+          defaultValue: warning.message,
+        })
+      : t(`warnings.messages.${warning.code}`, {
+          ...(warning.params ?? {}),
+          defaultValue: warning.message,
+        });
+
   return (
     <div
       className={`transition-all duration-300 ease-in-out ${
@@ -97,13 +113,13 @@ export function WarningsPanel({ warnings }: WarningsPanelProps) {
                   {[...grouped.entries()].map(([code, items]) => (
                     <div key={code}>
                       <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                        {code.replace(/_/g, " ")} ({items.length})
+                        {formatWarningCode(code)} ({items.length})
                       </p>
                       <ul className="mt-1 space-y-0.5">
                         {items.slice(0, 10).map((w, i) => (
                           <li key={i} className="text-xs text-muted-foreground">
                             {w.fileName}
-                            {w.rowNumber ? `:${w.rowNumber}` : ""} — {w.message}
+                            {w.rowNumber ? `:${w.rowNumber}` : ""} — {formatWarningMessage(w)}
                           </li>
                         ))}
                         {items.length > 10 && (

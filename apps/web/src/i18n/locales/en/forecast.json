@@ -72,7 +72,11 @@
     },
     "excluded": {
       "toggle_one": "{{count}} listing excluded from forecast",
-      "toggle_other": "{{count}} listings excluded from forecast"
+      "toggle_other": "{{count}} listings excluded from forecast",
+      "reasons": {
+        "insufficient_listing_history": "Only {{monthsAvailable}} month(s) of data (need at least {{minMonths}})",
+        "insufficient_training_data": "Insufficient training data ({{trainingRows}} rows across all listings, need {{minTrainingRows}})"
+      }
     }
   }
 }
