@@ -13,7 +13,9 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CHART_COLORS, MULTI_LINE_COLORS } from "@/lib/chart-colors";
-import { formatMonth, formatMoneyCompact } from "@/lib/format";
+import { formatMoney, formatMonth, formatMoneyCompact } from "@/lib/format";
+import { useLocaleContext } from "@/i18n/LocaleProvider";
+import { useTranslation } from "react-i18next";
 import type { MonthlyListingPerformance, YearMonth } from "@rental-analytics/core";
 import type { RevenueBasis } from "@/app/types";
 
@@ -31,6 +33,8 @@ export function MultiLineRevenueChart({
   projection = false,
 }: MultiLineRevenueChartProps) {
   const { getListingName } = useSettingsContext();
+  const { locale } = useLocaleContext();
+  const { t } = useTranslation("dashboard", { lng: locale });
   const [topOnly, setTopOnly] = useState(false);
 
   const totalListings = new Set(data.map((lp) => lp.listingId)).size;
@@ -80,7 +84,7 @@ export function MultiLineRevenueChart({
     const rows = months.map((month) => {
       const values = monthMap.get(month)!;
       const entry: Record<string, string | number> = {
-        label: formatMonth(month as YearMonth),
+        label: formatMonth(month as YearMonth, locale),
       };
       for (const id of selectedIds) {
         entry[id] = values[id] ?? 0;
@@ -96,19 +100,21 @@ export function MultiLineRevenueChart({
     });
 
     return { chartData: rows, listingIds: selectedIds, listingNames: names, hasProjection: showProjection };
-  }, [data, revenueBasis, topOnly, totalListings, projection]);
+  }, [data, locale, revenueBasis, topOnly, totalListings, projection]);
 
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle className="text-base">Revenue by Listing</CardTitle>
+        <CardTitle className="text-base">{t("charts.revenue_by_listing.title")}</CardTitle>
         {totalListings > 5 && (
           <Button
             variant="ghost"
             size="sm"
             onClick={() => setTopOnly(!topOnly)}
           >
-            {topOnly ? `Show All (${totalListings})` : "Top 5"}
+            {topOnly
+              ? t("charts.revenue_by_listing.actions.show_all", { count: totalListings })
+              : t("charts.revenue_by_listing.actions.top_5")}
           </Button>
         )}
       </CardHeader>
@@ -118,17 +124,12 @@ export function MultiLineRevenueChart({
             <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
             <XAxis dataKey="label" className="text-xs" />
             <YAxis
-              tickFormatter={(v) => formatMoneyCompact(v * 100, currency)}
+              tickFormatter={(v) => formatMoneyCompact(v * 100, currency, locale)}
               className="text-xs"
               domain={[(dataMin: number) => Math.min(0, dataMin), "auto"]}
             />
             <Tooltip
-              formatter={(value: number) =>
-                new Intl.NumberFormat("en-US", {
-                  style: "currency",
-                  currency,
-                }).format(value)
-              }
+              formatter={(value: number) => formatMoney(Math.round(value * 100), currency, locale)}
             />
             <Legend />
             {listingIds.map((id, i) => (
@@ -148,7 +149,9 @@ export function MultiLineRevenueChart({
                 key={`${id}_projected`}
                 type="monotone"
                 dataKey={`${id}_projected`}
-                name={`${getListingName(id, listingNames.get(id) ?? id)} (proj.)`}
+                name={t("charts.revenue_by_listing.projected_name", {
+                  name: getListingName(id, listingNames.get(id) ?? id),
+                })}
                 stroke={MULTI_LINE_COLORS[i % MULTI_LINE_COLORS.length]}
                 strokeWidth={1.5}
                 strokeDasharray="4 4"
@@ -162,7 +165,7 @@ export function MultiLineRevenueChart({
         {hasProjection && (
           <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1.5">
             <span className="inline-block w-4 border-t-2 border-dashed" style={{ borderColor: CHART_COLORS.forecast }} />
-            Dashed lines show projected month-end values
+            {t("charts.revenue_by_listing.projection_note")}
           </p>
         )}
       </CardContent>

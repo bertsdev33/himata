@@ -1,0 +1,48 @@
+---
+import "@/styles/globals.css";
+import { getRelativeLocaleUrl } from "astro:i18n";
+import { defaultLocale, locales, type Locale } from "@/i18n/config";
+import { getLocaleAgnosticPath } from "@/i18n/routing";
+import { createServerI18n } from "@/i18n/server";
+
+const locale = (Astro.currentLocale ?? defaultLocale) as Locale;
+const site = Astro.site ?? new URL("https://example.com");
+const basePath = getLocaleAgnosticPath(Astro.url.pathname);
+const i18n = await createServerI18n(locale);
+const t = i18n.t.bind(i18n);
+---
+
+<!doctype html>
+<html lang={locale}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={t("meta.description", { ns: "common" })} />
+    <title>{t("meta.title", { ns: "common" })}</title>
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>"
+    />
+    {
+      locales.map((loc) => (
+        <link
+          rel="alternate"
+          hreflang={loc}
+          href={new URL(getRelativeLocaleUrl(loc, basePath), site).href}
+        />
+      ))
+    }
+    <link rel="alternate" hreflang="x-default" href={new URL(basePath, site).href} />
+    <link
+      rel="canonical"
+      href={new URL(getRelativeLocaleUrl(locale, basePath), site).href}
+    />
+    <slot name="head" />
+  </head>
+  <body class="min-h-screen bg-background font-sans antialiased">
+    <main>
+      <slot />
+    </main>
+  </body>
+</html>

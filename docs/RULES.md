@@ -96,10 +96,9 @@
     - `docs/RULES.md`
     - `docs/TECH_STACK.md`
     - `README.md`
-    - `docs/alpha-plan.md`
     - `docs/AGENTS.md`
   - Use your installed Codex CLI invocation and include this minimum instruction:
-    - "Review the staged git changes using docs/RULES.md, docs/TECH_STACK.md, README.md, docs/alpha-plan.md, and docs/AGENTS.md as constraints. Flag bugs, regressions, security risks, missing tests, and workflow/architecture violations. Return only required fixes."
+    - "Review the staged git changes using docs/RULES.md, docs/TECH_STACK.md, README.md, and docs/AGENTS.md as constraints. Flag bugs, regressions, security risks, missing tests, and workflow/architecture violations. Return only required fixes."
   - All required feedback from this review must be applied before committing.
   - Do not commit while required feedback is still unresolved.
 

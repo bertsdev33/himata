@@ -1,13 +1,14 @@
 import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { formatPercent } from "@/lib/format";
+import { useLocaleContext } from "@/i18n/LocaleProvider";
+import { useTranslation } from "react-i18next";
 import type { CanonicalTransaction } from "@rental-analytics/core";
 
 interface OccupancyHeatmapsProps {
   transactions: CanonicalTransaction[];
 }
 
-const DOW_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const DOM_LABELS = Array.from({ length: 31 }, (_, i) => i + 1);
 
 /**
@@ -113,7 +114,16 @@ function heatmapText(ratio: number): string {
 }
 
 export function OccupancyHeatmaps({ transactions }: OccupancyHeatmapsProps) {
+  const { locale } = useLocaleContext();
+  const { t } = useTranslation("dashboard", { lng: locale });
   const data = useMemo(() => computeHeatmapData(transactions), [transactions]);
+  const dowLabels = useMemo(() => {
+    const formatter = new Intl.DateTimeFormat(locale, { weekday: "short" });
+    const monday = new Date(2024, 0, 1); // Monday
+    return Array.from({ length: 7 }, (_, idx) =>
+      formatter.format(new Date(monday.getTime() + idx * 24 * 60 * 60 * 1000)),
+    );
+  }, [locale]);
 
   const dowRates = data.dowCounts.map((count, i) =>
     data.dowTotals[i] > 0 ? count / data.dowTotals[i] : null,
@@ -131,12 +141,12 @@ export function OccupancyHeatmaps({ transactions }: OccupancyHeatmapsProps) {
       {/* Day-of-Week Heatmap */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Occupancy by Day of Week</CardTitle>
-          <CardDescription>Estimated occupancy rate per weekday</CardDescription>
+          <CardTitle className="text-base">{t("occupancy_heatmaps.by_weekday.title")}</CardTitle>
+          <CardDescription>{t("occupancy_heatmaps.by_weekday.description")}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex gap-2">
-            {DOW_LABELS.map((label, i) => {
+            {dowLabels.map((label, i) => {
               const rate = dowRates[i];
               const r = rate !== null ? Math.min(rate, 1) : 0;
               return (
@@ -146,7 +156,7 @@ export function OccupancyHeatmaps({ transactions }: OccupancyHeatmapsProps) {
                     className={`rounded-md py-3 text-xs font-medium transition-all duration-150 cursor-default hover:ring-2 hover:ring-foreground/25 hover:brightness-110 hover:scale-[1.06] ${heatmapText(r)}`}
                     style={{ backgroundColor: rate !== null ? heatmapBg(r) : undefined }}
                   >
-                    {formatPercent(rate)}
+                    {formatPercent(rate, locale)}
                   </div>
                 </div>
               );
@@ -158,8 +168,8 @@ export function OccupancyHeatmaps({ transactions }: OccupancyHeatmapsProps) {
       {/* Day-of-Month Heatmap */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Occupancy by Day of Month</CardTitle>
-          <CardDescription>Estimated occupancy rate per calendar day</CardDescription>
+          <CardTitle className="text-base">{t("occupancy_heatmaps.by_month_day.title")}</CardTitle>
+          <CardDescription>{t("occupancy_heatmaps.by_month_day.description")}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-7 gap-1">
@@ -173,7 +183,7 @@ export function OccupancyHeatmaps({ transactions }: OccupancyHeatmapsProps) {
                     className={`rounded py-1.5 text-[10px] font-medium transition-all duration-150 cursor-default hover:ring-2 hover:ring-foreground/25 hover:brightness-110 hover:scale-105 ${heatmapText(r)}`}
                     style={{ backgroundColor: rate !== null ? heatmapBg(r) : undefined }}
                   >
-                    {formatPercent(rate)}
+                    {formatPercent(rate, locale)}
                   </div>
                 </div>
               );

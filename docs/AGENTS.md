@@ -46,7 +46,7 @@ Before opening a PR, run: `bun run lint && bun run typecheck && bun run test`.
 ## Commit & Pull Request Guidelines
 There is no existing commit history yet; use Conventional Commits from day one (`feat:`, `fix:`, `chore:`, `test:`). Keep commits small and single-purpose. Do not commit directly to `main`; use feature branches such as `feat/import-airbnb-v1`.
 Run `./scripts/setup.sh` once per local clone to install local hooks.
-Before every commit, run a Codex CLI review on staged files and include `docs/RULES.md`, `docs/TECH_STACK.md`, `README.md`, `docs/alpha-plan.md`, and `docs/AGENTS.md` as review constraints. Apply all required feedback before committing.
+Before every commit, run a Codex CLI review on staged files and include `docs/RULES.md`, `docs/TECH_STACK.md`, `README.md`, and `docs/AGENTS.md` as review constraints. Apply all required feedback before committing.
 
 PRs should include:
 - Clear summary and scope

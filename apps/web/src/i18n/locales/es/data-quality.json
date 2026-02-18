@@ -1,0 +1,20 @@
+{
+  "summary": {
+    "none": "-",
+    "not_available": "N/D",
+    "date_range_value": "{{start}} a {{end}}",
+    "cards": {
+      "total_rows": "Filas Totales",
+      "type_breakdown": "Desglose por Tipo",
+      "duplicates_flagged": "Duplicados Marcados",
+      "currencies": "Monedas",
+      "date_range": "Rango de Fechas"
+    }
+  },
+  "warnings": {
+    "dismiss": "Cerrar advertencias",
+    "title_one": "Advertencia de Importacion ({{count}})",
+    "title_other": "Advertencias de Importacion ({{count}})",
+    "and_more": "...y {{count}} mas"
+  }
+}

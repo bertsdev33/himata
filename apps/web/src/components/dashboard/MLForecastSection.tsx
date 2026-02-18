@@ -12,6 +12,8 @@ import {
 import { ForecastConfidenceBadge } from "./ForecastConfidenceBadge";
 import { formatMoney, formatMonth } from "@/lib/format";
 import { useSettingsContext } from "@/app/settings-context";
+import { useLocaleContext } from "@/i18n/LocaleProvider";
+import { useTranslation } from "react-i18next";
 import { BrainCircuit, ChevronDown, ChevronRight } from "lucide-react";
 import type { ForecastResult } from "@rental-analytics/forecasting";
 import type { YearMonth } from "@rental-analytics/core";
@@ -22,6 +24,8 @@ interface MLForecastSectionProps {
 
 export function MLForecastSection({ forecast }: MLForecastSectionProps) {
   const { settings } = useSettingsContext();
+  const { locale } = useLocaleContext();
+  const { t } = useTranslation("forecast", { lng: locale });
   const [showExcluded, setShowExcluded] = useState(false);
   const { portfolio, listings, excluded } = forecast;
 
@@ -41,8 +45,7 @@ export function MLForecastSection({ forecast }: MLForecastSectionProps) {
       <Alert className="border-purple-200 bg-purple-50">
         <BrainCircuit className="h-4 w-4 text-purple-600" />
         <AlertDescription className="text-purple-800">
-          Revenue predictions trained on your historical data using Ridge Regression.
-          Confidence reflects months of training data available.
+          {t("ml.alert.description")}
         </AlertDescription>
       </Alert>
 
@@ -50,31 +53,37 @@ export function MLForecastSection({ forecast }: MLForecastSectionProps) {
       <Card>
         <CardHeader className="pb-2">
           <CardTitle className="text-base">
-            ML Forecast — {formatMonth(portfolioMonth as YearMonth)}
+            {t("ml.summary.title", {
+              month: formatMonth(portfolioMonth as YearMonth, locale),
+            })}
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
-              <p className="text-sm text-muted-foreground">Predicted Gross Revenue</p>
+              <p className="text-sm text-muted-foreground">{t("ml.summary.predicted_gross_revenue")}</p>
               <p className="text-2xl font-bold">
-                {formatMoney(portfolio.forecastGrossRevenueMinor, currency)}
+                {formatMoney(portfolio.forecastGrossRevenueMinor, currency, locale)}
               </p>
               {hasMultipleTargetMonths && (
                 <p className="text-xs text-muted-foreground mt-1">
-                  Total for {portfolio.listingForecasts.length} of {listings.length} listings targeting {formatMonth(portfolioMonth as YearMonth)}
+                  {t("ml.summary.total_for_subset", {
+                    included: portfolio.listingForecasts.length,
+                    total: listings.length,
+                    month: formatMonth(portfolioMonth as YearMonth, locale),
+                  })}
                 </p>
               )}
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Confidence Range</p>
+              <p className="text-sm text-muted-foreground">{t("ml.summary.confidence_range")}</p>
               <p className="text-lg font-medium">
-                {formatMoney(portfolio.lowerBandMinor, currency)} –{" "}
-                {formatMoney(portfolio.upperBandMinor, currency)}
+                {formatMoney(portfolio.lowerBandMinor, currency, locale)} –{" "}
+                {formatMoney(portfolio.upperBandMinor, currency, locale)}
               </p>
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Listings Forecast</p>
+              <p className="text-sm text-muted-foreground">{t("ml.summary.listings_forecast")}</p>
               <p className="text-lg font-medium">
                 {listings.length} of {listings.length + excluded.length}
               </p>
@@ -87,20 +96,20 @@ export function MLForecastSection({ forecast }: MLForecastSectionProps) {
       {listings.length > 0 && (
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">Per-Listing Forecasts</CardTitle>
+            <CardTitle className="text-base">{t("ml.table.title")}</CardTitle>
           </CardHeader>
           <CardContent>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Listing</TableHead>
-                  <TableHead className="text-right">Predicted Revenue</TableHead>
-                  <TableHead className="text-right">Range</TableHead>
+                  <TableHead>{t("ml.table.columns.listing")}</TableHead>
+                  <TableHead className="text-right">{t("ml.table.columns.predicted_revenue")}</TableHead>
+                  <TableHead className="text-right">{t("ml.table.columns.range")}</TableHead>
                   {hasMultipleTargetMonths && (
-                    <TableHead>Target</TableHead>
+                    <TableHead>{t("ml.table.columns.target")}</TableHead>
                   )}
-                  <TableHead className="text-center">Confidence</TableHead>
-                  <TableHead className="text-right">Months</TableHead>
+                  <TableHead className="text-center">{t("ml.table.columns.confidence")}</TableHead>
+                  <TableHead className="text-right">{t("ml.table.columns.months")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -112,15 +121,15 @@ export function MLForecastSection({ forecast }: MLForecastSectionProps) {
                         {getDisplayName(listing.listingId, listing.listingName)}
                       </TableCell>
                       <TableCell className="text-right">
-                        {formatMoney(listing.forecastGrossRevenueMinor, listing.currency)}
+                        {formatMoney(listing.forecastGrossRevenueMinor, listing.currency, locale)}
                       </TableCell>
                       <TableCell className="text-right text-sm text-muted-foreground">
-                        {formatMoney(listing.lowerBandMinor, listing.currency)} –{" "}
-                        {formatMoney(listing.upperBandMinor, listing.currency)}
+                        {formatMoney(listing.lowerBandMinor, listing.currency, locale)} –{" "}
+                        {formatMoney(listing.upperBandMinor, listing.currency, locale)}
                       </TableCell>
                       {hasMultipleTargetMonths && (
                         <TableCell className="text-sm">
-                          {formatMonth(listing.targetMonth as YearMonth)}
+                          {formatMonth(listing.targetMonth as YearMonth, locale)}
                         </TableCell>
                       )}
                       <TableCell className="text-center">
@@ -139,6 +148,7 @@ export function MLForecastSection({ forecast }: MLForecastSectionProps) {
       {excluded.length > 0 && (
         <div>
           <button
+            type="button"
             onClick={() => setShowExcluded(!showExcluded)}
             className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
@@ -147,7 +157,7 @@ export function MLForecastSection({ forecast }: MLForecastSectionProps) {
             ) : (
               <ChevronRight className="h-4 w-4" />
             )}
-            {excluded.length} listing{excluded.length > 1 ? "s" : ""} excluded from forecast
+            {t("ml.excluded.toggle", { count: excluded.length })}
           </button>
           {showExcluded && (
             <div className="mt-2 rounded-lg border p-3 text-sm">

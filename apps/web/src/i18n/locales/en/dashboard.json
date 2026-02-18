@@ -1,0 +1,221 @@
+{
+  "tabs": {
+    "portfolio": "Portfolio",
+    "comparison": "Comparison",
+    "listing_detail": "Listing Detail",
+    "cashflow": "Cashflow",
+    "forecast": "Forecast",
+    "transactions": "Transactions",
+    "data_quality": "Data Quality",
+    "settings": "Settings",
+    "not_available": "Not available",
+    "reasons": {
+      "no_data_matches_filters": "No data matches current filters",
+      "need_two_or_more_listings": "Need 2+ listings in filtered set",
+      "select_exactly_one_listing": "Select exactly 1 listing",
+      "not_available_in_forecast_view": "Not available in Forecast view",
+      "no_cashflow_data": "No cashflow data",
+      "no_realized_data_for_forecast": "No realized data available to train forecast",
+      "no_transactions_match_filters": "No transactions match filters"
+    }
+  },
+  "filter_bar": {
+    "includes_forecast": "Includes forecast",
+    "data_scope": "Data scope",
+    "view": {
+      "realized": {
+        "label": "Realized",
+        "description": "Only past/paid data."
+      },
+      "upcoming": {
+        "label": "Upcoming",
+        "description": "Only upcoming/unfulfilled reservations."
+      },
+      "all": {
+        "label": "All",
+        "description": "Combined analysis from realized and upcoming data."
+      }
+    },
+    "quick_time": {
+      "all": "All Time",
+      "last_12_months": "Last 12 Months",
+      "last_6_months": "Last 6 Months",
+      "last_3_months": "Last 3 Months",
+      "ytd": "YTD",
+      "last_month": "Last Month",
+      "current_month": "Current Month"
+    },
+    "placeholders": {
+      "accounts": "Accounts",
+      "listings": "Listings"
+    },
+    "rows": {
+      "time": "Time",
+      "accounts": "Accounts",
+      "all_accounts": "All Accounts",
+      "listings": "Listings",
+      "all_listings": "All Listings"
+    },
+    "actions": {
+      "clear": "Clear",
+      "project_this_month": "Project this Month",
+      "quick_filters": "Quick Filters",
+      "pin_time": "Pin time quick filters",
+      "unpin_time": "Unpin time quick filters",
+      "pin_accounts": "Pin account quick filters",
+      "unpin_accounts": "Unpin account quick filters",
+      "pin_listings": "Pin listing quick filters",
+      "unpin_listings": "Unpin listing quick filters"
+    },
+    "listing_row_hidden": {
+      "prefix": "Listing quick filters are hidden because there are too many listings. Enable",
+      "show_all_listings": "Show All Listings",
+      "suffix": "in Settings to force display."
+    }
+  },
+  "kpi": {
+    "badges": {
+      "projected": "projected"
+    },
+    "cards": {
+      "total_net_revenue": "Total Net Revenue",
+      "total_gross_revenue": "Total Gross Revenue",
+      "booked_nights": "Booked Nights",
+      "estimated_occupancy": "Est. Occupancy",
+      "avg_daily_rate": "Avg. Daily Rate",
+      "mom_change": "MoM Change"
+    },
+    "tooltips": {
+      "estimated_occupancy": "booked nights / (days_in_month * listings_in_service); not true occupancy",
+      "mom_change": "Month-over-month {{revenueBasis}} revenue change"
+    }
+  },
+  "listings_table": {
+    "title": "Listings Performance",
+    "columns": {
+      "listing": "Listing",
+      "account": "Account",
+      "nights": "Nights",
+      "gross_revenue": "Gross Revenue",
+      "net_revenue": "Net Revenue",
+      "adr": "ADR",
+      "occupancy": "Occupancy",
+      "vs_trailing": "vs Trailing",
+      "share": "Share"
+    },
+    "actions": {
+      "view_listing": "View listing details"
+    }
+  },
+  "charts": {
+    "revenue_by_listing": {
+      "title": "Revenue by Listing",
+      "actions": {
+        "show_all": "Show All ({{count}})",
+        "top_5": "Top 5"
+      },
+      "projected_name": "{{name}} (proj.)",
+      "projection_note": "Dashed lines show projected month-end values"
+    },
+    "nights_vs_adr": {
+      "title": "Nights vs ADR",
+      "booked_nights": "Booked Nights",
+      "adr": "ADR",
+      "projection_note": "Last bar shows projected month-end values"
+    },
+    "revenue_breakdown": {
+      "title": "Revenue Breakdown",
+      "legend": {
+        "reservations": "Reservations",
+        "adjustments": "Adjustments",
+        "resolutions": "Resolutions",
+        "cancellations": "Cancellations",
+        "projected": "Projected"
+      }
+    },
+    "revenue_trend": {
+      "title": "Revenue Trend",
+      "basis": {
+        "both": "Both",
+        "net": "Net",
+        "gross": "Gross"
+      },
+      "legend": {
+        "gross_revenue": "Gross Revenue",
+        "net_revenue": "Net Revenue",
+        "trailing_avg": "6-mo Avg"
+      }
+    }
+  },
+  "occupancy_display": {
+    "title": "Estimated Occupancy",
+    "breakdown": "{{nights}}n / {{listings}} listings"
+  },
+  "occupancy_heatmaps": {
+    "by_weekday": {
+      "title": "Occupancy by Day of Week",
+      "description": "Estimated occupancy rate per weekday"
+    },
+    "by_month_day": {
+      "title": "Occupancy by Day of Month",
+      "description": "Estimated occupancy rate per calendar day"
+    }
+  },
+  "seasonality_heatmap": {
+    "title": "Seasonality Heatmap",
+    "description": "Revenue intensity by month across years",
+    "year": "Year",
+    "low": "Low",
+    "high": "High"
+  },
+  "top_movers": {
+    "title": "Top Movers (MoM)",
+    "projected_note": "Current month values are projected based on pace so far",
+    "columns": {
+      "listing": "Listing",
+      "current": "Current",
+      "previous": "Previous",
+      "delta": "Delta",
+      "percent": "%",
+      "nights": "Nights",
+      "adr": "ADR"
+    }
+  },
+  "trailing_comparisons": {
+    "title": "Trailing Comparisons - {{month}}",
+    "metric": {
+      "net_revenue": "Net Revenue",
+      "gross_revenue": "Gross Revenue"
+    },
+    "baseline": "Baseline: {{amount}}"
+  },
+  "listing_detail": {
+    "fallback_listing_name": "Listing",
+    "performance_vs_trailing": "Performance vs Trailing Average",
+    "outperforming": "Outperforming",
+    "underperforming": "Underperforming",
+    "current": "Current",
+    "projected": "projected",
+    "trailing_avg": "Trailing Avg"
+  },
+  "transactions": {
+    "title": "Transactions ({{count}})",
+    "search_placeholder": "Search listing, account, or type...",
+    "columns": {
+      "date": "Date",
+      "type": "Type",
+      "account": "Account",
+      "listing": "Listing",
+      "nights": "Nights",
+      "net": "Net",
+      "gross": "Gross",
+      "service_fee": "Service Fee",
+      "cleaning": "Cleaning"
+    },
+    "pagination": {
+      "page_of": "Page {{page}} of {{totalPages}}",
+      "prev": "Prev",
+      "next": "Next"
+    }
+  }
+}

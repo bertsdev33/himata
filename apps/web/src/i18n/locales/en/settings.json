@@ -1,0 +1,44 @@
+{
+  "page": {
+    "title": "Settings",
+    "actions": {
+      "reset_all": "Reset All"
+    }
+  },
+  "fields": {
+    "custom_alias_placeholder": "Custom alias...",
+    "clear_alias": "Clear alias"
+  },
+  "listings": {
+    "title": "Listings",
+    "description": "Drag to reorder. Custom names appear everywhere in the dashboard.",
+    "columns": {
+      "original_name": "Original Name",
+      "custom_alias": "Custom Alias"
+    }
+  },
+  "forecast_refresh": {
+    "title": "ML Forecast Refresh",
+    "description": "Auto mode refreshes ML forecasts in the background while the UI is idle. Manual mode never auto-runs, including on load.",
+    "actions": {
+      "auto_async": "Auto (Async)",
+      "manual_only": "Manual Only"
+    }
+  },
+  "quick_filters": {
+    "title": "Quick Filters",
+    "description": "Show all listing buttons in quick filters even when the list is large.",
+    "actions": {
+      "show_all_listings": "Show All Listings",
+      "auto_limit": "Auto Limit"
+    }
+  },
+  "accounts": {
+    "title": "Accounts",
+    "description": "Drag to reorder. Custom names appear in filters and tables.",
+    "columns": {
+      "account_id": "Account ID",
+      "custom_alias": "Custom Alias"
+    }
+  }
+}

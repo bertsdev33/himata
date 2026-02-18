@@ -1,0 +1,20 @@
+{
+  "summary": {
+    "none": "-",
+    "not_available": "N/D",
+    "date_range_value": "{{start}} a {{end}}",
+    "cards": {
+      "total_rows": "Lignes Totales",
+      "type_breakdown": "Repartition par Type",
+      "duplicates_flagged": "Doublons Signales",
+      "currencies": "Devises",
+      "date_range": "Plage de Dates"
+    }
+  },
+  "warnings": {
+    "dismiss": "Fermer les avertissements",
+    "title_one": "Avertissement d'Import ({{count}})",
+    "title_other": "Avertissements d'Import ({{count}})",
+    "and_more": "...et {{count}} de plus"
+  }
+}

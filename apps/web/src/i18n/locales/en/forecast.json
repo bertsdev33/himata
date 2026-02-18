@@ -1,0 +1,78 @@
+{
+  "confidence": {
+    "high": "High",
+    "medium": "Medium",
+    "low": "Low"
+  },
+  "actions": {
+    "calculating": "Calculating...",
+    "preparing": "Preparing...",
+    "retry_update": "Retry update",
+    "refresh_forecast": "Refresh forecast",
+    "refresh_now": "Refresh now",
+    "up_to_date": "Up to date"
+  },
+  "status": {
+    "forecast_status": "Forecast status",
+    "required_disclaimer": "Forecast - subject to change (not finalized payouts).",
+    "calculating_in_background": "Calculating forecast for current filters in the background.",
+    "preparing_engine": "Preparing forecast engine...",
+    "failed": "Could not update forecast.",
+    "failed_with_error": "Could not update forecast: {{error}}",
+    "outdated_manual": "Forecast is out of date for current filters. Click Refresh to update.",
+    "outdated_auto": "Forecast is out of date for current filters. Auto-refresh will run when the app is idle.",
+    "up_to_date": "Data is up to date.",
+    "fallback_full_history": "Not enough realized data in the selected date range. Trained on full history for the selected listings.",
+    "unavailable_for_scope": "ML forecast is unavailable for the current scope due to insufficient realized training history."
+  },
+  "meta": {
+    "summary": "Trained: {{trainedAt}} - Window {{start}} to {{end}} - Rows {{rowCount}} - Listings {{listingCount}}"
+  },
+  "cards": {
+    "upcoming_revenue": {
+      "title": "Upcoming Reservations Revenue (Pipeline)",
+      "net_revenue": "Net Revenue"
+    },
+    "upcoming_nights": {
+      "title": "Upcoming Nights by Month",
+      "booked_nights": "Booked Nights"
+    },
+    "nowcast_forecast": {
+      "title": "Nowcast + Forecast Revenue",
+      "predicted_revenue": "Predicted Revenue",
+      "range_value": "{{value}} (range {{low}} - {{high}})",
+      "source": {
+        "model_forecast": "Model Forecast",
+        "projected_current_month": "Projected Current Month",
+        "current_month_actual": "Current Month Actual"
+      }
+    }
+  },
+  "ml": {
+    "alert": {
+      "description": "Revenue predictions trained on your historical data using Ridge Regression. Confidence reflects months of training data available."
+    },
+    "summary": {
+      "title": "ML Forecast - {{month}}",
+      "predicted_gross_revenue": "Predicted Gross Revenue",
+      "total_for_subset": "Total for {{included}} of {{total}} listings targeting {{month}}",
+      "confidence_range": "Confidence Range",
+      "listings_forecast": "Listings Forecast"
+    },
+    "table": {
+      "title": "Per-Listing Forecasts",
+      "columns": {
+        "listing": "Listing",
+        "predicted_revenue": "Predicted Revenue",
+        "range": "Range",
+        "target": "Target",
+        "confidence": "Confidence",
+        "months": "Months"
+      }
+    },
+    "excluded": {
+      "toggle_one": "{{count}} listing excluded from forecast",
+      "toggle_other": "{{count}} listings excluded from forecast"
+    }
+  }
+}

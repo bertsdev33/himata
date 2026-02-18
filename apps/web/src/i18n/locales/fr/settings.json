@@ -1,0 +1,44 @@
+{
+  "page": {
+    "title": "Parametres",
+    "actions": {
+      "reset_all": "Tout Reinitialiser"
+    }
+  },
+  "fields": {
+    "custom_alias_placeholder": "Alias personnalise...",
+    "clear_alias": "Effacer l'alias"
+  },
+  "listings": {
+    "title": "Biens",
+    "description": "Glissez pour reordonner. Les noms personnalises apparaissent partout dans le tableau de bord.",
+    "columns": {
+      "original_name": "Nom d'Origine",
+      "custom_alias": "Alias Personnalise"
+    }
+  },
+  "forecast_refresh": {
+    "title": "Actualisation de la Prevision ML",
+    "description": "Le mode auto actualise les previsions ML en arriere-plan quand l'interface est inactive. Le mode manuel ne se lance jamais automatiquement, y compris au chargement.",
+    "actions": {
+      "auto_async": "Auto (Async)",
+      "manual_only": "Manuel Uniquement"
+    }
+  },
+  "quick_filters": {
+    "title": "Filtres Rapides",
+    "description": "Afficher tous les boutons de biens dans les filtres rapides meme quand la liste est grande.",
+    "actions": {
+      "show_all_listings": "Afficher Tous les Biens",
+      "auto_limit": "Limite Auto"
+    }
+  },
+  "accounts": {
+    "title": "Comptes",
+    "description": "Glissez pour reordonner. Les noms personnalises apparaissent dans les filtres et les tableaux.",
+    "columns": {
+      "account_id": "ID de Compte",
+      "custom_alias": "Alias Personnalise"
+    }
+  }
+}

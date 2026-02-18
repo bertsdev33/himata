@@ -1,4 +1,6 @@
 import { Badge } from "@/components/ui/badge";
+import { useTranslation } from "react-i18next";
+import { useLocaleContext } from "@/i18n/LocaleProvider";
 import type { ConfidenceTier } from "@rental-analytics/forecasting";
 
 const TIER_STYLES: Record<ConfidenceTier, string> = {
@@ -7,20 +9,17 @@ const TIER_STYLES: Record<ConfidenceTier, string> = {
   low: "bg-red-100 text-red-800 border-red-200",
 };
 
-const TIER_LABELS: Record<ConfidenceTier, string> = {
-  high: "High",
-  medium: "Medium",
-  low: "Low",
-};
-
 interface ForecastConfidenceBadgeProps {
   tier: ConfidenceTier;
 }
 
 export function ForecastConfidenceBadge({ tier }: ForecastConfidenceBadgeProps) {
+  const { locale } = useLocaleContext();
+  const { t } = useTranslation("forecast", { lng: locale });
+
   return (
     <Badge variant="outline" className={TIER_STYLES[tier]}>
-      {TIER_LABELS[tier]}
+      {t(`confidence.${tier}`)}
     </Badge>
   );
 }

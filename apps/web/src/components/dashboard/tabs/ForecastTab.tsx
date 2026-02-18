@@ -12,9 +12,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { CHART_COLORS } from "@/lib/chart-colors";
-import { formatMonth, formatMoneyCompact } from "@/lib/format";
+import { formatMoney, formatMonth, formatMoneyCompact } from "@/lib/format";
 import { AlertTriangle, Loader2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { MLForecastSection } from "../MLForecastSection";
+import { useLocaleContext } from "@/i18n/LocaleProvider";
 import type {
   MonthlyPortfolioPerformance,
   MonthlyListingPerformance,
@@ -50,6 +52,8 @@ export function ForecastTab({
   mlWorkerReady,
   onRefreshMlForecast,
 }: ForecastTabProps) {
+  const { locale } = useLocaleContext();
+  const { t } = useTranslation("forecast", { lng: locale });
   const upcomingRevenueData = useMemo(
     () =>
       [...portfolioPerf]
@@ -81,7 +85,7 @@ export function ForecastTab({
         forecast: number;
         low: number;
         high: number;
-        source: string;
+        source: "model_forecast" | "projected_current_month" | "current_month_actual";
       }> = [];
 
       if (mlForecast && mlForecast.portfolio.targetMonth) {
@@ -90,12 +94,14 @@ export function ForecastTab({
           forecast: mlForecast.portfolio.forecastGrossRevenueMinor / 100,
           low: mlForecast.portfolio.lowerBandMinor / 100,
           high: mlForecast.portfolio.upperBandMinor / 100,
-          source: "Model Forecast",
+          source: "model_forecast",
         });
       }
 
       if (nowcastPoint) {
-        const source = nowcastPoint.projected ? "Projected Current Month" : "Current Month Actual";
+        const source: "projected_current_month" | "current_month_actual" = nowcastPoint.projected
+          ? "projected_current_month"
+          : "current_month_actual";
         const nowcastRow = {
           month: nowcastPoint.month,
           forecast: nowcastPoint.revenueMinor / 100,
@@ -134,8 +140,8 @@ export function ForecastTab({
 
   let primaryBannerClass = "border-yellow-200 bg-yellow-50";
   let primaryTextClass = "text-yellow-800";
-  let primaryMessage = "Forecast status";
-  const requiredDisclaimer = "Forecast – subject to change (not finalized payouts).";
+  let primaryMessage = t("status.forecast_status");
+  const requiredDisclaimer = t("status.required_disclaimer");
   let actionLabel: string | null = null;
   let actionDisabled = true;
   let actionLoading = false;
@@ -143,39 +149,41 @@ export function ForecastTab({
   if (refreshing) {
     primaryBannerClass = "border-sky-200 bg-sky-50";
     primaryTextClass = "text-sky-900";
-    primaryMessage = "Calculating forecast for current filters in the background.";
-    actionLabel = "Calculating...";
+    primaryMessage = t("status.calculating_in_background");
+    actionLabel = t("actions.calculating");
     actionDisabled = true;
     actionLoading = true;
   } else if (workerPreparing) {
     primaryBannerClass = "border-blue-200 bg-blue-50";
     primaryTextClass = "text-blue-900";
-    primaryMessage = "Preparing forecast engine...";
-    actionLabel = "Preparing...";
+    primaryMessage = t("status.preparing_engine");
+    actionLabel = t("actions.preparing");
     actionDisabled = true;
   } else if (failed) {
     primaryBannerClass = "border-red-200 bg-red-50";
     primaryTextClass = "text-red-900";
-    primaryMessage = `Could not update forecast${mlRefreshError ? `: ${mlRefreshError}` : "."}`;
-    actionLabel = "Retry update";
+    primaryMessage = mlRefreshError
+      ? t("status.failed_with_error", { error: mlRefreshError })
+      : t("status.failed");
+    actionLabel = t("actions.retry_update");
     actionDisabled = !mlWorkerReady;
   } else if (manualMode && outdated) {
     primaryBannerClass = "border-amber-200 bg-amber-50";
     primaryTextClass = "text-amber-900";
-    primaryMessage = "Forecast is out of date for current filters. Click Refresh to update.";
-    actionLabel = "Refresh forecast";
+    primaryMessage = t("status.outdated_manual");
+    actionLabel = t("actions.refresh_forecast");
     actionDisabled = !mlWorkerReady;
   } else if (!manualMode && outdated) {
     primaryBannerClass = "border-amber-200 bg-amber-50";
     primaryTextClass = "text-amber-900";
-    primaryMessage = "Forecast is out of date for current filters. Auto-refresh will run when the app is idle.";
-    actionLabel = mlWorkerReady ? "Refresh now" : "Preparing...";
+    primaryMessage = t("status.outdated_auto");
+    actionLabel = mlWorkerReady ? t("actions.refresh_now") : t("actions.preparing");
     actionDisabled = !mlWorkerReady;
   } else if (manualMode && upToDate) {
     primaryBannerClass = "border-emerald-200 bg-emerald-50";
     primaryTextClass = "text-emerald-900";
-    primaryMessage = "Data is up to date.";
-    actionLabel = "Up to date";
+    primaryMessage = t("status.up_to_date");
+    actionLabel = t("actions.up_to_date");
     actionDisabled = true;
   }
 
@@ -209,7 +217,7 @@ export function ForecastTab({
       {isFallbackFullHistory && (
         <Alert className="border-violet-200 bg-violet-50">
           <AlertDescription className="text-violet-900">
-            Not enough realized data in the selected date range. Trained on full history for the selected listings.
+            {t("status.fallback_full_history")}
           </AlertDescription>
         </Alert>
       )}
@@ -217,25 +225,27 @@ export function ForecastTab({
       {isUnavailableForScope && !hasMlData && (
         <Alert className="border-orange-200 bg-orange-50">
           <AlertDescription className="text-orange-900">
-            ML forecast is unavailable for the current scope due to insufficient realized training history.
+            {t("status.unavailable_for_scope")}
           </AlertDescription>
         </Alert>
       )}
 
       {mlRefreshSnapshot && (
         <div className="text-xs text-muted-foreground">
-          Trained: {new Date(mlRefreshSnapshot.trainedAt).toLocaleString()} · Window{" "}
-          {mlRefreshSnapshot.trainingMeta.months.start ?? "?"} to{" "}
-          {mlRefreshSnapshot.trainingMeta.months.end ?? "?"} · Rows{" "}
-          {mlRefreshSnapshot.trainingMeta.rowCount} · Listings{" "}
-          {mlRefreshSnapshot.trainingMeta.listingCount}
+          {t("meta.summary", {
+            trainedAt: new Date(mlRefreshSnapshot.trainedAt).toLocaleString(locale),
+            start: mlRefreshSnapshot.trainingMeta.months.start ?? "?",
+            end: mlRefreshSnapshot.trainingMeta.months.end ?? "?",
+            rowCount: mlRefreshSnapshot.trainingMeta.rowCount,
+            listingCount: mlRefreshSnapshot.trainingMeta.listingCount,
+          })}
         </div>
       )}
 
       {hasUpcomingData && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Upcoming Reservations Revenue (Pipeline)</CardTitle>
+            <CardTitle className="text-base">{t("cards.upcoming_revenue.title")}</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
@@ -243,22 +253,20 @@ export function ForecastTab({
                 <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                 <XAxis
                   dataKey="month"
-                  tickFormatter={(value) => formatMonth(value as YearMonth)}
+                  tickFormatter={(value) => formatMonth(value as YearMonth, locale)}
                   className="text-xs"
                   interval={0}
                 />
                 <YAxis
-                  tickFormatter={(v) => formatMoneyCompact(v * 100, currency)}
+                  tickFormatter={(v) => formatMoneyCompact(v * 100, currency, locale)}
                   className="text-xs"
                 />
                 <Tooltip
-                  formatter={(value: number) =>
-                    new Intl.NumberFormat("en-US", { style: "currency", currency }).format(value)
-                  }
+                  formatter={(value: number) => formatMoney(Math.round(value * 100), currency, locale)}
                 />
                 <Bar
                   dataKey="revenue"
-                  name="Net Revenue"
+                  name={t("cards.upcoming_revenue.net_revenue")}
                   fill={CHART_COLORS.gross}
                   radius={[4, 4, 0, 0]}
                 />
@@ -271,7 +279,7 @@ export function ForecastTab({
       {nightsData.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Upcoming Nights by Month</CardTitle>
+            <CardTitle className="text-base">{t("cards.upcoming_nights.title")}</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={250}>
@@ -279,7 +287,7 @@ export function ForecastTab({
                 <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                 <XAxis
                   dataKey="month"
-                  tickFormatter={(value) => formatMonth(value as YearMonth)}
+                  tickFormatter={(value) => formatMonth(value as YearMonth, locale)}
                   className="text-xs"
                   interval={0}
                 />
@@ -287,7 +295,7 @@ export function ForecastTab({
                 <Tooltip />
                 <Bar
                   dataKey="nights"
-                  name="Booked Nights"
+                  name={t("cards.upcoming_nights.booked_nights")}
                   fill={CHART_COLORS.gross}
                   radius={[4, 4, 0, 0]}
                 />
@@ -300,7 +308,7 @@ export function ForecastTab({
       {revenueData.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Nowcast + Forecast Revenue</CardTitle>
+            <CardTitle className="text-base">{t("cards.nowcast_forecast.title")}</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
@@ -308,29 +316,37 @@ export function ForecastTab({
                 <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                 <XAxis
                   dataKey="month"
-                  tickFormatter={(value) => formatMonth(value as YearMonth)}
+                  tickFormatter={(value) => formatMonth(value as YearMonth, locale)}
                   className="text-xs"
                   interval={0}
                 />
                 <YAxis
-                  tickFormatter={(v) => formatMoneyCompact(v * 100, currency)}
+                  tickFormatter={(v) => formatMoneyCompact(v * 100, currency, locale)}
                   className="text-xs"
                 />
                 <Tooltip
                   formatter={(value: number, _name, payload) => {
-                    if (!payload) return new Intl.NumberFormat("en-US", { style: "currency", currency }).format(value);
-                    const row = payload.payload as { low: number; high: number; source: string };
+                    if (!payload) return formatMoney(Math.round(value * 100), currency, locale);
+                    const row = payload.payload as {
+                      low: number;
+                      high: number;
+                      source: "model_forecast" | "projected_current_month" | "current_month_actual";
+                    };
                     return [
-                      row.source === "Model Forecast"
-                        ? `${new Intl.NumberFormat("en-US", { style: "currency", currency }).format(value)} (range ${new Intl.NumberFormat("en-US", { style: "currency", currency }).format(row.low)} - ${new Intl.NumberFormat("en-US", { style: "currency", currency }).format(row.high)})`
-                        : new Intl.NumberFormat("en-US", { style: "currency", currency }).format(value),
-                      row.source,
+                      row.source === "model_forecast"
+                        ? t("cards.nowcast_forecast.range_value", {
+                            value: formatMoney(Math.round(value * 100), currency, locale),
+                            low: formatMoney(Math.round(row.low * 100), currency, locale),
+                            high: formatMoney(Math.round(row.high * 100), currency, locale),
+                          })
+                        : formatMoney(Math.round(value * 100), currency, locale),
+                      t(`cards.nowcast_forecast.source.${row.source}`),
                     ];
                   }}
                 />
                 <Bar
                   dataKey="forecast"
-                  name="Predicted Revenue"
+                  name={t("cards.nowcast_forecast.predicted_revenue")}
                   fill={CHART_COLORS.forecast}
                   radius={[4, 4, 0, 0]}
                 />

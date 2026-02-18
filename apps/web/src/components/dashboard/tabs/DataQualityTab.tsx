@@ -1,6 +1,8 @@
 import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { WarningsPanel } from "@/components/shared/WarningsPanel";
+import { useTranslation } from "react-i18next";
+import { useLocaleContext } from "@/i18n/LocaleProvider";
 import type { CanonicalTransaction, ImportWarning } from "@rental-analytics/core";
 
 interface DataQualityTabProps {
@@ -9,6 +11,8 @@ interface DataQualityTabProps {
 }
 
 export function DataQualityTab({ transactions, warnings }: DataQualityTabProps) {
+  const { locale } = useLocaleContext();
+  const { t } = useTranslation("data-quality", { lng: locale });
   const summary = useMemo(() => {
     const typeBreakdown = new Map<string, number>();
     const currencies = new Set<string>();
@@ -29,21 +33,34 @@ export function DataQualityTab({ transactions, warnings }: DataQualityTabProps) 
       typeBreakdown: [...typeBreakdown.entries()].sort(([, a], [, b]) => b - a),
       duplicatesRemoved: duplicateWarnings,
       currencies: [...currencies].sort(),
-      dateRange: minDate && maxDate ? `${minDate} to ${maxDate}` : "N/A",
+      dateRangeStart: minDate || null,
+      dateRangeEnd: maxDate || null,
     };
   }, [transactions, warnings]);
 
   const cards = [
-    { title: "Total Rows", value: summary.totalRows.toLocaleString() },
+    { title: t("summary.cards.total_rows"), value: summary.totalRows.toLocaleString(locale) },
     {
-      title: "Type Breakdown",
+      title: t("summary.cards.type_breakdown"),
       value: summary.typeBreakdown
         .map(([type, count]) => `${type}: ${count}`)
-        .join(", ") || "—",
+        .join(", ") || t("summary.none"),
     },
-    { title: "Duplicates Flagged", value: summary.duplicatesRemoved.toLocaleString() },
-    { title: "Currencies", value: summary.currencies.join(", ") || "—" },
-    { title: "Date Range", value: summary.dateRange },
+    {
+      title: t("summary.cards.duplicates_flagged"),
+      value: summary.duplicatesRemoved.toLocaleString(locale),
+    },
+    { title: t("summary.cards.currencies"), value: summary.currencies.join(", ") || t("summary.none") },
+    {
+      title: t("summary.cards.date_range"),
+      value:
+        summary.dateRangeStart && summary.dateRangeEnd
+          ? t("summary.date_range_value", {
+              start: summary.dateRangeStart,
+              end: summary.dateRangeEnd,
+            })
+          : t("summary.not_available"),
+    },
   ];
 
   return (
