@@ -44,7 +44,11 @@ export function UploadPage() {
   const handleAnalyze = useCallback(async () => {
     dispatch({ type: "SET_PROCESSING", isProcessing: true });
     try {
-      const analytics = await computeAnalytics(state.files);
+      const analytics = await computeAnalytics(state.files, {
+        // Always defer ML forecast compute to the dashboard refresh controller
+        // so manual mode never auto-runs on initial load.
+        computeMlForecasts: false,
+      });
       dispatch({ type: "SET_ANALYTICS", analytics });
     } catch (err) {
       dispatch({

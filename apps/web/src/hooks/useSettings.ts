@@ -10,6 +10,11 @@ const defaultSettings: SettingsData = {
   listingOrder: null,
   accountOrder: null,
   filterBarExpanded: true,
+  mlForecastAutoRefresh: true,
+  quickFilterPinnedTime: false,
+  quickFilterPinnedAccounts: false,
+  quickFilterPinnedListings: false,
+  showAllQuickListings: false,
 };
 
 function loadSettings(): SettingsData {
@@ -97,6 +102,31 @@ export function useSettings() {
     [update],
   );
 
+  const setMlForecastAutoRefresh = useCallback(
+    (enabled: boolean) => update({ mlForecastAutoRefresh: enabled }),
+    [update],
+  );
+
+  const setQuickFilterPinnedTime = useCallback(
+    (pinned: boolean) => update({ quickFilterPinnedTime: pinned }),
+    [update],
+  );
+
+  const setQuickFilterPinnedAccounts = useCallback(
+    (pinned: boolean) => update({ quickFilterPinnedAccounts: pinned }),
+    [update],
+  );
+
+  const setQuickFilterPinnedListings = useCallback(
+    (pinned: boolean) => update({ quickFilterPinnedListings: pinned }),
+    [update],
+  );
+
+  const setShowAllQuickListings = useCallback(
+    (show: boolean) => update({ showAllQuickListings: show }),
+    [update],
+  );
+
   const resetAll = useCallback(() => {
     localStorage.removeItem(STORAGE_KEY);
     setSettingsState(defaultSettings);
@@ -111,6 +141,11 @@ export function useSettings() {
     setListingOrder,
     setAccountOrder,
     setFilterBarExpanded,
+    setMlForecastAutoRefresh,
+    setQuickFilterPinnedTime,
+    setQuickFilterPinnedAccounts,
+    setQuickFilterPinnedListings,
+    setShowAllQuickListings,
     resetAll,
   };
 }

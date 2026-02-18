@@ -10,6 +10,11 @@ const defaultSettings: SettingsData = {
   listingOrder: null,
   accountOrder: null,
   filterBarExpanded: true,
+  mlForecastAutoRefresh: true,
+  quickFilterPinnedTime: false,
+  quickFilterPinnedAccounts: false,
+  quickFilterPinnedListings: false,
+  showAllQuickListings: false,
 };
 
 // Replicate the pure load/save logic from useSettings for testability
@@ -121,6 +126,39 @@ describe("settings persistence", () => {
     expect(loaded.listingOrder).toBeNull();
     expect(loaded.accountOrder).toBeNull();
     expect(loaded.filterBarExpanded).toBe(true);
+    expect(loaded.mlForecastAutoRefresh).toBe(true);
+    expect(loaded.quickFilterPinnedTime).toBe(false);
+    expect(loaded.quickFilterPinnedAccounts).toBe(false);
+    expect(loaded.quickFilterPinnedListings).toBe(false);
+    expect(loaded.showAllQuickListings).toBe(false);
+  });
+
+  test("round-trips mlForecastAutoRefresh = false", () => {
+    const settings: SettingsData = {
+      ...defaultSettings,
+      mlForecastAutoRefresh: false,
+    };
+    saveSettings(storage, settings);
+
+    const loaded = loadSettings(storage);
+    expect(loaded.mlForecastAutoRefresh).toBe(false);
+  });
+
+  test("round-trips quick filter pins and showAllQuickListings", () => {
+    const settings: SettingsData = {
+      ...defaultSettings,
+      quickFilterPinnedTime: true,
+      quickFilterPinnedAccounts: true,
+      quickFilterPinnedListings: true,
+      showAllQuickListings: true,
+    };
+    saveSettings(storage, settings);
+
+    const loaded = loadSettings(storage);
+    expect(loaded.quickFilterPinnedTime).toBe(true);
+    expect(loaded.quickFilterPinnedAccounts).toBe(true);
+    expect(loaded.quickFilterPinnedListings).toBe(true);
+    expect(loaded.showAllQuickListings).toBe(true);
   });
 });
 

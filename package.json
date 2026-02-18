@@ -4,12 +4,13 @@
   "workspaces": [
     "packages/*",
     "packages/importers/airbnb/v1",
+    "packages/algorithms/forecasting",
     "apps/*"
   ],
   "scripts": {
     "test": "bun test --recursive",
-    "lint": "tsc --noEmit -p packages/core/tsconfig.json && tsc --noEmit -p packages/importers/airbnb/v1/tsconfig.json && cd apps/web && bun astro check",
-    "typecheck": "tsc --noEmit -p packages/core/tsconfig.json && tsc --noEmit -p packages/importers/airbnb/v1/tsconfig.json && cd apps/web && bun astro check",
+    "lint": "tsc --noEmit -p packages/core/tsconfig.json && tsc --noEmit -p packages/importers/airbnb/v1/tsconfig.json && tsc --noEmit -p packages/algorithms/forecasting/tsconfig.json && cd apps/web && bun astro check",
+    "typecheck": "tsc --noEmit -p packages/core/tsconfig.json && tsc --noEmit -p packages/importers/airbnb/v1/tsconfig.json && tsc --noEmit -p packages/algorithms/forecasting/tsconfig.json && cd apps/web && bun astro check",
     "e2e": "echo 'No e2e tests yet (alpha: packages-only, no frontend)'",
     "dev:web": "cd apps/web && bun astro dev",
     "build:web": "cd apps/web && bun astro build",

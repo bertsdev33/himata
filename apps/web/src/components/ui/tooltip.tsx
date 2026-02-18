@@ -1,4 +1,5 @@
 import * as React from "react";
+import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 import { cn } from "@/lib/utils";
 
 interface TooltipProps {
@@ -8,26 +9,31 @@ interface TooltipProps {
 }
 
 function Tooltip({ content, children, className }: TooltipProps) {
-  const [open, setOpen] = React.useState(false);
-
   return (
-    <div
-      className="relative inline-flex"
-      onMouseEnter={() => setOpen(true)}
-      onMouseLeave={() => setOpen(false)}
-    >
-      {children}
-      {open && (
-        <div
-          className={cn(
-            "absolute bottom-full left-1/2 z-50 mb-2 -translate-x-1/2 rounded-md border bg-popover px-3 py-1.5 text-sm text-popover-foreground shadow-md animate-in fade-in-0 zoom-in-95",
-            className
-          )}
-        >
-          {content}
-        </div>
-      )}
-    </div>
+    <TooltipPrimitive.Provider delayDuration={120}>
+      <TooltipPrimitive.Root>
+        {/* Wrap children so tooltips still work for disabled buttons/triggers */}
+        <TooltipPrimitive.Trigger asChild>
+          <span className="inline-flex">{children}</span>
+        </TooltipPrimitive.Trigger>
+        <TooltipPrimitive.Portal>
+          <TooltipPrimitive.Content
+            side="top"
+            align="center"
+            sideOffset={8}
+            collisionPadding={12}
+            className={cn(
+              "z-[100] max-w-xs rounded-md border bg-popover px-3 py-1.5 text-sm text-popover-foreground shadow-md",
+              "data-[state=delayed-open]:animate-in data-[state=delayed-open]:fade-in-0 data-[state=delayed-open]:zoom-in-95",
+              className,
+            )}
+          >
+            {content}
+            <TooltipPrimitive.Arrow className="fill-popover" />
+          </TooltipPrimitive.Content>
+        </TooltipPrimitive.Portal>
+      </TooltipPrimitive.Root>
+    </TooltipPrimitive.Provider>
   );
 }
 

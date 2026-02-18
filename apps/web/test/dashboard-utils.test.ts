@@ -1,6 +1,20 @@
 import { describe, test, expect } from "bun:test";
-import { getPresetRange, projectMonthValue, applyProjection, filterCashflow } from "../src/lib/dashboard-utils";
-import type { MonthlyPortfolioPerformance, MonthlyCashflow, YearMonth } from "@rental-analytics/core";
+import {
+  getPresetRange,
+  projectMonthValue,
+  applyProjection,
+  applyNowcastProjectionToListingPerformance,
+  filterCashflow,
+  filterListingPerformance,
+  filterTransactions,
+} from "../src/lib/dashboard-utils";
+import type {
+  CanonicalTransaction,
+  MonthlyPortfolioPerformance,
+  MonthlyCashflow,
+  MonthlyListingPerformance,
+  YearMonth,
+} from "@rental-analytics/core";
 
 // --- getPresetRange ---
 
@@ -119,6 +133,124 @@ describe("applyProjection", () => {
     expect(result[1].netRevenueMinor).toBe(Math.round(5000 * scale));
     expect(result[1].grossRevenueMinor).toBe(Math.round(6000 * scale));
     expect(result[1].bookedNights).toBe(Math.round(10 * scale));
+  });
+});
+
+// --- applyNowcastProjectionToListingPerformance ---
+
+function makeListingMonth(args: {
+  month: string;
+  listingId: string;
+  accountId?: string;
+  currency?: string;
+  gross?: number;
+  net?: number;
+  nights?: number;
+}): MonthlyListingPerformance {
+  return {
+    month: args.month as YearMonth,
+    accountId: args.accountId ?? "acc-1",
+    listingId: args.listingId,
+    listingName: `Listing ${args.listingId}`,
+    currency: args.currency ?? "USD",
+    bookedNights: args.nights ?? 0,
+    grossRevenueMinor: args.gross ?? 0,
+    netRevenueMinor: args.net ?? 0,
+    cleaningFeesMinor: 0,
+    serviceFeesMinor: 0,
+    reservationRevenueMinor: args.gross ?? 0,
+    adjustmentRevenueMinor: 0,
+    resolutionAdjustmentRevenueMinor: 0,
+    cancellationFeeRevenueMinor: 0,
+  };
+}
+
+describe("applyNowcastProjectionToListingPerformance", () => {
+  test("uses max(OTB, pace) for current month", () => {
+    const now = new Date("2026-02-15T12:00:00Z"); // 15/28
+    const realized = [
+      makeListingMonth({
+        month: "2026-02",
+        listingId: "l1",
+        gross: 100_000,
+        net: 90_000,
+        nights: 10,
+      }),
+    ];
+    const upcoming = [
+      makeListingMonth({
+        month: "2026-02",
+        listingId: "l1",
+        gross: 30_000,
+        net: 27_000,
+        nights: 2,
+      }),
+    ];
+
+    const result = applyNowcastProjectionToListingPerformance({ realized, upcoming, now });
+    expect(result).toHaveLength(1);
+
+    // pace gross = round(100000 / 15 * 28) = 186667, OTB gross = 130000
+    expect(result[0].grossRevenueMinor).toBe(186_667);
+    expect(result[0].netRevenueMinor).toBe(168_000);
+    expect(result[0].bookedNights).toBe(19);
+  });
+
+  test("keeps stronger on-the-books signal when OTB exceeds pace", () => {
+    const now = new Date("2026-02-20T12:00:00Z"); // 20/28
+    const realized = [
+      makeListingMonth({
+        month: "2026-02",
+        listingId: "l1",
+        gross: 100_000,
+        net: 90_000,
+        nights: 10,
+      }),
+    ];
+    const upcoming = [
+      makeListingMonth({
+        month: "2026-02",
+        listingId: "l1",
+        gross: 90_000,
+        net: 81_000,
+        nights: 8,
+      }),
+    ];
+
+    const result = applyNowcastProjectionToListingPerformance({ realized, upcoming, now });
+    expect(result).toHaveLength(1);
+    expect(result[0].grossRevenueMinor).toBe(190_000);
+    expect(result[0].netRevenueMinor).toBe(171_000);
+    expect(result[0].bookedNights).toBe(18);
+  });
+
+  test("adds a synthetic current-month row when only upcoming exists", () => {
+    const now = new Date("2026-02-10T12:00:00Z");
+    const realized = [
+      makeListingMonth({
+        month: "2026-01",
+        listingId: "l2",
+        gross: 80_000,
+        net: 72_000,
+        nights: 8,
+      }),
+    ];
+    const upcoming = [
+      makeListingMonth({
+        month: "2026-02",
+        listingId: "l2",
+        gross: 50_000,
+        net: 45_000,
+        nights: 5,
+      }),
+    ];
+
+    const result = applyNowcastProjectionToListingPerformance({ realized, upcoming, now });
+    const current = result.find((r) => r.month === "2026-02" && r.listingId === "l2");
+    expect(current).toBeDefined();
+    expect(current!.grossRevenueMinor).toBe(50_000);
+    expect(current!.netRevenueMinor).toBe(45_000);
+    expect(current!.bookedNights).toBe(5);
   });
 });
 
@@ -267,5 +399,159 @@ describe("filterCashflow", () => {
     const result = filterCashflow(data, { ...base, dateRange: { start: "2024-02", end: "2024-04" } });
     expect(result).toHaveLength(1);
     expect(result[0].month).toBe("2024-03");
+  });
+});
+
+// --- filterListingPerformance ---
+
+function makeListingPerf(opts: {
+  month: string;
+  currency?: string;
+  accountId?: string;
+  listingId?: string;
+}): MonthlyListingPerformance {
+  return {
+    month: opts.month as YearMonth,
+    accountId: opts.accountId ?? "acc-1",
+    listingId: opts.listingId ?? "list-1",
+    listingName: "Listing",
+    currency: opts.currency ?? "USD",
+    bookedNights: 10,
+    grossRevenueMinor: 10000,
+    netRevenueMinor: 9000,
+    cleaningFeesMinor: 500,
+    serviceFeesMinor: -500,
+    reservationRevenueMinor: 10000,
+    adjustmentRevenueMinor: 0,
+    resolutionAdjustmentRevenueMinor: 0,
+    cancellationFeeRevenueMinor: 0,
+  };
+}
+
+describe("filterListingPerformance", () => {
+  const base = {
+    currency: "USD",
+    selectedAccountIds: [] as string[],
+    selectedListingIds: [] as string[],
+    dateRange: { start: null, end: null } as { start: string | null; end: string | null },
+  };
+
+  test("filters by currency + account + listing + date range", () => {
+    const data = [
+      makeListingPerf({ month: "2024-01", currency: "USD", accountId: "acc-1", listingId: "l-1" }),
+      makeListingPerf({ month: "2024-02", currency: "USD", accountId: "acc-2", listingId: "l-2" }),
+      makeListingPerf({ month: "2024-03", currency: "EUR", accountId: "acc-1", listingId: "l-1" }),
+    ];
+
+    const result = filterListingPerformance(data, {
+      ...base,
+      selectedAccountIds: ["acc-1"],
+      selectedListingIds: ["l-1"],
+      dateRange: { start: "2024-01", end: "2024-02" },
+    });
+
+    expect(result).toHaveLength(1);
+    expect(result[0].month).toBe("2024-01");
+  });
+});
+
+// --- filterTransactions ---
+
+function makeTransaction(opts: {
+  id: string;
+  datasetKind: "paid" | "upcoming";
+  occurredDate: string;
+  currency?: string;
+  accountId?: string;
+  listingId?: string;
+  withListing?: boolean;
+}): CanonicalTransaction {
+  const listing =
+    opts.withListing === false
+      ? undefined
+      : {
+          accountId: opts.accountId ?? "acc-1",
+          listingName: "Listing",
+          normalizedListingName: "listing",
+          listingId: opts.listingId ?? "l-1",
+        };
+
+  return {
+    transactionId: opts.id,
+    source: "airbnb",
+    sourceVersion: "v1",
+    datasetKind: opts.datasetKind,
+    kind: "reservation",
+    occurredDate: opts.occurredDate,
+    listing,
+    netAmount: { currency: opts.currency ?? "USD", amountMinor: 1000 },
+    grossAmount: { currency: opts.currency ?? "USD", amountMinor: 1200 },
+    hostServiceFeeAmount: { currency: opts.currency ?? "USD", amountMinor: -200 },
+    cleaningFeeAmount: { currency: opts.currency ?? "USD", amountMinor: 0 },
+    adjustmentAmount: { currency: opts.currency ?? "USD", amountMinor: 0 },
+    rawRowRef: { fileName: "fixture.csv", rowNumber: 1 },
+  };
+}
+
+describe("filterTransactions", () => {
+  const base = {
+    viewMode: "all" as const,
+    currency: "USD",
+    selectedAccountIds: [] as string[],
+    selectedListingIds: [] as string[],
+    dateRange: { start: null, end: null } as { start: string | null; end: string | null },
+  };
+
+  test("applies view-mode dataset filter", () => {
+    const data = [
+      makeTransaction({ id: "1", datasetKind: "paid", occurredDate: "2024-01-10" }),
+      makeTransaction({ id: "2", datasetKind: "upcoming", occurredDate: "2024-01-10" }),
+    ];
+
+    const realized = filterTransactions(data, { ...base, viewMode: "realized" });
+    const upcoming = filterTransactions(data, { ...base, viewMode: "forecast" });
+
+    expect(realized).toHaveLength(1);
+    expect(realized[0].datasetKind).toBe("paid");
+    expect(upcoming).toHaveLength(1);
+    expect(upcoming[0].datasetKind).toBe("upcoming");
+  });
+
+  test("filters by month-based date range", () => {
+    const data = [
+      makeTransaction({ id: "1", datasetKind: "paid", occurredDate: "2024-01-01" }),
+      makeTransaction({ id: "2", datasetKind: "paid", occurredDate: "2024-02-15" }),
+      makeTransaction({ id: "3", datasetKind: "paid", occurredDate: "2024-03-20" }),
+    ];
+
+    const result = filterTransactions(data, {
+      ...base,
+      viewMode: "realized",
+      dateRange: { start: "2024-02", end: "2024-02" },
+    });
+
+    expect(result).toHaveLength(1);
+    expect(result[0].transactionId).toBe("2");
+  });
+
+  test("excludes unattributed rows when account or listing filters are active", () => {
+    const data = [
+      makeTransaction({ id: "1", datasetKind: "paid", occurredDate: "2024-01-01", withListing: false }),
+      makeTransaction({
+        id: "2",
+        datasetKind: "paid",
+        occurredDate: "2024-01-01",
+        accountId: "acc-1",
+        listingId: "l-1",
+      }),
+    ];
+
+    const byAccount = filterTransactions(data, { ...base, viewMode: "realized", selectedAccountIds: ["acc-1"] });
+    const byListing = filterTransactions(data, { ...base, viewMode: "realized", selectedListingIds: ["l-1"] });
+
+    expect(byAccount).toHaveLength(1);
+    expect(byAccount[0].transactionId).toBe("2");
+    expect(byListing).toHaveLength(1);
+    expect(byListing[0].transactionId).toBe("2");
   });
 });

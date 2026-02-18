@@ -12,8 +12,13 @@ import {
   importAirbnbV1Session,
   type ImportAirbnbV1Input,
 } from "@rental-analytics/importer-airbnb-v1";
+import { computeRevenueForecast } from "@rental-analytics/forecasting";
 import type { FileEntry, AnalyticsData, ViewData } from "./types";
 import { readFileAsText } from "@/lib/file-helpers";
+
+export interface ComputeAnalyticsOptions {
+  computeMlForecasts?: boolean;
+}
 
 /**
  * Compute a ViewData from a subset of transactions.
@@ -47,7 +52,11 @@ function computeViewData(
  * Pure, synchronous pipeline: ImportAirbnbV1Input[] -> AnalyticsData.
  * Exported for testing.
  */
-export function computeAnalyticsFromInputs(inputs: ImportAirbnbV1Input[]): AnalyticsData {
+export function computeAnalyticsFromInputs(
+  inputs: ImportAirbnbV1Input[],
+  options: ComputeAnalyticsOptions = {},
+): AnalyticsData {
+  const { computeMlForecasts = true } = options;
   const { transactions, warnings } = importAirbnbV1Session(inputs);
 
   // Build listing name map and metadata
@@ -91,6 +100,23 @@ export function computeAnalyticsFromInputs(inputs: ImportAirbnbV1Input[]): Analy
   // Service ranges from all transactions
   const serviceRanges = inferListingServiceRanges(allView.listingPerformance, transactions);
 
+  // ML-based revenue forecasts (Ridge Regression on realized data, per currency)
+  const mlForecasts: Record<string, import("@rental-analytics/forecasting").ForecastResult> = {};
+  if (computeMlForecasts && realizedView.listingPerformance.length >= 3) {
+    const byCurrency = new Map<string, typeof realizedView.listingPerformance>();
+    for (const lp of realizedView.listingPerformance) {
+      const group = byCurrency.get(lp.currency);
+      if (group) group.push(lp);
+      else byCurrency.set(lp.currency, [lp]);
+    }
+    for (const [cur, listings] of byCurrency) {
+      const result = computeRevenueForecast(listings);
+      if (result.listings.length > 0) {
+        mlForecasts[cur] = result;
+      }
+    }
+  }
+
   return {
     transactions,
     warnings,
@@ -107,13 +133,17 @@ export function computeAnalyticsFromInputs(inputs: ImportAirbnbV1Input[]): Analy
       realized: realizedView,
       forecast: forecastView,
     },
+    mlForecasts,
   };
 }
 
 /**
  * Async entry point: reads File objects, then runs the pure pipeline.
  */
-export async function computeAnalytics(files: FileEntry[]): Promise<AnalyticsData> {
+export async function computeAnalytics(
+  files: FileEntry[],
+  options: ComputeAnalyticsOptions = {},
+): Promise<AnalyticsData> {
   const inputs: ImportAirbnbV1Input[] = await Promise.all(
     files.map(async (entry) => ({
       fileName: entry.file.name,
@@ -123,5 +153,5 @@ export async function computeAnalytics(files: FileEntry[]): Promise<AnalyticsDat
     }))
   );
 
-  return computeAnalyticsFromInputs(inputs);
+  return computeAnalyticsFromInputs(inputs, options);
 }

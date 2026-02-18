@@ -8,7 +8,8 @@
       "@/*": ["./src/*"],
       "@rental-analytics/core": ["../../packages/core/src/index.ts"],
       "@rental-analytics/core/*": ["../../packages/core/src/*"],
-      "@rental-analytics/importer-airbnb-v1": ["../../packages/importers/airbnb/v1/src/index.ts"]
+      "@rental-analytics/importer-airbnb-v1": ["../../packages/importers/airbnb/v1/src/index.ts"],
+      "@rental-analytics/forecasting": ["../../packages/algorithms/forecasting/src/index.ts"]
     }
   },
   "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.astro"]

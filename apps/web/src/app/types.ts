@@ -9,6 +9,7 @@ import type {
   EstimatedOccupancy,
   ListingServiceRange,
 } from "@rental-analytics/core";
+import type { ForecastResult } from "@rental-analytics/forecasting";
 
 /** Represents a file entry in the upload flow */
 export interface FileEntry {
@@ -76,6 +77,8 @@ export interface AnalyticsData {
     realized: ViewData;
     forecast: ViewData;
   };
+  /** ML-based revenue forecasts keyed by currency (Ridge Regression) */
+  mlForecasts: Record<string, ForecastResult>;
 }
 
 /** Persisted user settings for the dashboard */
@@ -86,4 +89,14 @@ export interface SettingsData {
   listingOrder: string[] | null;         // custom order, null = default (by txCount)
   accountOrder: string[] | null;         // custom order, null = default
   filterBarExpanded: boolean;
+  /** Auto-refresh ML forecasts in background when the UI is idle. */
+  mlForecastAutoRefresh: boolean;
+  /** Keep the time quick-filter row visible when quick filters are collapsed. */
+  quickFilterPinnedTime: boolean;
+  /** Keep the account quick-filter row visible when quick filters are collapsed. */
+  quickFilterPinnedAccounts: boolean;
+  /** Keep the listing quick-filter row visible when quick filters are collapsed. */
+  quickFilterPinnedListings: boolean;
+  /** Show all listing quick filters even when there are many listings. */
+  showAllQuickListings: boolean;
 }
