@@ -1,6 +1,6 @@
 {
   "page": {
-    "title": "Configuracion",
+    "title": "Configuración",
     "actions": {
       "reset_all": "Restablecer Todo"
     }
@@ -18,19 +18,19 @@
     }
   },
   "forecast_refresh": {
-    "title": "Actualizacion de Pronostico ML",
-    "description": "El modo automatico actualiza pronosticos ML en segundo plano mientras la UI esta inactiva. El modo manual nunca se ejecuta automaticamente, incluso al cargar.",
+    "title": "Actualización de Pronóstico ML",
+    "description": "El modo automático actualiza pronósticos ML en segundo plano mientras la UI está inactiva. El modo manual nunca se ejecuta automáticamente, incluso al cargar.",
     "actions": {
-      "auto_async": "Automatico (Async)",
+      "auto_async": "Automático (Async)",
       "manual_only": "Solo Manual"
     }
   },
   "quick_filters": {
-    "title": "Filtros Rapidos",
-    "description": "Muestra todos los botones de anuncios en filtros rapidos incluso cuando la lista es grande.",
+    "title": "Filtros Rápidos",
+    "description": "Muestra todos los botones de anuncios en filtros rápidos incluso cuando la lista es grande.",
     "actions": {
       "show_all_listings": "Mostrar Todos los Anuncios",
-      "auto_limit": "Limite Automatico"
+      "auto_limit": "Límite Automático"
     }
   },
   "accounts": {

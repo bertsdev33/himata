@@ -1,26 +1,26 @@
 {
   "tabs": {
     "portfolio": "Portafolio",
-    "comparison": "Comparacion",
+    "comparison": "Comparación",
     "listing_detail": "Detalle del Anuncio",
     "cashflow": "Flujo de Caja",
-    "forecast": "Pronostico",
+    "forecast": "Pronóstico",
     "transactions": "Transacciones",
     "data_quality": "Calidad de Datos",
-    "settings": "Configuracion",
+    "settings": "Configuración",
     "not_available": "No disponible",
     "reasons": {
       "no_data_matches_filters": "No hay datos para los filtros actuales",
       "need_two_or_more_listings": "Se necesitan 2+ anuncios en el conjunto filtrado",
       "select_exactly_one_listing": "Selecciona exactamente 1 anuncio",
-      "not_available_in_forecast_view": "No disponible en vista de Pronostico",
+      "not_available_in_forecast_view": "No disponible en vista de Pronóstico",
       "no_cashflow_data": "No hay datos de flujo de caja",
-      "no_realized_data_for_forecast": "No hay datos reales para entrenar el pronostico",
+      "no_realized_data_for_forecast": "No hay datos reales para entrenar el pronóstico",
       "no_transactions_match_filters": "No hay transacciones para los filtros"
     }
   },
   "filter_bar": {
-    "includes_forecast": "Incluye pronostico",
+    "includes_forecast": "Incluye pronóstico",
     "data_scope": "Alcance de datos",
     "view": {
       "realized": {
@@ -28,19 +28,19 @@
         "description": "Solo datos pasados/pagados."
       },
       "upcoming": {
-        "label": "Proximas",
-        "description": "Solo reservas proximas/no completadas."
+        "label": "Próximas",
+        "description": "Solo reservas próximas/no completadas."
       },
       "all": {
         "label": "Todo",
-        "description": "Analisis combinado de datos reales y proximos."
+        "description": "Análisis combinado de datos reales y próximos."
       }
     },
     "quick_time": {
       "all": "Todo el Tiempo",
-      "last_12_months": "Ultimos 12 Meses",
-      "last_6_months": "Ultimos 6 Meses",
-      "last_3_months": "Ultimos 3 Meses",
+      "last_12_months": "Últimos 12 Meses",
+      "last_6_months": "Últimos 6 Meses",
+      "last_3_months": "Últimos 3 Meses",
       "ytd": "YTD",
       "last_month": "Mes Pasado",
       "current_month": "Mes Actual"
@@ -59,13 +59,13 @@
     "actions": {
       "clear": "Limpiar",
       "project_this_month": "Proyectar este Mes",
-      "quick_filters": "Filtros Rapidos",
-      "pin_time": "Fijar filtros rapidos de tiempo",
-      "unpin_time": "Soltar filtros rapidos de tiempo",
-      "pin_accounts": "Fijar filtros rapidos de cuentas",
-      "unpin_accounts": "Soltar filtros rapidos de cuentas",
-      "pin_listings": "Fijar filtros rapidos de anuncios",
-      "unpin_listings": "Soltar filtros rapidos de anuncios"
+      "quick_filters": "Filtros Rápidos",
+      "pin_time": "Fijar filtros rápidos de tiempo",
+      "unpin_time": "Soltar filtros rápidos de tiempo",
+      "pin_accounts": "Fijar filtros rápidos de cuentas",
+      "unpin_accounts": "Soltar filtros rápidos de cuentas",
+      "pin_listings": "Fijar filtros rápidos de anuncios",
+      "unpin_listings": "Soltar filtros rápidos de anuncios"
     },
     "multi_select": {
       "select_placeholder": "Seleccionar",
@@ -75,12 +75,12 @@
       "select_all": "Seleccionar Todo",
       "clear_all": "Limpiar Todo",
       "no_results": "No se encontraron resultados.",
-      "clear_selection_aria": "Limpiar seleccion"
+      "clear_selection_aria": "Limpiar selección"
     },
     "listing_row_hidden": {
-      "prefix": "Los filtros rapidos de anuncios estan ocultos porque hay demasiados anuncios. Activa",
+      "prefix": "Los filtros rápidos de anuncios están ocultos porque hay demasiados anuncios. Activa",
       "show_all_listings": "Mostrar Todos los Anuncios",
-      "suffix": "en Configuracion para forzar su visualizacion."
+      "suffix": "en Configuración para forzar su visualización."
     }
   },
   "kpi": {
@@ -91,12 +91,12 @@
       "total_net_revenue": "Ingresos Netos Totales",
       "total_gross_revenue": "Ingresos Brutos Totales",
       "booked_nights": "Noches Reservadas",
-      "estimated_occupancy": "Ocupacion Estimada",
+      "estimated_occupancy": "Ocupación Estimada",
       "avg_daily_rate": "Tarifa Diaria Prom.",
       "mom_change": "Cambio Mes a Mes"
     },
     "tooltips": {
-      "estimated_occupancy": "noches reservadas / (dias_del_mes * anuncios_en_servicio); no es ocupacion real",
+      "estimated_occupancy": "noches reservadas / (días_del_mes × anuncios_en_servicio); no es ocupación real",
       "mom_change": "Cambio de ingresos {{revenueBasis}} mes a mes"
     }
   },
@@ -109,9 +109,9 @@
       "gross_revenue": "Ingresos Brutos",
       "net_revenue": "Ingresos Netos",
       "adr": "ADR",
-      "occupancy": "Ocupacion",
+      "occupancy": "Ocupación",
       "vs_trailing": "vs Historial",
-      "share": "Participacion"
+      "share": "Participación"
     },
     "actions": {
       "view_listing": "Ver detalle del anuncio"
@@ -125,13 +125,13 @@
         "top_5": "Top 5"
       },
       "projected_name": "{{name}} (proy.)",
-      "projection_note": "Las lineas punteadas muestran valores proyectados al cierre del mes"
+      "projection_note": "Las líneas punteadas muestran valores proyectados al cierre del mes"
     },
     "nights_vs_adr": {
       "title": "Noches vs ADR",
       "booked_nights": "Noches Reservadas",
       "adr": "ADR",
-      "projection_note": "La ultima barra muestra valores proyectados al cierre del mes"
+      "projection_note": "La última barra muestra valores proyectados al cierre del mes"
     },
     "revenue_breakdown": {
       "title": "Desglose de Ingresos",
@@ -158,29 +158,29 @@
     }
   },
   "occupancy_display": {
-    "title": "Ocupacion Estimada",
+    "title": "Ocupación Estimada",
     "breakdown": "{{nights}}n / {{listings}} anuncios"
   },
   "occupancy_heatmaps": {
     "by_weekday": {
-      "title": "Ocupacion por Dia de la Semana",
-      "description": "Tasa de ocupacion estimada por dia"
+      "title": "Ocupación por Día de la Semana",
+      "description": "Tasa de ocupación estimada por día"
     },
     "by_month_day": {
-      "title": "Ocupacion por Dia del Mes",
-      "description": "Tasa de ocupacion estimada por dia calendario"
+      "title": "Ocupación por Día del Mes",
+      "description": "Tasa de ocupación estimada por día calendario"
     }
   },
   "seasonality_heatmap": {
     "title": "Mapa de Estacionalidad",
-    "description": "Intensidad de ingresos por mes a traves de los anos",
-    "year": "Ano",
+    "description": "Intensidad de ingresos por mes a través de los años",
+    "year": "Año",
     "low": "Bajo",
     "high": "Alto"
   },
   "top_movers": {
     "title": "Mayores Cambios (MoM)",
-    "projected_note": "Los valores del mes actual estan proyectados segun el ritmo actual",
+    "projected_note": "Los valores del mes actual están proyectados según el ritmo actual",
     "columns": {
       "listing": "Anuncio",
       "current": "Actual",
@@ -192,7 +192,7 @@
     }
   },
   "trailing_comparisons": {
-    "title": "Comparaciones Moviles - {{month}}",
+    "title": "Comparaciones Móviles — {{month}}",
     "metric": {
       "net_revenue": "Ingresos Netos",
       "gross_revenue": "Ingresos Brutos"
@@ -201,12 +201,12 @@
   },
   "listing_detail": {
     "fallback_listing_name": "Anuncio",
-    "performance_vs_trailing": "Rendimiento vs Promedio Historico",
+    "performance_vs_trailing": "Rendimiento vs Promedio Histórico",
     "outperforming": "Rendimiento Superior",
     "underperforming": "Rendimiento Inferior",
     "current": "Actual",
     "projected": "proyectado",
-    "trailing_avg": "Promedio Historico"
+    "trailing_avg": "Promedio Histórico"
   },
   "transactions": {
     "title": "Transacciones ({{count}})",
@@ -225,13 +225,13 @@
     "kinds": {
       "reservation": "Reserva",
       "adjustment": "Ajuste",
-      "resolution_adjustment": "Ajuste de Resolucion",
-      "cancellation_fee": "Tarifa de Cancelacion",
+      "resolution_adjustment": "Ajuste de Resolución",
+      "cancellation_fee": "Tarifa de Cancelación",
       "payout": "Pago",
-      "resolution_payout": "Pago de Resolucion"
+      "resolution_payout": "Pago de Resolución"
     },
     "pagination": {
-      "page_of": "Pagina {{page}} de {{totalPages}}",
+      "page_of": "Página {{page}} de {{totalPages}}",
       "prev": "Anterior",
       "next": "Siguiente"
     }

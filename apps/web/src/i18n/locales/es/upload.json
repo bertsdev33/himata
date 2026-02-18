@@ -2,12 +2,12 @@
   "subtitle": "Sube tus exportaciones CSV de Airbnb para analizar el rendimiento",
   "files_count": "Archivos ({{count}})",
   "dropzone": {
-    "title": "Suelta archivos CSV aqui o haz clic para buscar",
-    "hint": "Sube tus exportaciones de transacciones de Airbnb (.csv, max {{maxMb}} MB)"
+    "title": "Suelta archivos CSV aquí o haz clic para buscar",
+    "hint": "Sube tus exportaciones de transacciones de Airbnb (.csv, máx {{maxMb}} MB)"
   },
   "dataset": {
     "paid": "Pagado (Finalizado)",
-    "upcoming": "Proximas Reservas (Pronostico)"
+    "upcoming": "Próximas Reservas (Pronóstico)"
   },
   "fields": {
     "account_id": "ID de Cuenta",
@@ -21,6 +21,6 @@
   "errors": {
     "rejected_prefix": "Archivos rechazados: {{files}}",
     "not_csv": "{{name}}: no es un archivo CSV",
-    "too_large": "{{name}}: supera el limite de {{maxMb}} MB ({{sizeMb}} MB)"
+    "too_large": "{{name}}: supera el límite de {{maxMb}} MB ({{sizeMb}} MB)"
   }
 }
