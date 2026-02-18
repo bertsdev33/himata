@@ -55,7 +55,9 @@
     },
     "placeholders": {
       "accounts": "Accounts",
-      "listings": "Listings"
+      "listings": "Listings",
+      "date_from": "From",
+      "date_to": "To"
     },
     "rows": {
       "time": "Time",
@@ -135,7 +137,9 @@
       "title": "Revenue by Listing",
       "actions": {
         "show_all": "Show All ({{count}})",
-        "top_5": "Top 5"
+        "top_5": "Top 5",
+        "show_legend": "Show Legend",
+        "show_chart": "Show Chart"
       },
       "projected_name": "{{name}} (proj.)",
       "projection_note": "Dashed lines show projected month-end values"

@@ -12,6 +12,7 @@ import {
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { List } from "lucide-react";
 import { CHART_COLORS, MULTI_LINE_COLORS } from "@/lib/chart-colors";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { formatMoney, formatMonth, formatMoneyCompact } from "@/lib/format";
@@ -37,6 +38,7 @@ export function MultiLineRevenueChart({
   const { locale } = useLocaleContext();
   const { t } = useTranslation("dashboard", { lng: locale });
   const [topOnly, setTopOnly] = useState(false);
+  const [showLegend, setShowLegend] = useState(false);
   const isMobile = useIsMobile();
 
   const totalListings = new Set(data.map((lp) => lp.listingId)).size;
@@ -123,54 +125,83 @@ export function MultiLineRevenueChart({
         )}
       </CardHeader>
       <CardContent className="min-w-0 overflow-hidden">
-        <ResponsiveContainer width="100%" height={isMobile ? 250 : 350}>
-          <LineChart data={chartData} margin={{ top: 5, right: isMobile ? 8 : 20, left: isMobile ? 0 : 10, bottom: 5 }}>
-            <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-            <XAxis dataKey="label" className="text-xs" />
-            <YAxis
-              tickFormatter={(v) => formatMoneyCompact(v * 100, currency, locale)}
-              className="text-xs"
-              domain={[0, "auto"]}
-            />
-            <Tooltip
-              formatter={(value: number) => formatMoney(Math.round(value * 100), currency, locale)}
-            />
-            {!(isMobile && listingIds.length > 5) && <Legend />}
+        {isMobile && listingIds.length > 5 && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowLegend(!showLegend)}
+            className="mb-2 w-full gap-1.5 text-xs"
+          >
+            <List className="h-3.5 w-3.5" />
+            {showLegend
+              ? t("charts.revenue_by_listing.actions.show_chart")
+              : t("charts.revenue_by_listing.actions.show_legend")}
+          </Button>
+        )}
+        {isMobile && listingIds.length > 5 && showLegend ? (
+          <ul className="space-y-1.5 py-2">
             {listingIds.map((id, i) => (
-              <Line
-                key={id}
-                type="monotone"
-                dataKey={id}
-                name={getListingName(id, listingNames.get(id) ?? id)}
-                stroke={MULTI_LINE_COLORS[i % MULTI_LINE_COLORS.length]}
-                strokeWidth={2}
-                dot={false}
-                connectNulls
-              />
+              <li key={id} className="flex items-center gap-2 text-xs">
+                <span
+                  className="inline-block h-2.5 w-2.5 shrink-0 rounded-full"
+                  style={{ backgroundColor: MULTI_LINE_COLORS[i % MULTI_LINE_COLORS.length] }}
+                />
+                <span className="truncate">{getListingName(id, listingNames.get(id) ?? id)}</span>
+              </li>
             ))}
-            {hasProjection && listingIds.map((id, i) => (
-              <Line
-                key={`${id}_projected`}
-                type="monotone"
-                dataKey={`${id}_projected`}
-                name={t("charts.revenue_by_listing.projected_name", {
-                  name: getListingName(id, listingNames.get(id) ?? id),
-                })}
-                stroke={MULTI_LINE_COLORS[i % MULTI_LINE_COLORS.length]}
-                strokeWidth={1.5}
-                strokeDasharray="4 4"
-                dot={false}
-                connectNulls
-                legendType="none"
-              />
-            ))}
-          </LineChart>
-        </ResponsiveContainer>
-        {hasProjection && (
-          <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1.5">
-            <span className="inline-block w-4 border-t-2 border-dashed" style={{ borderColor: CHART_COLORS.forecast }} />
-            {t("charts.revenue_by_listing.projection_note")}
-          </p>
+          </ul>
+        ) : (
+          <>
+            <ResponsiveContainer width="100%" height={isMobile ? 250 : 350}>
+              <LineChart data={chartData} margin={{ top: 5, right: isMobile ? 8 : 20, left: isMobile ? 0 : 10, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                <XAxis dataKey="label" className="text-xs" />
+                <YAxis
+                  tickFormatter={(v) => formatMoneyCompact(v * 100, currency, locale)}
+                  className="text-xs"
+                  domain={[0, "auto"]}
+                />
+                <Tooltip
+                  formatter={(value: number) => formatMoney(Math.round(value * 100), currency, locale)}
+                />
+                {!(isMobile && listingIds.length > 5) && <Legend />}
+                {listingIds.map((id, i) => (
+                  <Line
+                    key={id}
+                    type="monotone"
+                    dataKey={id}
+                    name={getListingName(id, listingNames.get(id) ?? id)}
+                    stroke={MULTI_LINE_COLORS[i % MULTI_LINE_COLORS.length]}
+                    strokeWidth={2}
+                    dot={false}
+                    connectNulls
+                  />
+                ))}
+                {hasProjection && listingIds.map((id, i) => (
+                  <Line
+                    key={`${id}_projected`}
+                    type="monotone"
+                    dataKey={`${id}_projected`}
+                    name={t("charts.revenue_by_listing.projected_name", {
+                      name: getListingName(id, listingNames.get(id) ?? id),
+                    })}
+                    stroke={MULTI_LINE_COLORS[i % MULTI_LINE_COLORS.length]}
+                    strokeWidth={1.5}
+                    strokeDasharray="4 4"
+                    dot={false}
+                    connectNulls
+                    legendType="none"
+                  />
+                ))}
+              </LineChart>
+            </ResponsiveContainer>
+            {hasProjection && (
+              <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1.5">
+                <span className="inline-block w-4 border-t-2 border-dashed" style={{ borderColor: CHART_COLORS.forecast }} />
+                {t("charts.revenue_by_listing.projection_note")}
+              </p>
+            )}
+          </>
         )}
       </CardContent>
     </Card>

@@ -55,7 +55,9 @@
     },
     "placeholders": {
       "accounts": "Cuentas",
-      "listings": "Anuncios"
+      "listings": "Anuncios",
+      "date_from": "Desde",
+      "date_to": "Hasta"
     },
     "rows": {
       "time": "Tiempo",
@@ -135,7 +137,9 @@
       "title": "Ingresos por Anuncio",
       "actions": {
         "show_all": "Mostrar Todos ({{count}})",
-        "top_5": "Top 5"
+        "top_5": "Top 5",
+        "show_legend": "Ver Leyenda",
+        "show_chart": "Ver Gráfico"
       },
       "projected_name": "{{name}} (proy.)",
       "projection_note": "Las líneas punteadas muestran valores proyectados al cierre del mes"

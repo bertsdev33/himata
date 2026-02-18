@@ -55,7 +55,9 @@
     },
     "placeholders": {
       "accounts": "Comptes",
-      "listings": "Biens"
+      "listings": "Biens",
+      "date_from": "Du",
+      "date_to": "Au"
     },
     "rows": {
       "time": "Temps",
@@ -135,7 +137,9 @@
       "title": "Revenu par Bien",
       "actions": {
         "show_all": "Afficher Tout ({{count}})",
-        "top_5": "Top 5"
+        "top_5": "Top 5",
+        "show_legend": "Voir Légende",
+        "show_chart": "Voir Graphique"
       },
       "projected_name": "{{name}} (proj.)",
       "projection_note": "Les lignes pointillées montrent les valeurs projetées en fin de mois"
