@@ -13,6 +13,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CHART_COLORS, MULTI_LINE_COLORS } from "@/lib/chart-colors";
+import { useIsMobile } from "@/hooks/useIsMobile";
 import { formatMoney, formatMonth, formatMoneyCompact } from "@/lib/format";
 import { useLocaleContext } from "@/i18n/LocaleProvider";
 import { useTranslation } from "react-i18next";
@@ -36,6 +37,7 @@ export function MultiLineRevenueChart({
   const { locale } = useLocaleContext();
   const { t } = useTranslation("dashboard", { lng: locale });
   const [topOnly, setTopOnly] = useState(false);
+  const isMobile = useIsMobile();
 
   const totalListings = new Set(data.map((lp) => lp.listingId)).size;
 
@@ -120,8 +122,8 @@ export function MultiLineRevenueChart({
         )}
       </CardHeader>
       <CardContent className="min-w-0 overflow-hidden">
-        <ResponsiveContainer width="100%" height={350}>
-          <LineChart data={chartData} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
+        <ResponsiveContainer width="100%" height={isMobile ? 250 : 350}>
+          <LineChart data={chartData} margin={{ top: 5, right: isMobile ? 8 : 20, left: isMobile ? 0 : 10, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
             <XAxis dataKey="label" className="text-xs" />
             <YAxis

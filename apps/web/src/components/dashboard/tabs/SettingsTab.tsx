@@ -231,6 +231,50 @@ export function SettingsTab() {
 
       <Separator />
 
+      {/* Accounts section */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">{t("accounts.title")}</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          <p className="text-sm text-muted-foreground mb-3">
+            {t("accounts.description")}
+          </p>
+          <div className="hidden grid-cols-[auto_1fr_1fr_auto] gap-3 px-3 pb-1 text-xs font-medium text-muted-foreground sm:grid">
+            <span />
+            <span>{t("accounts.columns.account_id")}</span>
+            <span>{t("accounts.columns.custom_alias")}</span>
+            <span />
+          </div>
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleAccountDragEnd}
+          >
+            <SortableContext
+              items={orderedAccounts}
+              strategy={verticalListSortingStrategy}
+            >
+              <div className="space-y-1.5">
+                {orderedAccounts.map((id) => (
+                  <SortableItem
+                    key={id}
+                    id={id}
+                    originalName={id}
+                    customName={settings.accountNames[id] ?? ""}
+                    onNameChange={(name) => setAccountName(id, name)}
+                    aliasPlaceholder={t("fields.custom_alias_placeholder")}
+                    clearAliasLabel={t("fields.clear_alias")}
+                  />
+                ))}
+              </div>
+            </SortableContext>
+          </DndContext>
+        </CardContent>
+      </Card>
+
+      <Separator />
+
       {/* Forecast behavior */}
       <Card>
         <CardHeader>
@@ -286,50 +330,6 @@ export function SettingsTab() {
               {t("quick_filters.actions.auto_limit")}
             </Button>
           </div>
-        </CardContent>
-      </Card>
-
-      <Separator />
-
-      {/* Accounts section */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">{t("accounts.title")}</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2">
-          <p className="text-sm text-muted-foreground mb-3">
-            {t("accounts.description")}
-          </p>
-          <div className="hidden grid-cols-[auto_1fr_1fr_auto] gap-3 px-3 pb-1 text-xs font-medium text-muted-foreground sm:grid">
-            <span />
-            <span>{t("accounts.columns.account_id")}</span>
-            <span>{t("accounts.columns.custom_alias")}</span>
-            <span />
-          </div>
-          <DndContext
-            sensors={sensors}
-            collisionDetection={closestCenter}
-            onDragEnd={handleAccountDragEnd}
-          >
-            <SortableContext
-              items={orderedAccounts}
-              strategy={verticalListSortingStrategy}
-            >
-              <div className="space-y-1.5">
-                {orderedAccounts.map((id) => (
-                  <SortableItem
-                    key={id}
-                    id={id}
-                    originalName={id}
-                    customName={settings.accountNames[id] ?? ""}
-                    onNameChange={(name) => setAccountName(id, name)}
-                    aliasPlaceholder={t("fields.custom_alias_placeholder")}
-                    clearAliasLabel={t("fields.clear_alias")}
-                  />
-                ))}
-              </div>
-            </SortableContext>
-          </DndContext>
         </CardContent>
       </Card>
     </div>

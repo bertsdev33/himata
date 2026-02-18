@@ -57,32 +57,26 @@ export function useSettings() {
 
   const setListingName = useCallback(
     (listingId: string, name: string) => {
-      update({
-        listingNames: {
-          ...settings.listingNames,
-          ...(name ? { [listingId]: name } : (() => {
-            const copy = { ...settings.listingNames };
-            delete copy[listingId];
-            return copy;
-          })()),
-        },
-      });
+      if (name) {
+        update({ listingNames: { ...settings.listingNames, [listingId]: name } });
+      } else {
+        const copy = { ...settings.listingNames };
+        delete copy[listingId];
+        update({ listingNames: copy });
+      }
     },
     [settings.listingNames, update],
   );
 
   const setAccountName = useCallback(
     (accountId: string, name: string) => {
-      update({
-        accountNames: {
-          ...settings.accountNames,
-          ...(name ? { [accountId]: name } : (() => {
-            const copy = { ...settings.accountNames };
-            delete copy[accountId];
-            return copy;
-          })()),
-        },
-      });
+      if (name) {
+        update({ accountNames: { ...settings.accountNames, [accountId]: name } });
+      } else {
+        const copy = { ...settings.accountNames };
+        delete copy[accountId];
+        update({ accountNames: copy });
+      }
     },
     [settings.accountNames, update],
   );

@@ -9,6 +9,11 @@
     "data_quality": "Qualité des Données",
     "settings": "Paramètres",
     "not_available": "Non disponible",
+    "mobile": {
+      "open_navigation": "Ouvrir la navigation des onglets",
+      "close_navigation": "Fermer la navigation des onglets",
+      "navigation_menu": "Navigation des onglets du tableau de bord"
+    },
     "reasons": {
       "no_data_matches_filters": "Aucune donnée ne correspond aux filtres actuels",
       "need_two_or_more_listings": "Il faut 2+ biens dans l'ensemble filtré",
@@ -65,7 +70,10 @@
       "pin_accounts": "Épingler les filtres rapides de comptes",
       "unpin_accounts": "Désépingler les filtres rapides de comptes",
       "pin_listings": "Épingler les filtres rapides de biens",
-      "unpin_listings": "Désépingler les filtres rapides de biens"
+      "unpin_listings": "Désépingler les filtres rapides de biens",
+      "filters": "Filtres",
+      "open_filters": "Ouvrir les filtres",
+      "close_filters": "Fermer les filtres"
     },
     "multi_select": {
       "select_placeholder": "Sélectionner",
@@ -114,7 +122,9 @@
       "share": "Part"
     },
     "actions": {
-      "view_listing": "Voir le détail du bien"
+      "view_listing": "Voir le détail du bien",
+      "sort_by": "Trier les biens par",
+      "toggle_sort_direction": "Inverser le sens du tri"
     }
   },
   "charts": {
@@ -211,6 +221,10 @@
   "transactions": {
     "title": "Transactions ({{count}})",
     "search_placeholder": "Rechercher bien, compte ou type...",
+    "actions": {
+      "sort_by": "Trier les transactions par",
+      "toggle_sort_direction": "Inverser le sens du tri"
+    },
     "columns": {
       "date": "Date",
       "type": "Type",

@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { useSettingsContext } from "@/app/settings-context";
-import { ArrowUpDown, Eye } from "lucide-react";
+import { ArrowUpDown, Eye, ChevronsUpDown } from "lucide-react";
 import {
   Table,
   TableHeader,
@@ -12,6 +12,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Select } from "@/components/ui/select";
 import { formatMoney, formatPercent, formatDeltaPercent } from "@/lib/format";
 import { useLocaleContext } from "@/i18n/LocaleProvider";
 import { useTranslation } from "react-i18next";
@@ -203,50 +204,182 @@ export function ListingsTable({ data, currency, onSelectListing }: ListingsTable
     </TableHead>
   );
 
+  const sortOptions: { value: SortKey; label: string }[] = [
+    { value: "netRevenue", label: t("listings_table.columns.net_revenue") },
+    { value: "grossRevenue", label: t("listings_table.columns.gross_revenue") },
+    { value: "bookedNights", label: t("listings_table.columns.nights") },
+    { value: "adr", label: t("listings_table.columns.adr") },
+    { value: "occupancy", label: t("listings_table.columns.occupancy") },
+    { value: "vsTrailing", label: t("listings_table.columns.vs_trailing") },
+    { value: "portfolioShare", label: t("listings_table.columns.share") },
+    { value: "listingName", label: t("listings_table.columns.listing") },
+  ];
+
   return (
     <Card>
       <CardHeader>
         <CardTitle className="text-base">{t("listings_table.title")}</CardTitle>
       </CardHeader>
       <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <SortHeader label={t("listings_table.columns.listing")} col="listingName" />
-              <SortHeader label={t("listings_table.columns.account")} col="accountId" />
-              <SortHeader label={t("listings_table.columns.nights")} col="bookedNights" />
-              <SortHeader label={t("listings_table.columns.gross_revenue")} col="grossRevenue" />
-              <SortHeader label={t("listings_table.columns.net_revenue")} col="netRevenue" />
-              <SortHeader label={t("listings_table.columns.adr")} col="adr" />
-              <SortHeader label={t("listings_table.columns.occupancy")} col="occupancy" />
-              <SortHeader label={t("listings_table.columns.vs_trailing")} col="vsTrailing" />
-              <SortHeader label={t("listings_table.columns.share")} col="portfolioShare" />
-              {onSelectListing && <TableHead />}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {sorted.map((s) => (
-              <TableRow key={s.listingId}>
-                <TableCell className="font-medium max-w-[250px] truncate">
-                  {getListingName(s.listingId, s.listingName)}
-                </TableCell>
-                <TableCell>
-                  <Badge variant="outline" className="text-xs">
+        {/* Desktop table */}
+        <div className="hidden sm:block">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <SortHeader label={t("listings_table.columns.listing")} col="listingName" />
+                <SortHeader label={t("listings_table.columns.account")} col="accountId" />
+                <SortHeader label={t("listings_table.columns.nights")} col="bookedNights" />
+                <SortHeader label={t("listings_table.columns.gross_revenue")} col="grossRevenue" />
+                <SortHeader label={t("listings_table.columns.net_revenue")} col="netRevenue" />
+                <SortHeader label={t("listings_table.columns.adr")} col="adr" />
+                <SortHeader label={t("listings_table.columns.occupancy")} col="occupancy" />
+                <SortHeader label={t("listings_table.columns.vs_trailing")} col="vsTrailing" />
+                <SortHeader label={t("listings_table.columns.share")} col="portfolioShare" />
+                {onSelectListing && <TableHead />}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {sorted.map((s) => (
+                <TableRow key={s.listingId}>
+                  <TableCell className="font-medium max-w-[250px] truncate">
+                    {getListingName(s.listingId, s.listingName)}
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="outline" className="text-xs">
+                      {getAccountName(s.accountId)}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>{s.bookedNights}</TableCell>
+                  <TableCell>{formatMoney(s.grossRevenue, currency, locale)}</TableCell>
+                  <TableCell>{formatMoney(s.netRevenue, currency, locale)}</TableCell>
+                  <TableCell>{formatMoney(s.adr, currency, locale)}</TableCell>
+                  <TableCell>
+                    {s.occupancy !== null ? (
+                      formatPercent(s.occupancy, locale)
+                    ) : (
+                      <span className="text-muted-foreground">—</span>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {s.vsTrailing !== null ? (
+                      <span className={s.vsTrailing >= 0 ? "text-green-600" : "text-red-600"}>
+                        {formatDeltaPercent(s.vsTrailing, locale)}
+                      </span>
+                    ) : (
+                      <span className="text-muted-foreground">—</span>
+                    )}
+                  </TableCell>
+                  <TableCell>{formatPercent(s.portfolioShare, locale)}</TableCell>
+                  {onSelectListing && (
+                    <TableCell>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => onSelectListing(s.listingId)}
+                        aria-label={t("listings_table.actions.view_listing")}
+                        title={t("listings_table.actions.view_listing")}
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
+                  )}
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+
+        {/* Mobile card list */}
+        <div className="sm:hidden space-y-3">
+          {/* Mobile sort control */}
+          <div className="flex items-center gap-2">
+            <Select
+              value={sortKey}
+              onChange={(e) => {
+                setSortKey(e.target.value as SortKey);
+                setSortAsc(false);
+              }}
+              options={sortOptions}
+              ariaLabel={t("listings_table.actions.sort_by")}
+              className="h-8 flex-1 text-xs"
+            />
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 px-2"
+              onClick={() => setSortAsc(!sortAsc)}
+              aria-label={t("listings_table.actions.toggle_sort_direction")}
+            >
+              <ChevronsUpDown className="h-3.5 w-3.5" />
+            </Button>
+          </div>
+
+          {sorted.map((s) => (
+            <div
+              key={s.listingId}
+              className="rounded-lg border bg-card p-3 space-y-2"
+            >
+              {/* Name + account */}
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0 flex-1">
+                  <p className="font-medium text-sm truncate">
+                    {getListingName(s.listingId, s.listingName)}
+                  </p>
+                  <Badge variant="outline" className="text-[10px] mt-0.5">
                     {getAccountName(s.accountId)}
                   </Badge>
-                </TableCell>
-                <TableCell>{s.bookedNights}</TableCell>
-                <TableCell>{formatMoney(s.grossRevenue, currency, locale)}</TableCell>
-                <TableCell>{formatMoney(s.netRevenue, currency, locale)}</TableCell>
-                <TableCell>{formatMoney(s.adr, currency, locale)}</TableCell>
-                <TableCell>
-                  {s.occupancy !== null ? (
-                    formatPercent(s.occupancy, locale)
-                  ) : (
-                    <span className="text-muted-foreground">—</span>
-                  )}
-                </TableCell>
-                <TableCell>
+                </div>
+                {onSelectListing && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="shrink-0 h-7 w-7 p-0"
+                    onClick={() => onSelectListing(s.listingId)}
+                    aria-label={t("listings_table.actions.view_listing")}
+                  >
+                    <Eye className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
+
+              {/* Revenue */}
+              <div className="flex gap-4 text-sm">
+                <div>
+                  <p className="text-[10px] text-muted-foreground">{t("listings_table.columns.net_revenue")}</p>
+                  <p className="font-semibold">{formatMoney(s.netRevenue, currency, locale)}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] text-muted-foreground">{t("listings_table.columns.gross_revenue")}</p>
+                  <p className="font-semibold">{formatMoney(s.grossRevenue, currency, locale)}</p>
+                </div>
+              </div>
+
+              {/* Nights / ADR / Occupancy grid */}
+              <div className="grid grid-cols-3 gap-2 text-xs">
+                <div>
+                  <p className="text-[10px] text-muted-foreground">{t("listings_table.columns.nights")}</p>
+                  <p>{s.bookedNights}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] text-muted-foreground">{t("listings_table.columns.adr")}</p>
+                  <p>{formatMoney(s.adr, currency, locale)}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] text-muted-foreground">{t("listings_table.columns.occupancy")}</p>
+                  <p>
+                    {s.occupancy !== null ? (
+                      formatPercent(s.occupancy, locale)
+                    ) : (
+                      <span className="text-muted-foreground">—</span>
+                    )}
+                  </p>
+                </div>
+              </div>
+
+              {/* Vs trailing + share footer */}
+              <div className="flex gap-4 text-xs border-t pt-2">
+                <div>
+                  <span className="text-muted-foreground">{t("listings_table.columns.vs_trailing")}: </span>
                   {s.vsTrailing !== null ? (
                     <span className={s.vsTrailing >= 0 ? "text-green-600" : "text-red-600"}>
                       {formatDeltaPercent(s.vsTrailing, locale)}
@@ -254,25 +387,15 @@ export function ListingsTable({ data, currency, onSelectListing }: ListingsTable
                   ) : (
                     <span className="text-muted-foreground">—</span>
                   )}
-                </TableCell>
-                <TableCell>{formatPercent(s.portfolioShare, locale)}</TableCell>
-                {onSelectListing && (
-                  <TableCell>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => onSelectListing(s.listingId)}
-                      aria-label={t("listings_table.actions.view_listing")}
-                      title={t("listings_table.actions.view_listing")}
-                    >
-                      <Eye className="h-4 w-4" />
-                    </Button>
-                  </TableCell>
-                )}
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">{t("listings_table.columns.share")}: </span>
+                  {formatPercent(s.portfolioShare, locale)}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
       </CardContent>
     </Card>
   );

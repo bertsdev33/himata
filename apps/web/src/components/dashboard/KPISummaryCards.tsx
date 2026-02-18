@@ -91,11 +91,11 @@ export function KPISummaryCards({
   ];
 
   return (
-    <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+    <div className="grid grid-cols-2 gap-2 sm:gap-4 sm:grid-cols-3 lg:grid-cols-6">
       {cards.map((card) => (
         <Card key={card.title}>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 sm:pb-2">
+            <CardTitle className="text-sm font-medium leading-tight text-muted-foreground">
               {card.title}
             </CardTitle>
             {card.tooltip && (
@@ -105,7 +105,7 @@ export function KPISummaryCards({
             )}
           </CardHeader>
           <CardContent>
-            <p className={`text-2xl font-bold ${card.color ?? ""}`}>
+            <p className={`text-lg sm:text-2xl font-bold leading-tight ${card.color ?? ""}`}>
               {card.value}
               {card.badge}
             </p>

@@ -1,4 +1,4 @@
-import { useMemo, useEffect, useState } from "react";
+import { useMemo, useEffect, useState, useRef } from "react";
 import { useAppContext } from "@/app/state";
 import {
   computeMonthlyPortfolioPerformance,
@@ -33,6 +33,20 @@ import { transformMlForecastForDisplay } from "@/lib/ml-forecast-display-transfo
 import { useMlForecastRefresh } from "@/hooks/useMlForecastRefresh";
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
+import { getNextCycledFocusIndex, shouldCycleFocus } from "@/lib/dashboard-responsive";
+
+const MOBILE_DRAWER_ID = "dashboard-mobile-tab-drawer";
+const FOCUSABLE_SELECTOR =
+  "a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex='-1'])";
+
+function getFocusableElements(container: HTMLElement): HTMLElement[] {
+  return Array.from(container.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)).filter(
+    (el) =>
+      !el.hasAttribute("disabled") &&
+      el.getAttribute("aria-hidden") !== "true" &&
+      !el.hasAttribute("inert"),
+  );
+}
 
 interface TabDef {
   id: DashboardTab;
@@ -48,6 +62,9 @@ export function DashboardLayout() {
   const { t } = useTranslation("dashboard", { lng: locale });
   const { analytics, filter } = state;
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
+  const mobileNavTriggerRef = useRef<HTMLButtonElement>(null);
+  const mobileNavPanelRef = useRef<HTMLDivElement>(null);
+  const lastFocusedElementRef = useRef<HTMLElement | null>(null);
 
   if (!analytics) return null;
 
@@ -377,6 +394,86 @@ export function DashboardLayout() {
     setIsMobileNavOpen(false);
   }, [activeTab]);
 
+  useEffect(() => {
+    if (!isMobileNavOpen) return;
+
+    const mql = window.matchMedia("(min-width: 640px)");
+    const handleViewportChange = (event: MediaQueryListEvent) => {
+      if (event.matches) {
+        setIsMobileNavOpen(false);
+      }
+    };
+
+    mql.addEventListener("change", handleViewportChange);
+    return () => mql.removeEventListener("change", handleViewportChange);
+  }, [isMobileNavOpen]);
+
+  useEffect(() => {
+    if (!isMobileNavOpen) return;
+
+    const drawerPanel = mobileNavPanelRef.current;
+    if (!drawerPanel) return;
+
+    lastFocusedElementRef.current =
+      document.activeElement instanceof HTMLElement ? document.activeElement : null;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    const focusHandle = window.requestAnimationFrame(() => {
+      const focusable = getFocusableElements(drawerPanel);
+      if (focusable.length > 0) {
+        focusable[0].focus();
+      } else {
+        drawerPanel.focus();
+      }
+    });
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        setIsMobileNavOpen(false);
+        return;
+      }
+
+      if (event.key !== "Tab") return;
+
+      const focusable = getFocusableElements(drawerPanel);
+      if (focusable.length === 0) return;
+
+      const currentIndex =
+        document.activeElement instanceof HTMLElement
+          ? focusable.indexOf(document.activeElement)
+          : -1;
+
+      if (!shouldCycleFocus({ currentIndex, total: focusable.length, shiftKey: event.shiftKey })) {
+        return;
+      }
+
+      event.preventDefault();
+      const nextIndex = getNextCycledFocusIndex({
+        currentIndex,
+        total: focusable.length,
+        shiftKey: event.shiftKey,
+      });
+      if (nextIndex >= 0) {
+        focusable[nextIndex]?.focus();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.cancelAnimationFrame(focusHandle);
+      document.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = previousOverflow;
+
+      const focusTarget = lastFocusedElementRef.current ?? mobileNavTriggerRef.current;
+      focusTarget?.focus();
+      lastFocusedElementRef.current = null;
+    };
+  }, [isMobileNavOpen]);
+
   // Handle "Show only this listing" from ListingsTable
   const handleSelectListing = (listingId: string) => {
     dispatch({
@@ -426,10 +523,15 @@ export function DashboardLayout() {
 
           <div className="border-b bg-background px-4 py-2 sm:hidden">
             <Button
+              ref={mobileNavTriggerRef}
               type="button"
               variant="outline"
               className="w-full justify-between"
               onClick={() => setIsMobileNavOpen(true)}
+              aria-haspopup="dialog"
+              aria-expanded={isMobileNavOpen}
+              aria-controls={MOBILE_DRAWER_ID}
+              aria-label={t("tabs.mobile.open_navigation")}
             >
               <span className="truncate">{currentTabDef?.label ?? activeTab}</span>
               <Menu className="h-4 w-4 shrink-0" />
@@ -437,13 +539,23 @@ export function DashboardLayout() {
           </div>
 
           {isMobileNavOpen && (
-            <div className="fixed inset-0 z-50 bg-black/45 sm:hidden" role="dialog" aria-modal="true">
+            <div
+              className="fixed inset-0 z-50 bg-black/45 sm:hidden"
+              role="dialog"
+              aria-modal="true"
+              aria-label={t("tabs.mobile.navigation_menu")}
+            >
               <div
                 className="absolute inset-0"
                 onClick={() => setIsMobileNavOpen(false)}
                 aria-hidden="true"
               />
-              <div className="absolute left-0 top-0 flex h-full w-[min(85vw,320px)] flex-col border-r bg-background shadow-xl">
+              <div
+                id={MOBILE_DRAWER_ID}
+                ref={mobileNavPanelRef}
+                tabIndex={-1}
+                className="absolute left-0 top-0 flex h-full w-[min(85vw,320px)] flex-col border-r bg-background shadow-xl focus:outline-none"
+              >
                 <div className="flex items-center justify-between border-b px-4 py-3">
                   <p className="text-sm font-medium">{currentTabDef?.label ?? activeTab}</p>
                   <Button
@@ -451,7 +563,7 @@ export function DashboardLayout() {
                     variant="ghost"
                     size="icon"
                     onClick={() => setIsMobileNavOpen(false)}
-                    aria-label="Close navigation"
+                    aria-label={t("tabs.mobile.close_navigation")}
                   >
                     <X className="h-4 w-4" />
                   </Button>

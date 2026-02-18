@@ -12,6 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { CHART_COLORS } from "@/lib/chart-colors";
+import { useIsMobile } from "@/hooks/useIsMobile";
 import { formatMoney, formatMonth, formatMoneyCompact } from "@/lib/format";
 import { AlertTriangle, Loader2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -54,6 +55,12 @@ export function ForecastTab({
 }: ForecastTabProps) {
   const { locale } = useLocaleContext();
   const { t } = useTranslation("forecast", { lng: locale });
+  const isMobile = useIsMobile();
+  const getAxisInterval = (pointCount: number): number => {
+    if (!isMobile || pointCount <= 4) return 0;
+    // Keep around 4 ticks visible on narrow screens.
+    return Math.ceil(pointCount / 4) - 1;
+  };
   const upcomingRevenueData = useMemo(
     () =>
       [...portfolioPerf]
@@ -249,14 +256,15 @@ export function ForecastTab({
             <CardTitle className="text-base">{t("cards.upcoming_revenue.title")}</CardTitle>
           </CardHeader>
           <CardContent className="min-w-0 overflow-hidden">
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={upcomingRevenueData} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
+            <ResponsiveContainer width="100%" height={isMobile ? 220 : 300}>
+              <BarChart data={upcomingRevenueData} margin={{ top: 5, right: isMobile ? 8 : 20, left: isMobile ? 0 : 10, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                 <XAxis
                   dataKey="month"
                   tickFormatter={(value) => formatMonth(value as YearMonth, locale)}
                   className="text-xs"
-                  interval={0}
+                  interval={getAxisInterval(upcomingRevenueData.length)}
+                  minTickGap={isMobile ? 18 : 8}
                 />
                 <YAxis
                   tickFormatter={(v) => formatMoneyCompact(v * 100, currency, locale)}
@@ -283,14 +291,15 @@ export function ForecastTab({
             <CardTitle className="text-base">{t("cards.upcoming_nights.title")}</CardTitle>
           </CardHeader>
           <CardContent className="min-w-0 overflow-hidden">
-            <ResponsiveContainer width="100%" height={250}>
-              <BarChart data={nightsData} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
+            <ResponsiveContainer width="100%" height={isMobile ? 200 : 250}>
+              <BarChart data={nightsData} margin={{ top: 5, right: isMobile ? 8 : 20, left: isMobile ? 0 : 10, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                 <XAxis
                   dataKey="month"
                   tickFormatter={(value) => formatMonth(value as YearMonth, locale)}
                   className="text-xs"
-                  interval={0}
+                  interval={getAxisInterval(nightsData.length)}
+                  minTickGap={isMobile ? 18 : 8}
                 />
                 <YAxis className="text-xs" />
                 <Tooltip />
@@ -312,14 +321,15 @@ export function ForecastTab({
             <CardTitle className="text-base">{t("cards.nowcast_forecast.title")}</CardTitle>
           </CardHeader>
           <CardContent className="min-w-0 overflow-hidden">
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={revenueData} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
+            <ResponsiveContainer width="100%" height={isMobile ? 220 : 300}>
+              <BarChart data={revenueData} margin={{ top: 5, right: isMobile ? 8 : 20, left: isMobile ? 0 : 10, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                 <XAxis
                   dataKey="month"
                   tickFormatter={(value) => formatMonth(value as YearMonth, locale)}
                   className="text-xs"
-                  interval={0}
+                  interval={getAxisInterval(revenueData.length)}
+                  minTickGap={isMobile ? 18 : 8}
                 />
                 <YAxis
                   tickFormatter={(v) => formatMoneyCompact(v * 100, currency, locale)}

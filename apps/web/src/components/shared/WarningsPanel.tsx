@@ -87,7 +87,7 @@ export function WarningsPanel({ warnings }: WarningsPanelProps) {
     <div
       className={`transition-all duration-300 ease-in-out ${
         isVisible
-          ? "opacity-100 max-h-[500px] translate-y-0 mb-4"
+          ? "opacity-100 max-h-[2000px] translate-y-0 mb-4"
           : "opacity-0 max-h-0 -translate-y-2 overflow-hidden mb-0"
       }`}
     >
@@ -117,7 +117,7 @@ export function WarningsPanel({ warnings }: WarningsPanelProps) {
                       </p>
                       <ul className="mt-1 space-y-0.5">
                         {items.slice(0, 10).map((w, i) => (
-                          <li key={i} className="text-xs text-muted-foreground">
+                          <li key={i} className="text-xs text-muted-foreground break-words">
                             {w.fileName}
                             {w.rowNumber ? `:${w.rowNumber}` : ""} — {formatWarningMessage(w)}
                           </li>
