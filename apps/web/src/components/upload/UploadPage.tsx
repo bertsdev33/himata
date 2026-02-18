@@ -1,8 +1,10 @@
 import { useCallback } from "react";
 import { Loader2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { useAppContext } from "@/app/state";
 import { computeAnalytics } from "@/app/compute-analytics";
 import { prefillAccountId, detectDatasetKind } from "@/lib/file-helpers";
+import { useLocaleContext } from "@/i18n/LocaleProvider";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { FileDropzone } from "./FileDropzone";
@@ -13,6 +15,8 @@ let fileIdCounter = 0;
 
 export function UploadPage() {
   const { state, dispatch } = useAppContext();
+  const { locale } = useLocaleContext();
+  const { t } = useTranslation(["common", "upload"], { lng: locale });
 
   const handleFilesSelected = useCallback(
     (files: File[]) => {
@@ -53,17 +57,17 @@ export function UploadPage() {
     } catch (err) {
       dispatch({
         type: "SET_ERROR",
-        error: err instanceof Error ? err.message : "An unexpected error occurred",
+        error: err instanceof Error ? err.message : t("errors.unexpected", { ns: "common" }),
       });
     }
-  }, [state.files, dispatch]);
+  }, [state.files, dispatch, t]);
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-16">
       <div className="text-center mb-10">
-        <h1 className="text-4xl font-bold tracking-tight">Rental Analytics</h1>
+        <h1 className="text-4xl font-bold tracking-tight">{t("app.title", { ns: "common" })}</h1>
         <p className="text-muted-foreground mt-3 text-lg">
-          Upload your Airbnb CSV exports to analyze rental performance
+          {t("subtitle", { ns: "upload" })}
         </p>
       </div>
 
@@ -75,7 +79,7 @@ export function UploadPage() {
       {state.files.length > 0 && (
         <div className="mt-6 space-y-3">
           <h2 className="text-sm font-medium text-muted-foreground">
-            Files ({state.files.length})
+            {t("files_count", { ns: "upload", count: state.files.length })}
           </h2>
           {state.files.map((entry) => (
             <FileEntryRow
@@ -107,10 +111,10 @@ export function UploadPage() {
             {state.isProcessing ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Analyzing...
+                {t("actions.analyzing", { ns: "upload" })}
               </>
             ) : (
-              "Analyze"
+              t("actions.analyze", { ns: "upload" })
             )}
           </Button>
         </div>

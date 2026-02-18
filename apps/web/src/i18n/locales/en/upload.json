@@ -1,1 +1,26 @@
-{}
+{
+  "subtitle": "Upload your Airbnb CSV exports to analyze rental performance",
+  "files_count": "Files ({{count}})",
+  "dropzone": {
+    "title": "Drop CSV files here or click to browse",
+    "hint": "Upload your Airbnb transaction exports (.csv, max {{maxMb}} MB)"
+  },
+  "dataset": {
+    "paid": "Paid (Finalized)",
+    "upcoming": "Upcoming (Forecast)"
+  },
+  "fields": {
+    "account_id": "Account ID",
+    "dataset_kind": "Dataset kind"
+  },
+  "actions": {
+    "analyze": "Analyze",
+    "analyzing": "Analyzing...",
+    "remove_file": "Remove file"
+  },
+  "errors": {
+    "rejected_prefix": "Rejected files: {{files}}",
+    "not_csv": "{{name}}: not a CSV file",
+    "too_large": "{{name}}: exceeds {{maxMb}} MB limit ({{sizeMb}} MB)"
+  }
+}

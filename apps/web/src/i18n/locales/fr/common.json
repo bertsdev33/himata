@@ -1,1 +1,14 @@
-{}
+{
+  "app": {
+    "title": "Analyse Locative"
+  },
+  "actions": {
+    "upload_new_files": "Importer de Nouveaux Fichiers"
+  },
+  "language": {
+    "label": "Langue"
+  },
+  "errors": {
+    "unexpected": "Une erreur inattendue est survenue"
+  }
+}

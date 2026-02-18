@@ -1,1 +1,14 @@
-{}
+{
+  "app": {
+    "title": "Analitica de Alquileres"
+  },
+  "actions": {
+    "upload_new_files": "Subir Archivos Nuevos"
+  },
+  "language": {
+    "label": "Idioma"
+  },
+  "errors": {
+    "unexpected": "Ocurrio un error inesperado"
+  }
+}

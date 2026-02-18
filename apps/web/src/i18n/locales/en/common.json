@@ -1,1 +1,14 @@
-{}
+{
+  "app": {
+    "title": "Rental Analytics"
+  },
+  "actions": {
+    "upload_new_files": "Upload New Files"
+  },
+  "language": {
+    "label": "Language"
+  },
+  "errors": {
+    "unexpected": "An unexpected error occurred"
+  }
+}
