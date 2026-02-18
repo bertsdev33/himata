@@ -115,7 +115,7 @@ export function TransactionsExplorer({ transactions, currency }: TransactionsExp
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
+      <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <CardTitle className="text-base">
           {t("transactions.title", { count: filtered.length })}
         </CardTitle>
@@ -126,7 +126,7 @@ export function TransactionsExplorer({ transactions, currency }: TransactionsExp
             setPage(0);
           }}
           placeholder={t("transactions.search_placeholder")}
-          className="w-72"
+          className="w-full sm:w-72"
         />
       </CardHeader>
       <CardContent>
@@ -172,7 +172,7 @@ export function TransactionsExplorer({ transactions, currency }: TransactionsExp
         </Table>
 
         {totalPages > 1 && (
-          <div className="flex items-center justify-between mt-4">
+          <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-sm text-muted-foreground">
               {t("transactions.pagination.page_of", { page: page + 1, totalPages })}
             </p>

@@ -1,4 +1,4 @@
-import { useMemo, useEffect } from "react";
+import { useMemo, useEffect, useState } from "react";
 import { useAppContext } from "@/app/state";
 import {
   computeMonthlyPortfolioPerformance,
@@ -31,6 +31,8 @@ import {
 import type { DashboardTab } from "@/app/types";
 import { transformMlForecastForDisplay } from "@/lib/ml-forecast-display-transform";
 import { useMlForecastRefresh } from "@/hooks/useMlForecastRefresh";
+import { Button } from "@/components/ui/button";
+import { Menu, X } from "lucide-react";
 
 interface TabDef {
   id: DashboardTab;
@@ -45,6 +47,7 @@ export function DashboardLayout() {
   const { locale } = useLocaleContext();
   const { t } = useTranslation("dashboard", { lng: locale });
   const { analytics, filter } = state;
+  const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
 
   if (!analytics) return null;
 
@@ -355,17 +358,24 @@ export function DashboardLayout() {
   // Auto-fallback: if current tab becomes disabled, switch to portfolio-overview
   const activeTab = filter.activeTab;
   const currentTabDef = tabs.find((t) => t.id === activeTab);
+  const setActiveTab = (tab: DashboardTab) =>
+    dispatch({
+      type: "SET_FILTER",
+      filter: { activeTab: tab },
+    });
+
   useEffect(() => {
     if (currentTabDef && !currentTabDef.enabled) {
       const firstEnabled = tabs.find((t) => t.enabled);
       if (firstEnabled) {
-        dispatch({
-          type: "SET_FILTER",
-          filter: { activeTab: firstEnabled.id },
-        });
+        setActiveTab(firstEnabled.id);
       }
     }
   }, [currentTabDef, tabs, dispatch]);
+
+  useEffect(() => {
+    setIsMobileNavOpen(false);
+  }, [activeTab]);
 
   // Handle "Show only this listing" from ListingsTable
   const handleSelectListing = (listingId: string) => {
@@ -402,24 +412,78 @@ export function DashboardLayout() {
   );
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="flex min-h-screen min-w-0 flex-col overflow-x-hidden">
       <DashboardHeader />
 
       <Tabs
         value={activeTab}
-        onValueChange={(v) =>
-          dispatch({
-            type: "SET_FILTER",
-            filter: { activeTab: v as DashboardTab },
-          })
-        }
-        className="flex-1 flex flex-col"
+        onValueChange={(v) => setActiveTab(v as DashboardTab)}
+        className="flex flex-1 min-w-0 flex-col"
       >
         {/* Sticky header: filters + tabs */}
-        <div className="sticky top-0 z-40">
+        <div className="sticky top-0 z-40 min-w-0">
           <FilterBar />
-          <div className="bg-background border-b px-6 py-2">
-            <TabsList className="flex-wrap h-auto gap-1">
+
+          <div className="border-b bg-background px-4 py-2 sm:hidden">
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full justify-between"
+              onClick={() => setIsMobileNavOpen(true)}
+            >
+              <span className="truncate">{currentTabDef?.label ?? activeTab}</span>
+              <Menu className="h-4 w-4 shrink-0" />
+            </Button>
+          </div>
+
+          {isMobileNavOpen && (
+            <div className="fixed inset-0 z-50 bg-black/45 sm:hidden" role="dialog" aria-modal="true">
+              <div
+                className="absolute inset-0"
+                onClick={() => setIsMobileNavOpen(false)}
+                aria-hidden="true"
+              />
+              <div className="absolute left-0 top-0 flex h-full w-[min(85vw,320px)] flex-col border-r bg-background shadow-xl">
+                <div className="flex items-center justify-between border-b px-4 py-3">
+                  <p className="text-sm font-medium">{currentTabDef?.label ?? activeTab}</p>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setIsMobileNavOpen(false)}
+                    aria-label="Close navigation"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+                <div className="flex-1 space-y-2 overflow-y-auto p-3">
+                  {tabs.map((tab) => (
+                    <button
+                      key={tab.id}
+                      type="button"
+                      onClick={() => tab.enabled && setActiveTab(tab.id)}
+                      disabled={!tab.enabled}
+                      className={`w-full rounded-md border px-3 py-2 text-left text-sm transition-colors ${
+                        activeTab === tab.id
+                          ? "border-primary bg-primary text-primary-foreground"
+                          : tab.enabled
+                            ? "border-border hover:bg-accent hover:text-accent-foreground"
+                            : "border-border bg-muted/40 text-muted-foreground"
+                      }`}
+                    >
+                      <p>{tab.label}</p>
+                      {!tab.enabled && tab.reason && (
+                        <p className="mt-1 text-xs font-normal text-muted-foreground">{tab.reason}</p>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="hidden border-b bg-background px-6 py-2 sm:block">
+            <TabsList className="h-auto flex-wrap gap-1">
               {tabs.map((tab) =>
                 tab.enabled ? (
                   <TabsTrigger key={tab.id} value={tab.id}>
@@ -437,7 +501,7 @@ export function DashboardLayout() {
           </div>
         </div>
 
-        <main className="flex-1 p-6">
+        <main className="flex-1 min-w-0 p-4 sm:p-6">
           <WarningsPanel warnings={analytics.warnings} />
 
           <TabsContent value="portfolio-overview" className="mt-0">

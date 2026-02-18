@@ -86,7 +86,7 @@ export function RevenueBreakdownChart({ data, currency, projection = false }: Re
       <CardHeader>
         <CardTitle className="text-base">{t("charts.revenue_breakdown.title")}</CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="min-w-0 overflow-hidden">
         <ResponsiveContainer width="100%" height={300}>
           <BarChart data={chartData} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />

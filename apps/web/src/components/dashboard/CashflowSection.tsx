@@ -63,7 +63,7 @@ export function CashflowSection({ data, currency, projection = false }: Cashflow
       <CardHeader>
         <CardTitle className="text-base">{t("section.monthly_payouts.title")}</CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="min-w-0 overflow-hidden">
         <ResponsiveContainer width="100%" height={250}>
           <BarChart data={chartData} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />

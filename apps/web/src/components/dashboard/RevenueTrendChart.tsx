@@ -61,15 +61,15 @@ export function RevenueTrendChart({
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+      <CardHeader className="flex flex-col gap-2 space-y-0 pb-2 sm:flex-row sm:items-center sm:justify-between">
         <CardTitle className="text-base">{t("charts.revenue_trend.title")}</CardTitle>
-        <div className="flex items-center gap-0.5 rounded-lg border p-0.5">
+        <div className="flex w-full items-center gap-0.5 rounded-lg border p-0.5 sm:w-auto">
           {BASIS_OPTIONS.map((opt) => (
             <button
               key={opt}
               type="button"
               onClick={() => setRevenueBasis(opt)}
-              className={`px-2 py-0.5 text-xs font-medium rounded-md transition-colors ${
+              className={`flex-1 rounded-md px-2 py-0.5 text-xs font-medium transition-colors sm:flex-none ${
                 revenueBasis === opt
                   ? "bg-primary text-primary-foreground"
                   : "text-muted-foreground hover:text-foreground"
@@ -80,7 +80,7 @@ export function RevenueTrendChart({
           ))}
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="min-w-0 overflow-hidden">
         <ResponsiveContainer width="100%" height={300}>
           <AreaChart data={chartData} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />

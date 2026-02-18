@@ -40,8 +40,8 @@ const t = i18n.t.bind(i18n);
     />
     <slot name="head" />
   </head>
-  <body class="min-h-screen bg-background font-sans antialiased">
-    <main>
+  <body class="min-h-screen overflow-x-hidden bg-background font-sans antialiased">
+    <main class="min-w-0">
       <slot />
     </main>
   </body>

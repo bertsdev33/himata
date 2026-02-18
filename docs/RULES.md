@@ -78,6 +78,14 @@
   - Do not leave temporary scripts, experiments, unused files, dead code (unreachable functions/variables), or commented-out code blocks.
   - Group related scripts in a dedicated subdirectory, keeping /scripts clean and organized.
 
+### 2.4 Responsive UI
+
+- All user-facing pages must work at 360px, 375px, 390px, and 414px widths, and desktop.
+- No page-level horizontal scrolling. Tables may scroll horizontally inside their own container/card.
+- Navigation must be usable on mobile (for example, mobile nav, drawer, or equivalent pattern).
+- Charts must be responsive to their container and must not overflow or get cut off.
+- UI pull requests must include at least one mobile screenshot and one desktop screenshot.
+
 ---
 
 ## 3. Testing & Validation

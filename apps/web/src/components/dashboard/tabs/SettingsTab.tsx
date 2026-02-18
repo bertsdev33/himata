@@ -53,11 +53,11 @@ function SortableItem({
     <div
       ref={setNodeRef}
       style={style}
-      className="grid grid-cols-[auto_1fr_1fr_auto] items-center gap-3 rounded-md border bg-background px-3 py-2"
+      className="grid grid-cols-1 gap-2 rounded-md border bg-background px-3 py-2 sm:grid-cols-[auto_1fr_1fr_auto] sm:items-center"
     >
       <button
         type="button"
-        className="cursor-grab touch-none text-muted-foreground hover:text-foreground"
+        className="cursor-grab touch-none text-muted-foreground hover:text-foreground sm:justify-self-auto"
         {...attributes}
         {...listeners}
       >
@@ -179,9 +179,9 @@ export function SettingsTab() {
 
   return (
     <div className="space-y-6 max-w-4xl">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <h2 className="text-lg font-semibold">{t("page.title")}</h2>
-        <Button variant="outline" size="sm" onClick={resetAll}>
+        <Button variant="outline" size="sm" onClick={resetAll} className="w-full sm:w-auto">
           <RotateCcw className="mr-1.5 h-3.5 w-3.5" />
           {t("page.actions.reset_all")}
         </Button>
@@ -196,7 +196,7 @@ export function SettingsTab() {
           <p className="text-sm text-muted-foreground mb-3">
             {t("listings.description")}
           </p>
-          <div className="grid grid-cols-[auto_1fr_1fr_auto] gap-3 px-3 pb-1 text-xs font-medium text-muted-foreground">
+          <div className="hidden grid-cols-[auto_1fr_1fr_auto] gap-3 px-3 pb-1 text-xs font-medium text-muted-foreground sm:grid">
             <span />
             <span>{t("listings.columns.original_name")}</span>
             <span>{t("listings.columns.custom_alias")}</span>
@@ -300,7 +300,7 @@ export function SettingsTab() {
           <p className="text-sm text-muted-foreground mb-3">
             {t("accounts.description")}
           </p>
-          <div className="grid grid-cols-[auto_1fr_1fr_auto] gap-3 px-3 pb-1 text-xs font-medium text-muted-foreground">
+          <div className="hidden grid-cols-[auto_1fr_1fr_auto] gap-3 px-3 pb-1 text-xs font-medium text-muted-foreground sm:grid">
             <span />
             <span>{t("accounts.columns.account_id")}</span>
             <span>{t("accounts.columns.custom_alias")}</span>

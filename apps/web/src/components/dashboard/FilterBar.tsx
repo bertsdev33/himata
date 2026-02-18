@@ -384,11 +384,11 @@ export function FilterBar() {
   };
 
   return (
-    <div className="bg-background border-b px-6 py-2 space-y-2">
+    <div className="space-y-2 border-b bg-background px-4 py-2 sm:px-6">
       {/* Row 1: Main filters — always visible */}
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="flex flex-wrap items-center gap-2 sm:gap-3">
         {/* Custom date range */}
-        <div className="flex items-center gap-1.5">
+        <div className="flex w-full flex-wrap items-center gap-1.5 sm:w-auto sm:flex-nowrap">
           <input
             type="month"
             value={filter.dateRange.start ?? ""}
@@ -402,7 +402,7 @@ export function FilterBar() {
                 },
               })
             }
-            className={`h-8 rounded-md border px-2 text-xs transition-colors ${
+            className={`h-8 w-full min-w-0 rounded-md border px-2 text-xs transition-colors sm:w-[9.5rem] ${
               startIsForecast
                 ? "border-yellow-400 bg-yellow-50 text-yellow-800"
                 : "border-input bg-background"
@@ -422,14 +422,14 @@ export function FilterBar() {
                 },
               })
             }
-            className={`h-8 rounded-md border px-2 text-xs transition-colors ${
+            className={`h-8 w-full min-w-0 rounded-md border px-2 text-xs transition-colors sm:w-[9.5rem] ${
               endIsForecast
                 ? "border-yellow-400 bg-yellow-50 text-yellow-800"
                 : "border-input bg-background"
             }`}
           />
           {endInForecast && (
-            <span className="text-[10px] font-medium text-yellow-600 whitespace-nowrap">
+            <span className="text-[10px] font-medium text-yellow-600">
               {t("filter_bar.includes_forecast")}
             </span>
           )}
@@ -437,7 +437,7 @@ export function FilterBar() {
 
         {/* Account multi-select */}
         {analytics.accountIds.length > 1 && (
-          <div className="w-48">
+          <div className="w-full sm:w-48">
             <MultiSelect
               options={accountOptions}
               selected={filter.selectedAccountIds}
@@ -458,7 +458,7 @@ export function FilterBar() {
 
         {/* Listing multi-select */}
         {listingOptions.length > 1 && (
-          <div className="w-64">
+          <div className="w-full sm:w-64">
             <MultiSelect
               options={listingOptions}
               selected={filter.selectedListingIds}
@@ -499,12 +499,12 @@ export function FilterBar() {
               })
             }
             options={analytics.currencies.map((c) => ({ value: c, label: c }))}
-            className="w-24"
+            className="w-full sm:w-24"
           />
         )}
 
         {/* Projection toggle */}
-        <label className="flex items-center gap-2 text-sm cursor-pointer">
+        <label className="flex cursor-pointer items-center gap-2 text-sm">
           <input
             type="checkbox"
             checked={filter.projection}
@@ -522,7 +522,7 @@ export function FilterBar() {
         </label>
 
         {/* Quick filters toggle + View mode — pushed right */}
-        <div className="ml-auto flex items-center gap-3">
+        <div className="flex w-full flex-wrap items-center gap-2 sm:ml-auto sm:w-auto sm:justify-end sm:gap-3">
           <Button
             variant="outline"
             size="sm"
@@ -533,7 +533,7 @@ export function FilterBar() {
             {t("filter_bar.actions.quick_filters")}
             <ChevronDown className={`h-3.5 w-3.5 transition-transform duration-200 ${isExpanded ? "" : "-rotate-90"}`} />
           </Button>
-          <span className="text-xs text-muted-foreground whitespace-nowrap">
+          <span className="hidden whitespace-nowrap text-xs text-muted-foreground sm:inline">
             {t("filter_bar.data_scope")}
           </span>
           <Tabs
@@ -541,11 +541,12 @@ export function FilterBar() {
             onValueChange={(v) =>
               dispatch({ type: "SET_FILTER", filter: { viewMode: v as ViewMode } })
             }
+            className="w-full sm:w-auto"
           >
-            <TabsList>
+            <TabsList className="h-auto w-full flex-wrap sm:w-auto">
               {viewOptions.map((opt) => (
                 <Tooltip key={opt.value} content={opt.description}>
-                  <TabsTrigger value={opt.value}>
+                  <TabsTrigger value={opt.value} className="flex-1 sm:flex-none">
                     {opt.label}
                   </TabsTrigger>
                 </Tooltip>
@@ -564,8 +565,8 @@ export function FilterBar() {
         <div className="overflow-hidden">
           <div className="space-y-1 pb-1 text-sm">
             {showTimeQuickRow && (
-              <div className="flex items-center gap-2">
-                <span className="w-16 shrink-0 text-xs font-medium text-muted-foreground">
+              <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-center">
+                <span className="w-full text-xs font-medium text-muted-foreground sm:w-16 sm:shrink-0">
                   {t("filter_bar.rows.time")}
                 </span>
                 <div className="flex min-w-0 flex-1 items-center gap-1.5 overflow-x-auto whitespace-nowrap">
@@ -588,7 +589,7 @@ export function FilterBar() {
                   type="button"
                   variant={settings.quickFilterPinnedTime ? "secondary" : "ghost"}
                   size="sm"
-                  className="h-7 shrink-0 px-2"
+                  className="h-7 shrink-0 self-end px-2 sm:self-auto"
                   onClick={() => setQuickFilterPinnedTime(!settings.quickFilterPinnedTime)}
                   aria-label={
                     settings.quickFilterPinnedTime
@@ -602,8 +603,8 @@ export function FilterBar() {
             )}
 
             {showAccountQuickRow && (
-              <div className="flex items-center gap-2">
-                <span className="w-16 shrink-0 text-xs font-medium text-muted-foreground">
+              <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-center">
+                <span className="w-full text-xs font-medium text-muted-foreground sm:w-16 sm:shrink-0">
                   {t("filter_bar.rows.accounts")}
                 </span>
                 <div className="flex min-w-0 flex-1 items-center gap-1.5 overflow-x-auto whitespace-nowrap">
@@ -656,7 +657,7 @@ export function FilterBar() {
                   type="button"
                   variant={settings.quickFilterPinnedAccounts ? "secondary" : "ghost"}
                   size="sm"
-                  className="h-7 shrink-0 px-2"
+                  className="h-7 shrink-0 self-end px-2 sm:self-auto"
                   onClick={() => setQuickFilterPinnedAccounts(!settings.quickFilterPinnedAccounts)}
                   aria-label={
                     settings.quickFilterPinnedAccounts
@@ -670,8 +671,8 @@ export function FilterBar() {
             )}
 
             {showListingQuickRow && (
-              <div className="flex items-center gap-2">
-                <span className="w-16 shrink-0 text-xs font-medium text-muted-foreground">
+              <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-center">
+                <span className="w-full text-xs font-medium text-muted-foreground sm:w-16 sm:shrink-0">
                   {t("filter_bar.rows.listings")}
                 </span>
                 <div className="flex min-w-0 flex-1 items-center gap-1.5 overflow-x-auto whitespace-nowrap">
@@ -721,7 +722,7 @@ export function FilterBar() {
                   type="button"
                   variant={settings.quickFilterPinnedListings ? "secondary" : "ghost"}
                   size="sm"
-                  className="h-7 shrink-0 px-2"
+                  className="h-7 shrink-0 self-end px-2 sm:self-auto"
                   onClick={() => setQuickFilterPinnedListings(!settings.quickFilterPinnedListings)}
                   aria-label={
                     settings.quickFilterPinnedListings
@@ -735,7 +736,7 @@ export function FilterBar() {
             )}
 
             {isExpanded && !listingQuickRowEnabled && (
-              <p className="text-xs text-muted-foreground pl-[4.5rem]">
+              <p className="pl-0 text-xs text-muted-foreground sm:pl-[4.5rem]">
                 {t("filter_bar.listing_row_hidden.prefix")}
                 <span className="font-medium"> {t("filter_bar.listing_row_hidden.show_all_listings")} </span>
                 {t("filter_bar.listing_row_hidden.suffix")}

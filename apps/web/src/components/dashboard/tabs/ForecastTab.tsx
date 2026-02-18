@@ -206,6 +206,7 @@ export function ForecastTab({
               variant="outline"
               onClick={onRefreshMlForecast}
               disabled={actionDisabled}
+              className="w-full sm:w-auto"
             >
               {actionLoading && <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />}
               {actionLabel}
@@ -247,7 +248,7 @@ export function ForecastTab({
           <CardHeader>
             <CardTitle className="text-base">{t("cards.upcoming_revenue.title")}</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="min-w-0 overflow-hidden">
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={upcomingRevenueData} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
@@ -281,7 +282,7 @@ export function ForecastTab({
           <CardHeader>
             <CardTitle className="text-base">{t("cards.upcoming_nights.title")}</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="min-w-0 overflow-hidden">
             <ResponsiveContainer width="100%" height={250}>
               <BarChart data={nightsData} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
@@ -310,7 +311,7 @@ export function ForecastTab({
           <CardHeader>
             <CardTitle className="text-base">{t("cards.nowcast_forecast.title")}</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="min-w-0 overflow-hidden">
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={revenueData} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />

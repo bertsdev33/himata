@@ -43,7 +43,7 @@ export function PortfolioOverview({
         hasProjection={hasProjection}
       />
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 [&>*]:min-w-0">
         <RevenueTrendChart
           data={portfolioPerf}
           currency={currency}
@@ -54,7 +54,7 @@ export function PortfolioOverview({
 
       <TopMoversTable listingPerf={listingPerf} currency={currency} projection={projection} />
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 [&>*]:min-w-0">
         <SeasonalityHeatmap data={portfolioPerf} currency={currency} />
         <OccupancyHeatmaps transactions={transactions} />
       </div>

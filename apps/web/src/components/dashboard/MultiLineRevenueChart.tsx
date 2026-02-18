@@ -104,13 +104,14 @@ export function MultiLineRevenueChart({
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
+      <CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <CardTitle className="text-base">{t("charts.revenue_by_listing.title")}</CardTitle>
         {totalListings > 5 && (
           <Button
             variant="ghost"
             size="sm"
             onClick={() => setTopOnly(!topOnly)}
+            className="w-full sm:w-auto"
           >
             {topOnly
               ? t("charts.revenue_by_listing.actions.show_all", { count: totalListings })
@@ -118,7 +119,7 @@ export function MultiLineRevenueChart({
           </Button>
         )}
       </CardHeader>
-      <CardContent>
+      <CardContent className="min-w-0 overflow-hidden">
         <ResponsiveContainer width="100%" height={350}>
           <LineChart data={chartData} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />

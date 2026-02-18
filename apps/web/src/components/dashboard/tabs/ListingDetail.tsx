@@ -108,7 +108,7 @@ export function ListingDetail({
             <CardTitle className="text-base">{t("listing_detail.performance_vs_trailing")}</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex items-center gap-4">
+            <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
               <div
                 className={`rounded-lg px-4 py-3 text-center ${
                   indicator.isOver
