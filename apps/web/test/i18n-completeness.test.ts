@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import { locales, namespaces } from "../config";
-import { resources } from "../resources";
+import { locales, namespaces } from "@/i18n/config";
+import { resources } from "@/i18n/resources";
 
 function flattenKeys(value: unknown, prefix = ""): string[] {
   if (typeof value !== "object" || value === null) return [prefix].filter(Boolean);
