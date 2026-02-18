@@ -1,6 +1,12 @@
-import type { MonthlyPortfolioPerformance, MonthlyCashflow } from "@rental-analytics/core";
+import type {
+  CanonicalTransaction,
+  MonthlyListingPerformance,
+  MonthlyPortfolioPerformance,
+  MonthlyCashflow,
+} from "@rental-analytics/core";
 
 export type DatePreset = "3m" | "6m" | "12m" | "ytd" | "all";
+export type DashboardViewMode = "realized" | "forecast" | "all";
 
 /**
  * Compute a date range from a named preset, anchored to the dataset's max month.
@@ -106,6 +112,83 @@ export function filterCashflow(
   }
   if (opts.dateRange.end) {
     result = result.filter((cf) => cf.month <= opts.dateRange.end!);
+  }
+
+  return result;
+}
+
+/**
+ * Filter listing performance by dashboard scope controls.
+ */
+export function filterListingPerformance(
+  data: MonthlyListingPerformance[],
+  opts: {
+    currency: string;
+    selectedAccountIds: string[];
+    selectedListingIds: string[];
+    dateRange: { start: string | null; end: string | null };
+  },
+): MonthlyListingPerformance[] {
+  let result = data.filter((lp) => lp.currency === opts.currency);
+
+  if (opts.selectedAccountIds.length > 0) {
+    const accountSet = new Set(opts.selectedAccountIds);
+    result = result.filter((lp) => accountSet.has(lp.accountId));
+  }
+
+  if (opts.selectedListingIds.length > 0) {
+    const listingSet = new Set(opts.selectedListingIds);
+    result = result.filter((lp) => listingSet.has(lp.listingId));
+  }
+
+  if (opts.dateRange.start) {
+    result = result.filter((lp) => lp.month >= opts.dateRange.start!);
+  }
+  if (opts.dateRange.end) {
+    result = result.filter((lp) => lp.month <= opts.dateRange.end!);
+  }
+
+  return result;
+}
+
+/**
+ * Filter canonical transactions by dashboard scope controls.
+ */
+export function filterTransactions(
+  data: CanonicalTransaction[],
+  opts: {
+    viewMode: DashboardViewMode;
+    currency: string;
+    selectedAccountIds: string[];
+    selectedListingIds: string[];
+    dateRange: { start: string | null; end: string | null };
+  },
+): CanonicalTransaction[] {
+  let result = data.filter((tx) => tx.netAmount.currency === opts.currency);
+
+  if (opts.viewMode === "realized") {
+    result = result.filter((tx) => tx.datasetKind === "paid");
+  } else if (opts.viewMode === "forecast") {
+    result = result.filter((tx) => tx.datasetKind === "upcoming");
+  }
+
+  if (opts.selectedAccountIds.length > 0) {
+    const accountSet = new Set(opts.selectedAccountIds);
+    result = result.filter((tx) => tx.listing != null && accountSet.has(tx.listing.accountId));
+  }
+
+  if (opts.selectedListingIds.length > 0) {
+    const listingSet = new Set(opts.selectedListingIds);
+    result = result.filter((tx) => tx.listing != null && listingSet.has(tx.listing.listingId));
+  }
+
+  if (opts.dateRange.start || opts.dateRange.end) {
+    result = result.filter((tx) => {
+      const month = tx.occurredDate.slice(0, 7);
+      if (opts.dateRange.start && month < opts.dateRange.start) return false;
+      if (opts.dateRange.end && month > opts.dateRange.end) return false;
+      return true;
+    });
   }
 
   return result;

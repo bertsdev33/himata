@@ -91,4 +91,12 @@ export interface SettingsData {
   filterBarExpanded: boolean;
   /** Auto-refresh ML forecasts in background when the UI is idle. */
   mlForecastAutoRefresh: boolean;
+  /** Keep the time quick-filter row visible when quick filters are collapsed. */
+  quickFilterPinnedTime: boolean;
+  /** Keep the account quick-filter row visible when quick filters are collapsed. */
+  quickFilterPinnedAccounts: boolean;
+  /** Keep the listing quick-filter row visible when quick filters are collapsed. */
+  quickFilterPinnedListings: boolean;
+  /** Show all listing quick filters even when there are many listings. */
+  showAllQuickListings: boolean;
 }

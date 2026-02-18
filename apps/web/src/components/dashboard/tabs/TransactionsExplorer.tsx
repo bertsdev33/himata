@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useSettingsContext } from "@/app/settings-context";
 import { ArrowUpDown, ChevronLeft, ChevronRight } from "lucide-react";
 import {
@@ -30,6 +30,10 @@ export function TransactionsExplorer({ transactions, currency }: TransactionsExp
   const [sortKey, setSortKey] = useState<SortKey>("date");
   const [sortAsc, setSortAsc] = useState(false);
   const [page, setPage] = useState(0);
+
+  useEffect(() => {
+    setPage(0);
+  }, [transactions]);
 
   const filtered = useMemo(() => {
     if (!search) return transactions;

@@ -6,12 +6,12 @@ import { Tooltip } from "@/components/ui/tooltip";
 import { Select } from "@/components/ui/select";
 import { MultiSelect } from "@/components/ui/multi-select";
 import { Button } from "@/components/ui/button";
-import { RotateCcw, ChevronDown, SlidersHorizontal } from "lucide-react";
+import { RotateCcw, ChevronDown, SlidersHorizontal, Pin, PinOff } from "lucide-react";
 import type { ViewMode } from "@/app/types";
 import { getPresetRange, type DatePreset } from "@/lib/dashboard-utils";
 
-const MAX_QUICK_LISTINGS = 20;
 const MAX_QUICK_ACCOUNTS = 10;
+const MAX_INLINE_LISTING_QUICK_FILTERS = 12;
 
 export function FilterBar() {
   const { state, dispatch } = useAppContext();
@@ -21,6 +21,9 @@ export function FilterBar() {
     getListingName,
     getAccountName,
     setFilterBarExpanded,
+    setQuickFilterPinnedTime,
+    setQuickFilterPinnedAccounts,
+    setQuickFilterPinnedListings,
   } = useSettingsContext();
 
   if (!analytics) return null;
@@ -248,27 +251,44 @@ export function FilterBar() {
     filter.selectedListingIds,
   ]);
 
-  // Quick listings: filtered to contextual set, apply custom order, cap at MAX
-  const quickListings = useMemo(() => {
+  // Contextual listings in quick-filter order.
+  const contextualListings = useMemo(() => {
     let listings = analytics.listings.filter((l) => contextualListingIds.has(l.listingId));
 
-    // Apply custom order if set
     if (settings.listingOrder) {
       const orderMap = new Map(settings.listingOrder.map((id, i) => [id, i]));
       listings = [...listings].sort((a, b) => {
         const aIdx = orderMap.get(a.listingId) ?? Infinity;
         const bIdx = orderMap.get(b.listingId) ?? Infinity;
         if (aIdx !== bIdx) return aIdx - bIdx;
-        // Fall back to default order (by txCount DESC, then alpha)
         return b.transactionCount - a.transactionCount || a.listingName.localeCompare(b.listingName);
       });
     }
 
-    return listings.slice(0, MAX_QUICK_LISTINGS).map((l) => ({
+    return listings;
+  }, [analytics.listings, contextualListingIds, settings.listingOrder]);
+
+  // Listing quick filters are hidden by default when the row would be too crowded.
+  const listingQuickRowOverflow = contextualListings.length > MAX_INLINE_LISTING_QUICK_FILTERS;
+  const listingQuickRowEnabled = settings.showAllQuickListings || !listingQuickRowOverflow;
+
+  const quickListings = useMemo(() => {
+    if (!listingQuickRowEnabled) return [];
+
+    const source = settings.showAllQuickListings
+      ? contextualListings
+      : contextualListings.slice(0, MAX_INLINE_LISTING_QUICK_FILTERS);
+
+    return source.map((l) => ({
       value: l.listingId,
       label: getListingName(l.listingId, l.listingName),
     }));
-  }, [analytics.listings, contextualListingIds, settings.listingOrder, getListingName]);
+  }, [
+    listingQuickRowEnabled,
+    settings.showAllQuickListings,
+    contextualListings,
+    getListingName,
+  ]);
 
   // Quick accounts: filtered to contextual set, apply custom order, cap at MAX
   const quickAccounts = useMemo(() => {
@@ -294,6 +314,15 @@ export function FilterBar() {
     return quickTimeOptions.filter((opt) => {
       // Always keep "All Time"
       if (opt.key === "all") return true;
+
+      // In Upcoming view, hide historical-style presets.
+      if (
+        filter.viewMode === "forecast" &&
+        (opt.key === "12m" || opt.key === "6m" || opt.key === "ytd")
+      ) {
+        return false;
+      }
+
       if (!contextualMonthBounds.min || !contextualMonthBounds.max) return false;
 
       let rangeStart: string;
@@ -331,6 +360,14 @@ export function FilterBar() {
       return rangeStart <= contextualMonthBounds.max && rangeEnd >= contextualMonthBounds.min;
     });
   }, [contextualMonthBounds, lastMonthYm, currentYm, monthBounds.max, scopedUpcomingMonths, filter.viewMode]);
+
+  const hasAccountQuickFilters = quickAccounts.length > 1;
+  const hasListingQuickFilters = quickListings.length > 1;
+
+  const showTimeQuickRow = isExpanded || settings.quickFilterPinnedTime;
+  const showAccountQuickRow = hasAccountQuickFilters && (isExpanded || settings.quickFilterPinnedAccounts);
+  const showListingQuickRow = hasListingQuickFilters && (isExpanded || settings.quickFilterPinnedListings);
+  const showAnyQuickRows = showTimeQuickRow || showAccountQuickRow || showListingQuickRow;
 
   return (
     <div className="bg-background border-b px-6 py-2 space-y-2">
@@ -498,37 +535,69 @@ export function FilterBar() {
         </div>
       </div>
 
-      {/* Row 2: Quick actions — collapsible with transition */}
+      {/* Row 2+: Quick actions — pinned rows can remain visible while collapsed */}
       <div
         className={`grid transition-[grid-template-rows] duration-300 ease-in-out ${
-          isExpanded ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
+          showAnyQuickRows ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
         }`}
       >
         <div className="overflow-hidden">
-          <div className="flex flex-wrap items-center gap-2 text-sm pb-1">
-            {/* Time quick actions — contextual */}
-            <div className="flex items-center gap-1.5">
-              {activeTimePresets.map((opt) => (
-                <button
-                  key={opt.key}
+          <div className="space-y-1 pb-1 text-sm">
+            {showTimeQuickRow && (
+              <div className="flex items-center gap-2">
+                <span className="w-16 shrink-0 text-xs font-medium text-muted-foreground">Time</span>
+                <div className="flex min-w-0 flex-1 items-center gap-1.5 overflow-x-auto whitespace-nowrap">
+                  {activeTimePresets.map((opt) => (
+                    <button
+                      key={opt.key}
+                      type="button"
+                      onClick={() => handleQuickTime(opt.key)}
+                      className={`shrink-0 rounded-md border px-3 py-1 transition-colors ${
+                        activeQuickTime === opt.key
+                          ? "bg-primary text-primary-foreground border-primary"
+                          : "border-border text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+                <Button
                   type="button"
-                  onClick={() => handleQuickTime(opt.key)}
-                  className={`px-3 py-1 rounded-md border transition-colors ${
-                    activeQuickTime === opt.key
-                      ? "bg-primary text-primary-foreground border-primary"
-                      : "border-border text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-                  }`}
+                  variant={settings.quickFilterPinnedTime ? "secondary" : "ghost"}
+                  size="sm"
+                  className="h-7 shrink-0 px-2"
+                  onClick={() => setQuickFilterPinnedTime(!settings.quickFilterPinnedTime)}
+                  aria-label={settings.quickFilterPinnedTime ? "Unpin time quick filters" : "Pin time quick filters"}
                 >
-                  {opt.label}
-                </button>
-              ))}
-            </div>
+                  {settings.quickFilterPinnedTime ? <Pin className="h-3.5 w-3.5" /> : <PinOff className="h-3.5 w-3.5" />}
+                </Button>
+              </div>
+            )}
 
-            {/* Account quick actions — contextual */}
-            {quickAccounts.length > 1 && (
-              <>
-                <div className="h-5 w-px bg-border mx-1" />
-                <div className="flex items-center gap-1.5">
+            {showAccountQuickRow && (
+              <div className="flex items-center gap-2">
+                <span className="w-16 shrink-0 text-xs font-medium text-muted-foreground">Accounts</span>
+                <div className="flex min-w-0 flex-1 items-center gap-1.5 overflow-x-auto whitespace-nowrap">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      dispatch({
+                        type: "SET_FILTER",
+                        filter: {
+                          selectedAccountIds: [],
+                          selectedListingIds: [],
+                        },
+                      })
+                    }
+                    className={`shrink-0 rounded-md border px-3 py-1 transition-colors ${
+                      filter.selectedAccountIds.length === 0
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "border-border text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                    }`}
+                  >
+                    All Accounts
+                  </button>
                   {quickAccounts.map((opt) => (
                     <button
                       key={opt.value}
@@ -545,7 +614,7 @@ export function FilterBar() {
                           },
                         })
                       }
-                      className={`px-3 py-1 rounded-md border transition-colors ${
+                      className={`shrink-0 rounded-md border px-3 py-1 transition-colors ${
                         filter.selectedAccountIds.length === 1 && filter.selectedAccountIds[0] === opt.value
                           ? "bg-primary text-primary-foreground border-primary"
                           : "border-border text-muted-foreground hover:bg-accent hover:text-accent-foreground"
@@ -555,14 +624,23 @@ export function FilterBar() {
                     </button>
                   ))}
                 </div>
-              </>
+                <Button
+                  type="button"
+                  variant={settings.quickFilterPinnedAccounts ? "secondary" : "ghost"}
+                  size="sm"
+                  className="h-7 shrink-0 px-2"
+                  onClick={() => setQuickFilterPinnedAccounts(!settings.quickFilterPinnedAccounts)}
+                  aria-label={settings.quickFilterPinnedAccounts ? "Unpin account quick filters" : "Pin account quick filters"}
+                >
+                  {settings.quickFilterPinnedAccounts ? <Pin className="h-3.5 w-3.5" /> : <PinOff className="h-3.5 w-3.5" />}
+                </Button>
+              </div>
             )}
 
-            {/* Listing quick actions — contextual */}
-            {quickListings.length > 1 && (
-              <>
-                <div className="h-5 w-px bg-border mx-1" />
-                <div className="flex items-center gap-1.5 flex-wrap">
+            {showListingQuickRow && (
+              <div className="flex items-center gap-2">
+                <span className="w-16 shrink-0 text-xs font-medium text-muted-foreground">Listings</span>
+                <div className="flex min-w-0 flex-1 items-center gap-1.5 overflow-x-auto whitespace-nowrap">
                   <button
                     type="button"
                     onClick={() =>
@@ -571,7 +649,7 @@ export function FilterBar() {
                         filter: { selectedListingIds: [] },
                       })
                     }
-                    className={`px-3 py-1 rounded-md border transition-colors ${
+                    className={`shrink-0 rounded-md border px-3 py-1 transition-colors ${
                       filter.selectedListingIds.length === 0
                         ? "bg-primary text-primary-foreground border-primary"
                         : "border-border text-muted-foreground hover:bg-accent hover:text-accent-foreground"
@@ -594,7 +672,7 @@ export function FilterBar() {
                           },
                         })
                       }
-                      className={`px-3 py-1 rounded-md border transition-colors max-w-[240px] truncate ${
+                      className={`shrink-0 rounded-md border px-3 py-1 transition-colors max-w-[240px] truncate ${
                         filter.selectedListingIds.length === 1 && filter.selectedListingIds[0] === opt.value
                           ? "bg-primary text-primary-foreground border-primary"
                           : "border-border text-muted-foreground hover:bg-accent hover:text-accent-foreground"
@@ -605,7 +683,25 @@ export function FilterBar() {
                     </button>
                   ))}
                 </div>
-              </>
+                <Button
+                  type="button"
+                  variant={settings.quickFilterPinnedListings ? "secondary" : "ghost"}
+                  size="sm"
+                  className="h-7 shrink-0 px-2"
+                  onClick={() => setQuickFilterPinnedListings(!settings.quickFilterPinnedListings)}
+                  aria-label={settings.quickFilterPinnedListings ? "Unpin listing quick filters" : "Pin listing quick filters"}
+                >
+                  {settings.quickFilterPinnedListings ? <Pin className="h-3.5 w-3.5" /> : <PinOff className="h-3.5 w-3.5" />}
+                </Button>
+              </div>
+            )}
+
+            {isExpanded && !listingQuickRowEnabled && (
+              <p className="text-xs text-muted-foreground pl-[4.5rem]">
+                Listing quick filters are hidden because there are too many listings. Enable
+                <span className="font-medium"> Show All Listings </span>
+                in Settings to force display.
+              </p>
             )}
           </div>
         </div>

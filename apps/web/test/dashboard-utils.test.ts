@@ -1,6 +1,19 @@
 import { describe, test, expect } from "bun:test";
-import { getPresetRange, projectMonthValue, applyProjection, filterCashflow } from "../src/lib/dashboard-utils";
-import type { MonthlyPortfolioPerformance, MonthlyCashflow, YearMonth } from "@rental-analytics/core";
+import {
+  getPresetRange,
+  projectMonthValue,
+  applyProjection,
+  filterCashflow,
+  filterListingPerformance,
+  filterTransactions,
+} from "../src/lib/dashboard-utils";
+import type {
+  CanonicalTransaction,
+  MonthlyPortfolioPerformance,
+  MonthlyCashflow,
+  MonthlyListingPerformance,
+  YearMonth,
+} from "@rental-analytics/core";
 
 // --- getPresetRange ---
 
@@ -267,5 +280,159 @@ describe("filterCashflow", () => {
     const result = filterCashflow(data, { ...base, dateRange: { start: "2024-02", end: "2024-04" } });
     expect(result).toHaveLength(1);
     expect(result[0].month).toBe("2024-03");
+  });
+});
+
+// --- filterListingPerformance ---
+
+function makeListingPerf(opts: {
+  month: string;
+  currency?: string;
+  accountId?: string;
+  listingId?: string;
+}): MonthlyListingPerformance {
+  return {
+    month: opts.month as YearMonth,
+    accountId: opts.accountId ?? "acc-1",
+    listingId: opts.listingId ?? "list-1",
+    listingName: "Listing",
+    currency: opts.currency ?? "USD",
+    bookedNights: 10,
+    grossRevenueMinor: 10000,
+    netRevenueMinor: 9000,
+    cleaningFeesMinor: 500,
+    serviceFeesMinor: -500,
+    reservationRevenueMinor: 10000,
+    adjustmentRevenueMinor: 0,
+    resolutionAdjustmentRevenueMinor: 0,
+    cancellationFeeRevenueMinor: 0,
+  };
+}
+
+describe("filterListingPerformance", () => {
+  const base = {
+    currency: "USD",
+    selectedAccountIds: [] as string[],
+    selectedListingIds: [] as string[],
+    dateRange: { start: null, end: null } as { start: string | null; end: string | null },
+  };
+
+  test("filters by currency + account + listing + date range", () => {
+    const data = [
+      makeListingPerf({ month: "2024-01", currency: "USD", accountId: "acc-1", listingId: "l-1" }),
+      makeListingPerf({ month: "2024-02", currency: "USD", accountId: "acc-2", listingId: "l-2" }),
+      makeListingPerf({ month: "2024-03", currency: "EUR", accountId: "acc-1", listingId: "l-1" }),
+    ];
+
+    const result = filterListingPerformance(data, {
+      ...base,
+      selectedAccountIds: ["acc-1"],
+      selectedListingIds: ["l-1"],
+      dateRange: { start: "2024-01", end: "2024-02" },
+    });
+
+    expect(result).toHaveLength(1);
+    expect(result[0].month).toBe("2024-01");
+  });
+});
+
+// --- filterTransactions ---
+
+function makeTransaction(opts: {
+  id: string;
+  datasetKind: "paid" | "upcoming";
+  occurredDate: string;
+  currency?: string;
+  accountId?: string;
+  listingId?: string;
+  withListing?: boolean;
+}): CanonicalTransaction {
+  const listing =
+    opts.withListing === false
+      ? undefined
+      : {
+          accountId: opts.accountId ?? "acc-1",
+          listingName: "Listing",
+          normalizedListingName: "listing",
+          listingId: opts.listingId ?? "l-1",
+        };
+
+  return {
+    transactionId: opts.id,
+    source: "airbnb",
+    sourceVersion: "v1",
+    datasetKind: opts.datasetKind,
+    kind: "reservation",
+    occurredDate: opts.occurredDate,
+    listing,
+    netAmount: { currency: opts.currency ?? "USD", amountMinor: 1000 },
+    grossAmount: { currency: opts.currency ?? "USD", amountMinor: 1200 },
+    hostServiceFeeAmount: { currency: opts.currency ?? "USD", amountMinor: -200 },
+    cleaningFeeAmount: { currency: opts.currency ?? "USD", amountMinor: 0 },
+    adjustmentAmount: { currency: opts.currency ?? "USD", amountMinor: 0 },
+    rawRowRef: { fileName: "fixture.csv", rowNumber: 1 },
+  };
+}
+
+describe("filterTransactions", () => {
+  const base = {
+    viewMode: "all" as const,
+    currency: "USD",
+    selectedAccountIds: [] as string[],
+    selectedListingIds: [] as string[],
+    dateRange: { start: null, end: null } as { start: string | null; end: string | null },
+  };
+
+  test("applies view-mode dataset filter", () => {
+    const data = [
+      makeTransaction({ id: "1", datasetKind: "paid", occurredDate: "2024-01-10" }),
+      makeTransaction({ id: "2", datasetKind: "upcoming", occurredDate: "2024-01-10" }),
+    ];
+
+    const realized = filterTransactions(data, { ...base, viewMode: "realized" });
+    const upcoming = filterTransactions(data, { ...base, viewMode: "forecast" });
+
+    expect(realized).toHaveLength(1);
+    expect(realized[0].datasetKind).toBe("paid");
+    expect(upcoming).toHaveLength(1);
+    expect(upcoming[0].datasetKind).toBe("upcoming");
+  });
+
+  test("filters by month-based date range", () => {
+    const data = [
+      makeTransaction({ id: "1", datasetKind: "paid", occurredDate: "2024-01-01" }),
+      makeTransaction({ id: "2", datasetKind: "paid", occurredDate: "2024-02-15" }),
+      makeTransaction({ id: "3", datasetKind: "paid", occurredDate: "2024-03-20" }),
+    ];
+
+    const result = filterTransactions(data, {
+      ...base,
+      viewMode: "realized",
+      dateRange: { start: "2024-02", end: "2024-02" },
+    });
+
+    expect(result).toHaveLength(1);
+    expect(result[0].transactionId).toBe("2");
+  });
+
+  test("excludes unattributed rows when account or listing filters are active", () => {
+    const data = [
+      makeTransaction({ id: "1", datasetKind: "paid", occurredDate: "2024-01-01", withListing: false }),
+      makeTransaction({
+        id: "2",
+        datasetKind: "paid",
+        occurredDate: "2024-01-01",
+        accountId: "acc-1",
+        listingId: "l-1",
+      }),
+    ];
+
+    const byAccount = filterTransactions(data, { ...base, viewMode: "realized", selectedAccountIds: ["acc-1"] });
+    const byListing = filterTransactions(data, { ...base, viewMode: "realized", selectedListingIds: ["l-1"] });
+
+    expect(byAccount).toHaveLength(1);
+    expect(byAccount[0].transactionId).toBe("2");
+    expect(byListing).toHaveLength(1);
+    expect(byListing[0].transactionId).toBe("2");
   });
 });

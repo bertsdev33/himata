@@ -19,7 +19,12 @@ import { ForecastTab } from "./tabs/ForecastTab";
 import { TransactionsExplorer } from "./tabs/TransactionsExplorer";
 import { DataQualityTab } from "./tabs/DataQualityTab";
 import { SettingsTab } from "./tabs/SettingsTab";
-import { applyProjection, filterCashflow } from "@/lib/dashboard-utils";
+import {
+  applyProjection,
+  filterCashflow,
+  filterListingPerformance,
+  filterTransactions,
+} from "@/lib/dashboard-utils";
 import type { DashboardTab } from "@/app/types";
 import { transformMlForecastForDisplay } from "@/lib/ml-forecast-display-transform";
 import { useMlForecastRefresh } from "@/hooks/useMlForecastRefresh";
@@ -43,59 +48,43 @@ export function DashboardLayout() {
   // Select pre-computed view data based on viewMode
   const viewData = analytics.views[filter.viewMode];
 
-  // Filter listing performance by multi-select filters and currency
-  const filteredListingPerf = useMemo(() => {
-    let data = viewData.listingPerformance.filter((lp) => lp.currency === currency);
-
-    // Account filter (empty = all)
-    if (filter.selectedAccountIds.length > 0) {
-      const accountSet = new Set(filter.selectedAccountIds);
-      data = data.filter((lp) => accountSet.has(lp.accountId));
-    }
-
-    // Listing filter (empty = all)
-    if (filter.selectedListingIds.length > 0) {
-      const listingSet = new Set(filter.selectedListingIds);
-      data = data.filter((lp) => listingSet.has(lp.listingId));
-    }
-
-    // Date range filter
-    if (filter.dateRange.start) {
-      data = data.filter((lp) => lp.month >= filter.dateRange.start!);
-    }
-    if (filter.dateRange.end) {
-      data = data.filter((lp) => lp.month <= filter.dateRange.end!);
-    }
-
-    return data;
-  }, [viewData, filter, currency]);
+  // Shared scope filtering for listing-level monthly data.
+  const filteredListingPerf = useMemo(
+    () =>
+      filterListingPerformance(viewData.listingPerformance, {
+        currency,
+        selectedAccountIds: filter.selectedAccountIds,
+        selectedListingIds: filter.selectedListingIds,
+        dateRange: filter.dateRange,
+      }),
+    [
+      viewData.listingPerformance,
+      currency,
+      filter.selectedAccountIds,
+      filter.selectedListingIds,
+      filter.dateRange,
+    ],
+  );
 
   // Filtered transactions for TransactionsExplorer
-  const filteredTransactions = useMemo(() => {
-    let txs = analytics.transactions.filter(
-      (tx) => tx.netAmount.currency === currency,
-    );
-
-    if (filter.selectedAccountIds.length > 0) {
-      const accountSet = new Set(filter.selectedAccountIds);
-      txs = txs.filter((tx) => tx.listing && accountSet.has(tx.listing.accountId));
-    }
-
-    if (filter.selectedListingIds.length > 0) {
-      const listingSet = new Set(filter.selectedListingIds);
-      txs = txs.filter((tx) => tx.listing && listingSet.has(tx.listing.listingId));
-    }
-
-    if (filter.dateRange.start) {
-      txs = txs.filter((tx) => tx.occurredDate >= filter.dateRange.start!);
-    }
-    if (filter.dateRange.end) {
-      // End of month: filter by year-month prefix
-      txs = txs.filter((tx) => tx.occurredDate.slice(0, 7) <= filter.dateRange.end!);
-    }
-
-    return txs;
-  }, [analytics.transactions, filter, currency]);
+  const filteredTransactions = useMemo(
+    () =>
+      filterTransactions(analytics.transactions, {
+        viewMode: filter.viewMode,
+        currency,
+        selectedAccountIds: filter.selectedAccountIds,
+        selectedListingIds: filter.selectedListingIds,
+        dateRange: filter.dateRange,
+      }),
+    [
+      analytics.transactions,
+      filter.viewMode,
+      currency,
+      filter.selectedAccountIds,
+      filter.selectedListingIds,
+      filter.dateRange,
+    ],
+  );
 
   // Compute portfolio performance from filtered listing data
   const rawPortfolioPerf = useMemo(
@@ -305,26 +294,22 @@ export function DashboardLayout() {
   };
 
   // Forecast listing perf filtered by same account/listing/currency/date range
-  const filteredForecastListingPerf = useMemo(() => {
-    let data = forecastViewData.listingPerformance.filter(
-      (lp) => lp.currency === currency,
-    );
-    if (filter.selectedAccountIds.length > 0) {
-      const set = new Set(filter.selectedAccountIds);
-      data = data.filter((lp) => set.has(lp.accountId));
-    }
-    if (filter.selectedListingIds.length > 0) {
-      const set = new Set(filter.selectedListingIds);
-      data = data.filter((lp) => set.has(lp.listingId));
-    }
-    if (filter.dateRange.start) {
-      data = data.filter((lp) => lp.month >= filter.dateRange.start!);
-    }
-    if (filter.dateRange.end) {
-      data = data.filter((lp) => lp.month <= filter.dateRange.end!);
-    }
-    return data;
-  }, [forecastViewData, filter.selectedAccountIds, filter.selectedListingIds, filter.dateRange, currency]);
+  const filteredForecastListingPerf = useMemo(
+    () =>
+      filterListingPerformance(forecastViewData.listingPerformance, {
+        currency,
+        selectedAccountIds: filter.selectedAccountIds,
+        selectedListingIds: filter.selectedListingIds,
+        dateRange: filter.dateRange,
+      }),
+    [
+      forecastViewData.listingPerformance,
+      currency,
+      filter.selectedAccountIds,
+      filter.selectedListingIds,
+      filter.dateRange,
+    ],
+  );
 
   const filteredForecastPortfolioPerf = useMemo(
     () => computeMonthlyPortfolioPerformance(filteredForecastListingPerf),
