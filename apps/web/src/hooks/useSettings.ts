@@ -134,6 +134,7 @@ export function useSettings() {
 
   return {
     settings,
+    update,
     getListingName,
     getAccountName,
     setListingName,
