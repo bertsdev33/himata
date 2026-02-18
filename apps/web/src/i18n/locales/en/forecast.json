@@ -10,7 +10,8 @@
     "retry_update": "Retry update",
     "refresh_forecast": "Refresh forecast",
     "refresh_now": "Refresh now",
-    "up_to_date": "Up to date"
+    "up_to_date": "Up to date",
+    "dismiss": "Dismiss"
   },
   "status": {
     "forecast_status": "Forecast status",

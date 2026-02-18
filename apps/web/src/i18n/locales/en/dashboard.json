@@ -12,7 +12,10 @@
     "mobile": {
       "open_navigation": "Open tab navigation",
       "close_navigation": "Close tab navigation",
-      "navigation_menu": "Dashboard tab navigation"
+      "navigation_menu": "Dashboard tab navigation",
+      "previous_tab": "Previous tab",
+      "next_tab": "Next tab",
+      "tab_indicator": "{{current}} of {{total}}"
     },
     "reasons": {
       "no_data_matches_filters": "No data matches current filters",

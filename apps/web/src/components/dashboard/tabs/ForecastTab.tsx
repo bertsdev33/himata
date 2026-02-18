@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState, useEffect, useRef } from "react";
 import {
   BarChart,
   Bar,
@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { CHART_COLORS } from "@/lib/chart-colors";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { formatMoney, formatMonth, formatMoneyCompact } from "@/lib/format";
-import { AlertTriangle, Loader2 } from "lucide-react";
+import { AlertTriangle, Loader2, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { MLForecastSection } from "../MLForecastSection";
 import { useLocaleContext } from "@/i18n/LocaleProvider";
@@ -144,6 +144,14 @@ export function ForecastTab({
   const failed = mlRefreshStatus === "failed";
   const outdated = !upToDate && !refreshing && !failed;
   const workerPreparing = !mlWorkerReady && !refreshing;
+  const [bannerDismissed, setBannerDismissed] = useState(false);
+  const prevStatusRef = useRef(mlRefreshStatus);
+  useEffect(() => {
+    if (mlRefreshStatus !== prevStatusRef.current) {
+      prevStatusRef.current = mlRefreshStatus;
+      setBannerDismissed(false);
+    }
+  }, [mlRefreshStatus]);
 
   let primaryBannerClass = "border-yellow-200 bg-yellow-50";
   let primaryTextClass = "text-yellow-800";
@@ -196,31 +204,42 @@ export function ForecastTab({
 
   return (
     <div className="space-y-6">
-      <Alert className={primaryBannerClass}>
-        {refreshing ? (
-          <Loader2 className="h-4 w-4 animate-spin text-sky-700" />
-        ) : (
-          <AlertTriangle className="h-4 w-4 text-yellow-600" />
-        )}
-        <AlertDescription className={`${primaryTextClass} flex flex-wrap items-center justify-between gap-3`}>
-          <span>
-            {primaryMessage}
-            <span className="block text-xs font-normal">{requiredDisclaimer}</span>
-          </span>
-          {actionLabel && (
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={onRefreshMlForecast}
-              disabled={actionDisabled}
-              className="w-full sm:w-auto"
-            >
-              {actionLoading && <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />}
-              {actionLabel}
-            </Button>
+      {!bannerDismissed && (
+        <Alert className={`${primaryBannerClass} relative`}>
+          {refreshing ? (
+            <Loader2 className="h-4 w-4 animate-spin text-sky-700" />
+          ) : (
+            <AlertTriangle className="h-4 w-4 text-yellow-600" />
           )}
-        </AlertDescription>
-      </Alert>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setBannerDismissed(true)}
+            className="absolute right-1 top-1 h-7 w-7 text-muted-foreground hover:text-foreground"
+            aria-label={t("actions.dismiss")}
+          >
+            <X className="h-4 w-4" />
+          </Button>
+          <AlertDescription className={`${primaryTextClass} flex flex-wrap items-center justify-between gap-3 pr-8`}>
+            <span>
+              {primaryMessage}
+              <span className="block text-xs font-normal">{requiredDisclaimer}</span>
+            </span>
+            {actionLabel && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={onRefreshMlForecast}
+                disabled={actionDisabled}
+                className="w-full sm:w-auto"
+              >
+                {actionLoading && <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />}
+                {actionLabel}
+              </Button>
+            )}
+          </AlertDescription>
+        </Alert>
+      )}
 
       {isFallbackFullHistory && (
         <Alert className="border-violet-200 bg-violet-50">

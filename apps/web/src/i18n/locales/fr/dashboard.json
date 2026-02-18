@@ -12,7 +12,10 @@
     "mobile": {
       "open_navigation": "Ouvrir la navigation des onglets",
       "close_navigation": "Fermer la navigation des onglets",
-      "navigation_menu": "Navigation des onglets du tableau de bord"
+      "navigation_menu": "Navigation des onglets du tableau de bord",
+      "previous_tab": "Onglet précédent",
+      "next_tab": "Onglet suivant",
+      "tab_indicator": "{{current}} sur {{total}}"
     },
     "reasons": {
       "no_data_matches_filters": "Aucune donnée ne correspond aux filtres actuels",

@@ -10,7 +10,8 @@
     "retry_update": "Reintentar actualización",
     "refresh_forecast": "Actualizar pronóstico",
     "refresh_now": "Actualizar ahora",
-    "up_to_date": "Actualizado"
+    "up_to_date": "Actualizado",
+    "dismiss": "Descartar"
   },
   "status": {
     "forecast_status": "Estado del pronóstico",

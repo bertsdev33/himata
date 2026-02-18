@@ -89,13 +89,14 @@ export function MultiLineRevenueChart({
         label: formatMonth(month as YearMonth, locale),
       };
       for (const id of selectedIds) {
-        entry[id] = values[id] ?? 0;
+        // Comparisons chart should never render below zero.
+        entry[id] = Math.max(0, values[id] ?? 0);
       }
       // Add projected values for current month
       if (showProjection && month === currentYm) {
         for (const id of selectedIds) {
-          const actual = (values[id] ?? 0);
-          entry[`${id}_projected`] = Math.round(actual * scale * 100) / 100;
+          const actual = Math.max(0, values[id] ?? 0);
+          entry[`${id}_projected`] = Math.max(0, Math.round(actual * scale * 100) / 100);
         }
       }
       return entry;
@@ -129,12 +130,12 @@ export function MultiLineRevenueChart({
             <YAxis
               tickFormatter={(v) => formatMoneyCompact(v * 100, currency, locale)}
               className="text-xs"
-              domain={[(dataMin: number) => Math.min(0, dataMin), "auto"]}
+              domain={[0, "auto"]}
             />
             <Tooltip
               formatter={(value: number) => formatMoney(Math.round(value * 100), currency, locale)}
             />
-            <Legend />
+            {!(isMobile && listingIds.length > 5) && <Legend />}
             {listingIds.map((id, i) => (
               <Line
                 key={id}

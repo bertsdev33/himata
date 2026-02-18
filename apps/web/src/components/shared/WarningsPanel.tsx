@@ -97,14 +97,14 @@ export function WarningsPanel({ warnings }: WarningsPanelProps) {
           variant="ghost"
           size="icon"
           onClick={handleDismiss}
-          className="absolute right-2 top-2 h-7 w-7 text-muted-foreground hover:text-foreground"
+          className="absolute right-1 top-1 z-10 h-7 w-7 text-muted-foreground hover:text-foreground sm:right-2 sm:top-2"
           aria-label={t("warnings.dismiss")}
         >
           <X className="h-4 w-4" />
         </Button>
         <Accordion type="single" collapsible className="w-full">
           <AccordionItem value="warnings" className="border-b-0">
-            <AccordionTrigger className="py-0 pr-10 hover:no-underline">
+            <AccordionTrigger className="py-0 pr-8 hover:no-underline sm:pr-10">
               <AlertTitle>{t("warnings.title", { count: warnings.length })}</AlertTitle>
             </AccordionTrigger>
             <AccordionContent className="pb-0 pt-0">

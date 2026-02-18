@@ -12,7 +12,10 @@
     "mobile": {
       "open_navigation": "Abrir navegación de pestañas",
       "close_navigation": "Cerrar navegación de pestañas",
-      "navigation_menu": "Navegación de pestañas del panel"
+      "navigation_menu": "Navegación de pestañas del panel",
+      "previous_tab": "Pestaña anterior",
+      "next_tab": "Pestaña siguiente",
+      "tab_indicator": "{{current}} de {{total}}"
     },
     "reasons": {
       "no_data_matches_filters": "No hay datos para los filtros actuales",
