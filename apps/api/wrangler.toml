@@ -1,0 +1,9 @@
+name = "airbnb-api"
+main = "src/index.ts"
+compatibility_date = "2024-01-01"
+
+kv_namespaces = [
+  { binding = "INSIGHTS_CACHE", id = "<KV_NAMESPACE_ID>" }
+]
+
+# Store the key with:  wrangler secret put OPENAI_API_KEY

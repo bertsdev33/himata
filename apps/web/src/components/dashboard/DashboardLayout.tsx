@@ -514,6 +514,7 @@ export function DashboardLayout() {
               currency={currency}
               projection={filter.projection}
               hasProjection={hasProjection}
+              analytics={analytics}
             />
           </TabsContent>
 
