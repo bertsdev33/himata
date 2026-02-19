@@ -9,6 +9,14 @@
     "data_quality": "Data Quality",
     "settings": "Settings",
     "not_available": "Not available",
+    "mobile": {
+      "open_navigation": "Open tab navigation",
+      "close_navigation": "Close tab navigation",
+      "navigation_menu": "Dashboard tab navigation",
+      "previous_tab": "Previous tab",
+      "next_tab": "Next tab",
+      "tab_indicator": "{{current}} of {{total}}"
+    },
     "reasons": {
       "no_data_matches_filters": "No data matches current filters",
       "need_two_or_more_listings": "Need 2+ listings in filtered set",
@@ -47,7 +55,9 @@
     },
     "placeholders": {
       "accounts": "Accounts",
-      "listings": "Listings"
+      "listings": "Listings",
+      "date_from": "From",
+      "date_to": "To"
     },
     "rows": {
       "time": "Time",
@@ -65,7 +75,10 @@
       "pin_accounts": "Pin account quick filters",
       "unpin_accounts": "Unpin account quick filters",
       "pin_listings": "Pin listing quick filters",
-      "unpin_listings": "Unpin listing quick filters"
+      "unpin_listings": "Unpin listing quick filters",
+      "filters": "Filters",
+      "open_filters": "Open filters",
+      "close_filters": "Close filters"
     },
     "multi_select": {
       "select_placeholder": "Select",
@@ -114,7 +127,9 @@
       "share": "Share"
     },
     "actions": {
-      "view_listing": "View listing details"
+      "view_listing": "View listing details",
+      "sort_by": "Sort listings by",
+      "toggle_sort_direction": "Toggle sort direction"
     }
   },
   "charts": {
@@ -122,7 +137,9 @@
       "title": "Revenue by Listing",
       "actions": {
         "show_all": "Show All ({{count}})",
-        "top_5": "Top 5"
+        "top_5": "Top 5",
+        "show_legend": "Show Legend",
+        "show_chart": "Show Chart"
       },
       "projected_name": "{{name}} (proj.)",
       "projection_note": "Dashed lines show projected month-end values"
@@ -211,6 +228,10 @@
   "transactions": {
     "title": "Transactions ({{count}})",
     "search_placeholder": "Search listing, account, or type...",
+    "actions": {
+      "sort_by": "Sort transactions by",
+      "toggle_sort_direction": "Toggle sort direction"
+    },
     "columns": {
       "date": "Date",
       "type": "Type",

@@ -117,7 +117,7 @@ export function ListingDetail({
                 }`}
               >
                 <p
-                  className={`text-2xl font-bold ${
+                  className={`text-xl sm:text-2xl font-bold ${
                     indicator.isOver ? "text-green-700" : "text-red-700"
                   }`}
                 >

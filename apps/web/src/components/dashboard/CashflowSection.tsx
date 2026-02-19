@@ -11,6 +11,7 @@ import {
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CHART_COLORS } from "@/lib/chart-colors";
+import { useIsMobile } from "@/hooks/useIsMobile";
 import { formatMoney, formatMonth, formatMoneyCompact } from "@/lib/format";
 import { useLocaleContext } from "@/i18n/LocaleProvider";
 import { useTranslation } from "react-i18next";
@@ -25,6 +26,7 @@ interface CashflowSectionProps {
 export function CashflowSection({ data, currency, projection = false }: CashflowSectionProps) {
   const { locale } = useLocaleContext();
   const { t } = useTranslation("cashflow", { lng: locale });
+  const isMobile = useIsMobile();
   const { chartData, hasProjection } = useMemo(() => {
     // Aggregate cashflow by month
     const monthMap = new Map<string, number>();
@@ -64,8 +66,8 @@ export function CashflowSection({ data, currency, projection = false }: Cashflow
         <CardTitle className="text-base">{t("section.monthly_payouts.title")}</CardTitle>
       </CardHeader>
       <CardContent className="min-w-0 overflow-hidden">
-        <ResponsiveContainer width="100%" height={250}>
-          <BarChart data={chartData} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
+        <ResponsiveContainer width="100%" height={isMobile ? 200 : 250}>
+          <BarChart data={chartData} margin={{ top: 5, right: isMobile ? 8 : 20, left: isMobile ? 0 : 10, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
             <XAxis dataKey="label" className="text-xs" />
             <YAxis

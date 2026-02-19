@@ -79,7 +79,7 @@ export function DataQualityTab({ transactions, warnings }: DataQualityTabProps) 
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-lg font-bold truncate">{card.value}</p>
+              <p className="text-base font-bold leading-snug break-words sm:text-lg">{card.value}</p>
             </CardContent>
           </Card>
         ))}

@@ -25,6 +25,7 @@ export const namespaces = [
   "data-quality",
   "insights",
   "errors",
+  "notifications",
 ] as const;
 
 export type Namespace = (typeof namespaces)[number];

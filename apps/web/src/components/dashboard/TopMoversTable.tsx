@@ -136,52 +136,101 @@ export function TopMoversTable({ listingPerf, currency, projection = false }: To
         )}
       </CardHeader>
       <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>{t("top_movers.columns.listing")}</TableHead>
-              <TableHead className="text-right">{t("top_movers.columns.current")}</TableHead>
-              <TableHead className="text-right">{t("top_movers.columns.previous")}</TableHead>
-              <TableHead className="text-right">{t("top_movers.columns.delta")}</TableHead>
-              <TableHead className="text-right">{t("top_movers.columns.percent")}</TableHead>
-              <TableHead className="text-right">{t("top_movers.columns.nights")}</TableHead>
-              <TableHead className="text-right">{t("top_movers.columns.adr")}</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {movers.map((m) => {
-              const deltaColor = m.momDelta >= 0 ? "text-green-600" : "text-red-600";
-              return (
-                <TableRow key={m.listingId}>
-                  <TableCell className="font-medium max-w-[200px] truncate">
-                    {getListingName(m.listingId, m.listingName)}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    {formatMoney(m.currentRevenue, currency, locale)}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    {formatMoney(m.previousRevenue, currency, locale)}
-                  </TableCell>
-                  <TableCell className={`text-right font-medium ${deltaColor}`}>
-                    {m.momDelta >= 0 ? "+" : ""}
-                    {formatMoney(m.momDelta, currency, locale)}
-                  </TableCell>
-                  <TableCell className={`text-right ${deltaColor}`}>
+        {/* Desktop table */}
+        <div className="hidden sm:block">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>{t("top_movers.columns.listing")}</TableHead>
+                <TableHead className="text-right">{t("top_movers.columns.current")}</TableHead>
+                <TableHead className="text-right">{t("top_movers.columns.previous")}</TableHead>
+                <TableHead className="text-right">{t("top_movers.columns.delta")}</TableHead>
+                <TableHead className="text-right">{t("top_movers.columns.percent")}</TableHead>
+                <TableHead className="text-right">{t("top_movers.columns.nights")}</TableHead>
+                <TableHead className="text-right">{t("top_movers.columns.adr")}</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {movers.map((m) => {
+                const deltaColor = m.momDelta >= 0 ? "text-green-600" : "text-red-600";
+                return (
+                  <TableRow key={m.listingId}>
+                    <TableCell className="font-medium max-w-[200px] truncate">
+                      {getListingName(m.listingId, m.listingName)}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {formatMoney(m.currentRevenue, currency, locale)}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {formatMoney(m.previousRevenue, currency, locale)}
+                    </TableCell>
+                    <TableCell className={`text-right font-medium ${deltaColor}`}>
+                      {m.momDelta >= 0 ? "+" : ""}
+                      {formatMoney(m.momDelta, currency, locale)}
+                    </TableCell>
+                    <TableCell className={`text-right ${deltaColor}`}>
+                      {formatDeltaPercent(m.momDeltaPct, locale)}
+                    </TableCell>
+                    <TableCell className={`text-right ${m.nightsDelta >= 0 ? "text-green-600" : "text-red-600"}`}>
+                      {m.nightsDelta >= 0 ? "+" : ""}
+                      {m.nightsDelta}
+                    </TableCell>
+                    <TableCell className={`text-right ${m.adrDelta >= 0 ? "text-green-600" : "text-red-600"}`}>
+                      {m.adrDelta >= 0 ? "+" : ""}
+                      {formatMoney(m.adrDelta, currency, locale)}
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </div>
+
+        {/* Mobile card list */}
+        <div className="sm:hidden space-y-3">
+          {movers.map((m) => {
+            const deltaColor = m.momDelta >= 0 ? "text-green-600" : "text-red-600";
+            return (
+              <div
+                key={m.listingId}
+                className="rounded-lg border bg-card p-3 space-y-2"
+              >
+                {/* Listing name */}
+                <p className="font-medium text-sm truncate">
+                  {getListingName(m.listingId, m.listingName)}
+                </p>
+
+                {/* Current / previous revenue grid */}
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  <div>
+                    <p className="text-[10px] text-muted-foreground">{t("top_movers.columns.current")}</p>
+                    <p className="font-semibold">{formatMoney(m.currentRevenue, currency, locale)}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-muted-foreground">{t("top_movers.columns.previous")}</p>
+                    <p className="font-semibold">{formatMoney(m.previousRevenue, currency, locale)}</p>
+                  </div>
+                </div>
+
+                {/* Delta + % + nights + ADR footer */}
+                <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs border-t pt-2">
+                  <span className={`font-medium ${deltaColor}`}>
+                    {m.momDelta >= 0 ? "+" : ""}{formatMoney(m.momDelta, currency, locale)}
+                  </span>
+                  <span className={deltaColor}>
                     {formatDeltaPercent(m.momDeltaPct, locale)}
-                  </TableCell>
-                  <TableCell className={`text-right ${m.nightsDelta >= 0 ? "text-green-600" : "text-red-600"}`}>
-                    {m.nightsDelta >= 0 ? "+" : ""}
-                    {m.nightsDelta}
-                  </TableCell>
-                  <TableCell className={`text-right ${m.adrDelta >= 0 ? "text-green-600" : "text-red-600"}`}>
-                    {m.adrDelta >= 0 ? "+" : ""}
-                    {formatMoney(m.adrDelta, currency, locale)}
-                  </TableCell>
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
+                  </span>
+                  <span className={m.nightsDelta >= 0 ? "text-green-600" : "text-red-600"}>
+                    {t("top_movers.columns.nights")}: {m.nightsDelta >= 0 ? "+" : ""}{m.nightsDelta}
+                  </span>
+                  <span className={m.adrDelta >= 0 ? "text-green-600" : "text-red-600"}>
+                    {t("top_movers.columns.adr")}: {m.adrDelta >= 0 ? "+" : ""}{formatMoney(m.adrDelta, currency, locale)}
+                  </span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </CardContent>
     </Card>
   );

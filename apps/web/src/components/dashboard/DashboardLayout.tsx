@@ -1,4 +1,4 @@
-import { useMemo, useEffect, useState } from "react";
+import { useMemo, useEffect, useRef, useCallback } from "react";
 import { useAppContext } from "@/app/state";
 import {
   computeMonthlyPortfolioPerformance,
@@ -12,7 +12,7 @@ import { useTranslation } from "react-i18next";
 import { useLocaleContext } from "@/i18n/LocaleProvider";
 import { DashboardHeader } from "./DashboardHeader";
 import { FilterBar } from "./FilterBar";
-import { WarningsPanel } from "@/components/shared/WarningsPanel";
+import { useNotifications } from "@/hooks/useNotifications";
 import { PortfolioOverview } from "./tabs/PortfolioOverview";
 import { ListingComparison } from "./tabs/ListingComparison";
 import { ListingDetail } from "./tabs/ListingDetail";
@@ -32,7 +32,9 @@ import type { DashboardTab } from "@/app/types";
 import { transformMlForecastForDisplay } from "@/lib/ml-forecast-display-transform";
 import { useMlForecastRefresh } from "@/hooks/useMlForecastRefresh";
 import { Button } from "@/components/ui/button";
-import { Menu, X } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+
+const SWIPE_THRESHOLD = 50; // minimum px distance for a swipe
 
 interface TabDef {
   id: DashboardTab;
@@ -47,7 +49,8 @@ export function DashboardLayout() {
   const { locale } = useLocaleContext();
   const { t } = useTranslation("dashboard", { lng: locale });
   const { analytics, filter } = state;
-  const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
+  const swipeTouchRef = useRef<{ startX: number; startY: number } | null>(null);
+  const mainContentRef = useRef<HTMLElement>(null);
 
   if (!analytics) return null;
 
@@ -234,6 +237,11 @@ export function DashboardLayout() {
     filter.projection,
   ]);
 
+  const notifications = useNotifications({
+    warnings: analytics.warnings,
+    forecastStatus: { status: mlRefresh.status, error: mlRefresh.error },
+  });
+
   const baseMlForecast =
     mlRefresh.snapshot === null
       ? (analytics.mlForecasts[currency] ?? null)
@@ -373,9 +381,57 @@ export function DashboardLayout() {
     }
   }, [currentTabDef, tabs, dispatch]);
 
+  // Enabled tabs for arrow/swipe navigation
+  const enabledTabs = useMemo(() => tabs.filter((t) => t.enabled), [tabs]);
+  const currentEnabledIndex = enabledTabs.findIndex((t) => t.id === activeTab);
+
+  const goToPrevTab = useCallback(() => {
+    if (currentEnabledIndex > 0) {
+      setActiveTab(enabledTabs[currentEnabledIndex - 1].id);
+    }
+  }, [currentEnabledIndex, enabledTabs]);
+
+  const goToNextTab = useCallback(() => {
+    if (currentEnabledIndex < enabledTabs.length - 1) {
+      setActiveTab(enabledTabs[currentEnabledIndex + 1].id);
+    }
+  }, [currentEnabledIndex, enabledTabs]);
+
+  // Swipe gesture handling on main content area
   useEffect(() => {
-    setIsMobileNavOpen(false);
-  }, [activeTab]);
+    const el = mainContentRef.current;
+    if (!el) return;
+
+    const handleTouchStart = (e: TouchEvent) => {
+      const touch = e.touches[0];
+      swipeTouchRef.current = { startX: touch.clientX, startY: touch.clientY };
+    };
+
+    const handleTouchEnd = (e: TouchEvent) => {
+      if (!swipeTouchRef.current) return;
+      const touch = e.changedTouches[0];
+      const dx = touch.clientX - swipeTouchRef.current.startX;
+      const dy = touch.clientY - swipeTouchRef.current.startY;
+      swipeTouchRef.current = null;
+
+      // Only trigger if horizontal distance exceeds threshold and is greater than vertical
+      if (Math.abs(dx) < SWIPE_THRESHOLD || Math.abs(dx) < Math.abs(dy)) return;
+
+      if (dx > 0) {
+        goToPrevTab();
+      } else {
+        goToNextTab();
+      }
+    };
+
+    el.addEventListener("touchstart", handleTouchStart, { passive: true });
+    el.addEventListener("touchend", handleTouchEnd, { passive: true });
+
+    return () => {
+      el.removeEventListener("touchstart", handleTouchStart);
+      el.removeEventListener("touchend", handleTouchEnd);
+    };
+  }, [goToPrevTab, goToNextTab]);
 
   // Handle "Show only this listing" from ListingsTable
   const handleSelectListing = (listingId: string) => {
@@ -413,7 +469,7 @@ export function DashboardLayout() {
 
   return (
     <div className="flex min-h-screen min-w-0 flex-col overflow-x-hidden">
-      <DashboardHeader />
+      <DashboardHeader notifications={notifications} />
 
       <Tabs
         value={activeTab}
@@ -424,63 +480,40 @@ export function DashboardLayout() {
         <div className="sticky top-0 z-40 min-w-0">
           <FilterBar />
 
-          <div className="border-b bg-background px-4 py-2 sm:hidden">
+          {/* Mobile: arrow-based tab navigation */}
+          <div className="flex items-center border-b bg-background sm:hidden">
             <Button
               type="button"
-              variant="outline"
-              className="w-full justify-between"
-              onClick={() => setIsMobileNavOpen(true)}
+              variant="ghost"
+              size="icon"
+              className="h-10 w-10 shrink-0"
+              onClick={goToPrevTab}
+              disabled={currentEnabledIndex <= 0}
+              aria-label={t("tabs.mobile.previous_tab")}
             >
-              <span className="truncate">{currentTabDef?.label ?? activeTab}</span>
-              <Menu className="h-4 w-4 shrink-0" />
+              <ChevronLeft className="h-5 w-5" />
+            </Button>
+            <div className="flex min-w-0 flex-1 flex-col items-center py-1.5">
+              <span className="truncate text-sm font-medium">{currentTabDef?.label ?? activeTab}</span>
+              <span className="text-[10px] text-muted-foreground">
+                {t("tabs.mobile.tab_indicator", {
+                  current: currentEnabledIndex + 1,
+                  total: enabledTabs.length,
+                })}
+              </span>
+            </div>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="h-10 w-10 shrink-0"
+              onClick={goToNextTab}
+              disabled={currentEnabledIndex >= enabledTabs.length - 1}
+              aria-label={t("tabs.mobile.next_tab")}
+            >
+              <ChevronRight className="h-5 w-5" />
             </Button>
           </div>
-
-          {isMobileNavOpen && (
-            <div className="fixed inset-0 z-50 bg-black/45 sm:hidden" role="dialog" aria-modal="true">
-              <div
-                className="absolute inset-0"
-                onClick={() => setIsMobileNavOpen(false)}
-                aria-hidden="true"
-              />
-              <div className="absolute left-0 top-0 flex h-full w-[min(85vw,320px)] flex-col border-r bg-background shadow-xl">
-                <div className="flex items-center justify-between border-b px-4 py-3">
-                  <p className="text-sm font-medium">{currentTabDef?.label ?? activeTab}</p>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setIsMobileNavOpen(false)}
-                    aria-label="Close navigation"
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
-                <div className="flex-1 space-y-2 overflow-y-auto p-3">
-                  {tabs.map((tab) => (
-                    <button
-                      key={tab.id}
-                      type="button"
-                      onClick={() => tab.enabled && setActiveTab(tab.id)}
-                      disabled={!tab.enabled}
-                      className={`w-full rounded-md border px-3 py-2 text-left text-sm transition-colors ${
-                        activeTab === tab.id
-                          ? "border-primary bg-primary text-primary-foreground"
-                          : tab.enabled
-                            ? "border-border hover:bg-accent hover:text-accent-foreground"
-                            : "border-border bg-muted/40 text-muted-foreground"
-                      }`}
-                    >
-                      <p>{tab.label}</p>
-                      {!tab.enabled && tab.reason && (
-                        <p className="mt-1 text-xs font-normal text-muted-foreground">{tab.reason}</p>
-                      )}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
 
           <div className="hidden border-b bg-background px-6 py-2 sm:block">
             <TabsList className="h-auto flex-wrap gap-1">
@@ -501,9 +534,7 @@ export function DashboardLayout() {
           </div>
         </div>
 
-        <main className="flex-1 min-w-0 p-4 sm:p-6">
-          <WarningsPanel warnings={analytics.warnings} />
-
+        <main ref={mainContentRef} className="flex-1 min-w-0 p-4 sm:p-6">
           <TabsContent value="portfolio-overview" className="mt-0">
             <PortfolioOverview
               portfolioPerf={filteredPortfolioPerf}
@@ -514,7 +545,6 @@ export function DashboardLayout() {
               currency={currency}
               projection={filter.projection}
               hasProjection={hasProjection}
-              analytics={analytics}
             />
           </TabsContent>
 

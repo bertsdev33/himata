@@ -1,0 +1,10 @@
+{
+  "title": "Notifications",
+  "mark_all_read": "Mark all as read",
+  "mark_read": "Mark as read",
+  "already_read": "Already read",
+  "empty": "No notifications",
+  "import_group": "{{name}} ({{count}})",
+  "forecast_failed": "ML forecast failed",
+  "forecast_stale": "ML forecast outdated"
+}

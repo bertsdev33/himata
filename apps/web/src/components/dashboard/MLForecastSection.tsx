@@ -74,7 +74,7 @@ export function MLForecastSection({ forecast }: MLForecastSectionProps) {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
               <p className="text-sm text-muted-foreground">{t("ml.summary.predicted_gross_revenue")}</p>
-              <p className="text-2xl font-bold">
+              <p className="text-xl sm:text-2xl font-bold">
                 {formatMoney(portfolio.forecastGrossRevenueMinor, currency, locale)}
               </p>
               {hasMultipleTargetMonths && (
@@ -111,47 +111,87 @@ export function MLForecastSection({ forecast }: MLForecastSectionProps) {
             <CardTitle className="text-base">{t("ml.table.title")}</CardTitle>
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t("ml.table.columns.listing")}</TableHead>
-                  <TableHead className="text-right">{t("ml.table.columns.predicted_revenue")}</TableHead>
-                  <TableHead className="text-right">{t("ml.table.columns.range")}</TableHead>
-                  {hasMultipleTargetMonths && (
-                    <TableHead>{t("ml.table.columns.target")}</TableHead>
-                  )}
-                  <TableHead className="text-center">{t("ml.table.columns.confidence")}</TableHead>
-                  <TableHead className="text-right">{t("ml.table.columns.months")}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {[...listings]
-                  .sort((a, b) => b.forecastGrossRevenueMinor - a.forecastGrossRevenueMinor)
-                  .map((listing) => (
-                    <TableRow key={listing.listingId}>
-                      <TableCell className="font-medium">
+            {/* Desktop table */}
+            <div className="hidden sm:block">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>{t("ml.table.columns.listing")}</TableHead>
+                    <TableHead className="text-right">{t("ml.table.columns.predicted_revenue")}</TableHead>
+                    <TableHead className="text-right">{t("ml.table.columns.range")}</TableHead>
+                    {hasMultipleTargetMonths && (
+                      <TableHead>{t("ml.table.columns.target")}</TableHead>
+                    )}
+                    <TableHead className="text-center">{t("ml.table.columns.confidence")}</TableHead>
+                    <TableHead className="text-right">{t("ml.table.columns.months")}</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {[...listings]
+                    .sort((a, b) => b.forecastGrossRevenueMinor - a.forecastGrossRevenueMinor)
+                    .map((listing) => (
+                      <TableRow key={listing.listingId}>
+                        <TableCell className="font-medium">
+                          {getDisplayName(listing.listingId, listing.listingName)}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {formatMoney(listing.forecastGrossRevenueMinor, listing.currency, locale)}
+                        </TableCell>
+                        <TableCell className="text-right text-sm text-muted-foreground">
+                          {formatMoney(listing.lowerBandMinor, listing.currency, locale)} –{" "}
+                          {formatMoney(listing.upperBandMinor, listing.currency, locale)}
+                        </TableCell>
+                        {hasMultipleTargetMonths && (
+                          <TableCell className="text-sm">
+                            {formatMonth(listing.targetMonth as YearMonth, locale)}
+                          </TableCell>
+                        )}
+                        <TableCell className="text-center">
+                          <ForecastConfidenceBadge tier={listing.confidence} />
+                        </TableCell>
+                        <TableCell className="text-right">{listing.trainingMonths}</TableCell>
+                      </TableRow>
+                    ))}
+                </TableBody>
+              </Table>
+            </div>
+
+            {/* Mobile card list */}
+            <div className="sm:hidden space-y-3">
+              {[...listings]
+                .sort((a, b) => b.forecastGrossRevenueMinor - a.forecastGrossRevenueMinor)
+                .map((listing) => (
+                  <div
+                    key={listing.listingId}
+                    className="rounded-lg border bg-card p-3 space-y-2"
+                  >
+                    {/* Name + confidence badge */}
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="font-medium text-sm truncate min-w-0 flex-1">
                         {getDisplayName(listing.listingId, listing.listingName)}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {formatMoney(listing.forecastGrossRevenueMinor, listing.currency, locale)}
-                      </TableCell>
-                      <TableCell className="text-right text-sm text-muted-foreground">
+                      </p>
+                      <ForecastConfidenceBadge tier={listing.confidence} />
+                    </div>
+
+                    {/* Predicted revenue */}
+                    <p className="text-lg font-bold">
+                      {formatMoney(listing.forecastGrossRevenueMinor, listing.currency, locale)}
+                    </p>
+
+                    {/* Range + training months footer */}
+                    <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs border-t pt-2 text-muted-foreground">
+                      <span>
                         {formatMoney(listing.lowerBandMinor, listing.currency, locale)} –{" "}
                         {formatMoney(listing.upperBandMinor, listing.currency, locale)}
-                      </TableCell>
+                      </span>
+                      <span>{listing.trainingMonths} {t("ml.table.columns.months")}</span>
                       {hasMultipleTargetMonths && (
-                        <TableCell className="text-sm">
-                          {formatMonth(listing.targetMonth as YearMonth, locale)}
-                        </TableCell>
+                        <span>{formatMonth(listing.targetMonth as YearMonth, locale)}</span>
                       )}
-                      <TableCell className="text-center">
-                        <ForecastConfidenceBadge tier={listing.confidence} />
-                      </TableCell>
-                      <TableCell className="text-right">{listing.trainingMonths}</TableCell>
-                    </TableRow>
-                  ))}
-              </TableBody>
-            </Table>
+                    </div>
+                  </div>
+                ))}
+            </div>
           </CardContent>
         </Card>
       )}

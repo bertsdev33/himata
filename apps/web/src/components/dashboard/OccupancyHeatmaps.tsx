@@ -145,22 +145,24 @@ export function OccupancyHeatmaps({ transactions }: OccupancyHeatmapsProps) {
           <CardDescription>{t("occupancy_heatmaps.by_weekday.description")}</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex gap-2">
-            {dowLabels.map((label, i) => {
-              const rate = dowRates[i];
-              const r = rate !== null ? Math.min(rate, 1) : 0;
-              return (
-                <div key={label} className="flex-1 text-center">
-                  <div className="text-xs text-muted-foreground mb-1">{label}</div>
-                  <div
-                    className={`rounded-md py-3 text-xs font-medium transition-all duration-150 cursor-default hover:ring-2 hover:ring-foreground/25 hover:brightness-110 hover:scale-[1.06] ${heatmapText(r)}`}
-                    style={{ backgroundColor: rate !== null ? heatmapBg(r) : undefined }}
-                  >
-                    {formatPercent(rate, locale)}
+          <div className="overflow-x-auto">
+            <div className="grid min-w-[280px] sm:min-w-[420px] grid-cols-7 gap-1.5 sm:gap-2">
+              {dowLabels.map((label, i) => {
+                const rate = dowRates[i];
+                const r = rate !== null ? Math.min(rate, 1) : 0;
+                return (
+                  <div key={label} className="text-center">
+                    <div className="mb-1 text-[11px] text-muted-foreground sm:text-xs">{label}</div>
+                    <div
+                      className={`cursor-default rounded-md py-2.5 text-[11px] font-medium transition-all duration-150 hover:scale-[1.04] hover:brightness-110 hover:ring-2 hover:ring-foreground/25 sm:py-3 sm:text-xs ${heatmapText(r)}`}
+                      style={{ backgroundColor: rate !== null ? heatmapBg(r) : undefined }}
+                    >
+                      {formatPercent(rate, locale)}
+                    </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -172,22 +174,25 @@ export function OccupancyHeatmaps({ transactions }: OccupancyHeatmapsProps) {
           <CardDescription>{t("occupancy_heatmaps.by_month_day.description")}</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-7 gap-1">
-            {DOM_LABELS.map((day, i) => {
-              const rate = domRates[i];
-              const r = rate !== null ? Math.min(rate, 1) : 0;
-              return (
-                <div key={day} className="text-center">
-                  <div className="text-[10px] text-muted-foreground mb-0.5">{day}</div>
-                  <div
-                    className={`rounded py-1.5 text-[10px] font-medium transition-all duration-150 cursor-default hover:ring-2 hover:ring-foreground/25 hover:brightness-110 hover:scale-105 ${heatmapText(r)}`}
-                    style={{ backgroundColor: rate !== null ? heatmapBg(r) : undefined }}
-                  >
-                    {formatPercent(rate, locale)}
+          <div className="overflow-x-auto">
+            <div className="grid min-w-[280px] sm:min-w-[420px] grid-cols-7 gap-1 sm:gap-1.5">
+              {DOM_LABELS.map((day, i) => {
+                const rate = domRates[i];
+                const r = rate !== null ? Math.min(rate, 1) : 0;
+                return (
+                  <div key={day} className="text-center">
+                    <div className="mb-0.5 text-[10px] text-muted-foreground sm:text-xs">{day}</div>
+                    <div
+                      className={`cursor-default overflow-hidden rounded py-1.5 text-[10px] font-medium transition-all duration-150 hover:scale-[1.04] hover:brightness-110 hover:ring-2 hover:ring-foreground/25 sm:text-xs ${heatmapText(r)}`}
+                      style={{ backgroundColor: rate !== null ? heatmapBg(r) : undefined }}
+                      title={formatPercent(rate, locale)}
+                    >
+                      {formatPercent(rate, locale)}
+                    </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
         </CardContent>
       </Card>
