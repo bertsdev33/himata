@@ -237,9 +237,24 @@ export function DashboardLayout() {
     filter.projection,
   ]);
 
+  // Build a scope key that changes whenever the forecast context changes:
+  // filter inputs (currency, accounts, listings, date range) + snapshot identity
+  const forecastScopeKey = JSON.stringify([
+    currency,
+    filter.selectedAccountIds,
+    filter.selectedListingIds,
+    filter.dateRange.start,
+    filter.dateRange.end,
+    mlRefresh.snapshot?.trainedAt ?? null,
+  ]);
+
   const notifications = useNotifications({
     warnings: analytics.warnings,
-    forecastStatus: { status: mlRefresh.status, error: mlRefresh.error },
+    forecastStatus: {
+      status: mlRefresh.status,
+      error: mlRefresh.error,
+      scopeKey: forecastScopeKey,
+    },
   });
 
   const baseMlForecast =
@@ -402,7 +417,25 @@ export function DashboardLayout() {
     const el = mainContentRef.current;
     if (!el) return;
 
+    const isInsideScrollable = (target: EventTarget | null): boolean => {
+      let node = target as HTMLElement | null;
+      while (node && node !== el) {
+        if (node.scrollWidth > node.clientWidth + 1) {
+          const overflowX = getComputedStyle(node).overflowX;
+          if (overflowX === "auto" || overflowX === "scroll") return true;
+        }
+        node = node.parentElement;
+      }
+      return false;
+    };
+
     const handleTouchStart = (e: TouchEvent) => {
+      // Skip swipe if the touch started inside a horizontally scrollable element
+      // (e.g., charts, tables, scrollable containers) to avoid hijacking panning
+      if (isInsideScrollable(e.target)) {
+        swipeTouchRef.current = null;
+        return;
+      }
       const touch = e.touches[0];
       swipeTouchRef.current = { startX: touch.clientX, startY: touch.clientY };
     };

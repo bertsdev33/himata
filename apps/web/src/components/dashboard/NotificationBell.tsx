@@ -59,17 +59,27 @@ export function NotificationBell({ items, unreadCount, markAsRead, markAllAsRead
     return () => document.removeEventListener("mousedown", handleClick);
   }, [isOpen]);
 
-  // Lock body scroll on mobile overlay
+  // Lock body scroll on mobile overlay — adapts if viewport resizes
   useEffect(() => {
     if (!isOpen) return;
 
     const mql = window.matchMedia("(max-width: 639px)");
-    if (!mql.matches) return;
-
     const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+
+    const applyLock = () => {
+      if (mql.matches) {
+        document.body.style.overflow = "hidden";
+      } else {
+        document.body.style.overflow = prevOverflow;
+      }
+    };
+
+    applyLock();
+    mql.addEventListener("change", applyLock);
+
     return () => {
       document.body.style.overflow = prevOverflow;
+      mql.removeEventListener("change", applyLock);
     };
   }, [isOpen]);
 
@@ -172,6 +182,7 @@ export function NotificationBell({ items, unreadCount, markAsRead, markAllAsRead
         className="relative h-8 w-8"
         onClick={() => setIsOpen((prev) => !prev)}
         aria-label={t("title")}
+        aria-expanded={isOpen}
       >
         <Bell className="h-4 w-4" />
         {unreadCount > 0 && (
@@ -186,6 +197,8 @@ export function NotificationBell({ items, unreadCount, markAsRead, markAllAsRead
           {/* Desktop dropdown */}
           <div
             ref={panelRef}
+            role="dialog"
+            aria-modal="false"
             className="absolute right-0 top-full z-50 mt-2 hidden w-[380px] max-h-[60vh] overflow-hidden rounded-lg border bg-background shadow-lg sm:flex sm:flex-col"
           >
             <div className="flex items-center justify-between border-b px-4 py-3">
@@ -216,9 +229,8 @@ export function NotificationBell({ items, unreadCount, markAsRead, markAllAsRead
                     {t("mark_all_read")}
                   </Button>
                 )}
-                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setIsOpen(false)}>
+                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setIsOpen(false)} aria-label={t("close")}>
                   <X className="h-4 w-4" />
-                  <span className="sr-only">Close</span>
                 </Button>
               </div>
             </div>
