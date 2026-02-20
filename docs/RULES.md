@@ -122,8 +122,20 @@
 - **Commit messages**  
   Write clear and descriptive commit messages following the Conventional Commits style (`feat:`, `fix:`, `chore:`, `test:`). Messages should explain what changed and why.  
 
-- **Branching strategy**  
+- **PR template**
+  Every pull request must use the PR template (`.github/PULL_REQUEST_TEMPLATE.md`) and fill out all sections — description, related issues, type of change, how to test, and checklist. Do not leave placeholder text.
+
+- **Branching strategy**
   Never commit directly to `main`. All work should be done in branches and merged through pull requests, even if written by AI.
+
+- **Pull request target**
+  All pull requests must target `develop`, never `main`. The `main` branch is updated only through the `develop → main` promotion process.
+
+- **Draft PRs only**
+  All pull requests created by AI agents must be opened in **draft** mode (`gh pr create --draft`), never as ready for review. Only human maintainers may mark a PR as ready.
+
+- **No merging PRs via CLI or automation**
+  Merging pull requests is strictly forbidden for AI agents. Only human maintainers may merge PRs through the GitHub UI after review and approval.
 
 ---
 
