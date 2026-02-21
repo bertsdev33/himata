@@ -6,5 +6,6 @@
   "empty": "Sin notificaciones",
   "import_group": "{{name}} ({{count}})",
   "forecast_failed": "Pronóstico ML falló",
-  "forecast_stale": "Pronóstico ML desactualizado"
+  "forecast_stale": "Pronóstico ML desactualizado",
+  "close": "Cerrar"
 }

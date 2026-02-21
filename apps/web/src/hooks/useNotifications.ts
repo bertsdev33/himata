@@ -18,12 +18,15 @@ interface UseNotificationsInput {
   forecastStatus: {
     status: MlForecastRefreshStatus;
     error: string | null;
+    /** Changes when a new forecast run completes, causing re-notification. */
+    scopeKey?: string | null;
   };
 }
 
 export function useNotifications({ warnings, forecastStatus }: UseNotificationsInput) {
   const [readIds, setReadIds] = useState<Set<string>>(new Set());
   const prevWarningsRef = useRef(warnings);
+  const prevForecastKeyRef = useRef(`${forecastStatus.status}::${forecastStatus.error}::${forecastStatus.scopeKey}`);
 
   // Reset import read state when warnings array reference changes (new import)
   useEffect(() => {
@@ -38,6 +41,21 @@ export function useNotifications({ warnings, forecastStatus }: UseNotificationsI
       });
     }
   }, [warnings]);
+
+  // Reset forecast read state when status, error, or scope changes
+  useEffect(() => {
+    const key = `${forecastStatus.status}::${forecastStatus.error}::${forecastStatus.scopeKey}`;
+    if (key !== prevForecastKeyRef.current) {
+      prevForecastKeyRef.current = key;
+      setReadIds((prev) => {
+        const next = new Set<string>();
+        for (const id of prev) {
+          if (!id.startsWith("forecast:")) next.add(id);
+        }
+        return next;
+      });
+    }
+  }, [forecastStatus.status, forecastStatus.error, forecastStatus.scopeKey]);
 
   const items = useMemo<NotificationItem[]>(() => {
     const result: NotificationItem[] = [];

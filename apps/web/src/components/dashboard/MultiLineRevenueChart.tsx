@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useSettingsContext } from "@/app/settings-context";
 import {
   LineChart,
@@ -42,6 +42,11 @@ export function MultiLineRevenueChart({
   const isMobile = useIsMobile();
 
   const totalListings = new Set(data.map((lp) => lp.listingId)).size;
+
+  // Reset legend view when listing count drops to 5 or fewer
+  useEffect(() => {
+    if (totalListings <= 5) setShowLegend(false);
+  }, [totalListings]);
 
   const { chartData, listingIds, listingNames, hasProjection } = useMemo(() => {
     const isNet = revenueBasis === "net";
