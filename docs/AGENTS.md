@@ -49,11 +49,16 @@ Run `./scripts/setup.sh` once per local clone to install local hooks.
 Before every commit, run a Codex CLI review on staged files and include `docs/RULES.md`, `docs/TECH_STACK.md`, `README.md`, and `docs/AGENTS.md` as review constraints. Apply all required feedback before committing.
 
 PRs should include:
-- Clear summary and scope
+- The PR template (`.github/PULL_REQUEST_TEMPLATE.md`) fully filled out — all sections must be completed, not left as placeholder text.
 - Linked issue/ticket (if available)
 - Validation evidence (commands run + results)
 - Screenshots for UI changes
 - Documentation updates for workflow or command changes
+
+**PR restrictions for AI agents:**
+- All pull requests must target `develop`, never `main`.
+- All pull requests created by AI agents must be opened in **draft** mode, never as ready for review.
+- AI agents must **never** merge pull requests. Only human maintainers may merge PRs through the GitHub UI after review and approval.
 
 ## Security & Configuration Tips
 Never commit secrets. Use `.env` files and Worker secrets for sensitive values. Do not log PII or raw spreadsheet content. Validate and sanitize all external input, and keep analytics metadata-only.

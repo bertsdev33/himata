@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect, useRef, type ReactNode } from "react";
+import { useMemo, useState, useEffect, type ReactNode } from "react";
 import { useAppContext, initialFilter } from "@/app/state";
 import { useSettingsContext } from "@/app/settings-context";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -37,7 +37,9 @@ function QuickFilterScroller({ children }: { children: ReactNode }) {
 
 export function FilterBar() {
   const { state, dispatch } = useAppContext();
-  const { filter, analytics } = state;
+  // analytics is guaranteed non-null: parent DashboardLayout guards with `if (!analytics) return null`
+  const { filter, analytics: analyticsNullable } = state;
+  const analytics = analyticsNullable!;
   const { locale } = useLocaleContext();
   const { t } = useTranslation("dashboard", { lng: locale });
   const {
@@ -50,12 +52,9 @@ export function FilterBar() {
     setQuickFilterPinnedListings,
   } = useSettingsContext();
 
-  if (!analytics) return null;
-
   const [isExpanded, setIsExpanded] = useState(settings.filterBarExpanded);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const isMobile = useIsMobile();
-  const mobileOverlayRef = useRef<HTMLDivElement>(null);
 
   // Lock body scroll and handle Escape when mobile filter panel is open
   useEffect(() => {
@@ -643,7 +642,6 @@ export function FilterBar() {
           />
           {/* Panel */}
           <div
-            ref={mobileOverlayRef}
             className="absolute inset-0 overflow-y-auto bg-background"
           >
             <div className="flex items-center justify-between border-b px-4 py-3">
@@ -660,6 +658,110 @@ export function FilterBar() {
             <div className="space-y-4 p-4">
               <div className="flex flex-wrap items-center gap-2">
                 {mainFiltersContent}
+              </div>
+
+              {/* Quick filter rows for mobile */}
+              <div className="space-y-3 text-sm">
+                {/* Time presets */}
+                <div>
+                  <p className="mb-1.5 text-xs font-medium text-muted-foreground">{t("filter_bar.rows.time")}</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {activeTimePresets.map((opt) => (
+                      <button
+                        key={opt.key}
+                        type="button"
+                        onClick={() => handleQuickTime(opt.key)}
+                        className={`rounded-md border px-3 py-1 text-xs transition-colors ${
+                          activeQuickTime === opt.key
+                            ? "bg-primary text-primary-foreground border-primary"
+                            : "border-border text-muted-foreground"
+                        }`}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Account quick filters */}
+                {hasAccountQuickFilters && (
+                  <div>
+                    <p className="mb-1.5 text-xs font-medium text-muted-foreground">{t("filter_bar.rows.accounts")}</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => dispatch({ type: "SET_FILTER", filter: { selectedAccountIds: [], selectedListingIds: [] } })}
+                        className={`rounded-md border px-3 py-1 text-xs transition-colors ${
+                          filter.selectedAccountIds.length === 0
+                            ? "bg-primary text-primary-foreground border-primary"
+                            : "border-border text-muted-foreground"
+                        }`}
+                      >
+                        {t("filter_bar.rows.all_accounts")}
+                      </button>
+                      {quickAccounts.map((opt) => (
+                        <button
+                          key={opt.value}
+                          type="button"
+                          onClick={() => dispatch({
+                            type: "SET_FILTER",
+                            filter: {
+                              selectedAccountIds: filter.selectedAccountIds.length === 1 && filter.selectedAccountIds[0] === opt.value ? [] : [opt.value],
+                              selectedListingIds: [],
+                            },
+                          })}
+                          className={`rounded-md border px-3 py-1 text-xs transition-colors ${
+                            filter.selectedAccountIds.length === 1 && filter.selectedAccountIds[0] === opt.value
+                              ? "bg-primary text-primary-foreground border-primary"
+                              : "border-border text-muted-foreground"
+                          }`}
+                        >
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Listing quick filters */}
+                {hasListingQuickFilters && (
+                  <div>
+                    <p className="mb-1.5 text-xs font-medium text-muted-foreground">{t("filter_bar.rows.listings")}</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => dispatch({ type: "SET_FILTER", filter: { selectedListingIds: [] } })}
+                        className={`rounded-md border px-3 py-1 text-xs transition-colors ${
+                          filter.selectedListingIds.length === 0
+                            ? "bg-primary text-primary-foreground border-primary"
+                            : "border-border text-muted-foreground"
+                        }`}
+                      >
+                        {t("filter_bar.rows.all_listings")}
+                      </button>
+                      {quickListings.map((opt) => (
+                        <button
+                          key={opt.value}
+                          type="button"
+                          onClick={() => dispatch({
+                            type: "SET_FILTER",
+                            filter: {
+                              selectedListingIds: filter.selectedListingIds.length === 1 && filter.selectedListingIds[0] === opt.value ? [] : [opt.value],
+                            },
+                          })}
+                          className={`max-w-[200px] truncate rounded-md border px-3 py-1 text-xs transition-colors ${
+                            filter.selectedListingIds.length === 1 && filter.selectedListingIds[0] === opt.value
+                              ? "bg-primary text-primary-foreground border-primary"
+                              : "border-border text-muted-foreground"
+                          }`}
+                          title={opt.label}
+                        >
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>

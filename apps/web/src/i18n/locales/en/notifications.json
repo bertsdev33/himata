@@ -6,5 +6,6 @@
   "empty": "No notifications",
   "import_group": "{{name}} ({{count}})",
   "forecast_failed": "ML forecast failed",
-  "forecast_stale": "ML forecast outdated"
+  "forecast_stale": "ML forecast outdated",
+  "close": "Close"
 }

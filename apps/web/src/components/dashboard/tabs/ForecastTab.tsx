@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { CHART_COLORS } from "@/lib/chart-colors";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { formatMoney, formatMonth, formatMoneyCompact } from "@/lib/format";
-import { AlertTriangle, Loader2, X } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Loader2, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { MLForecastSection } from "../MLForecastSection";
 import { useLocaleContext } from "@/i18n/LocaleProvider";
@@ -156,6 +156,7 @@ export function ForecastTab({
   let primaryBannerClass = "border-yellow-200 bg-yellow-50";
   let primaryTextClass = "text-yellow-800";
   let primaryMessage = t("status.forecast_status");
+  let primaryIcon: "loading" | "success" | "error" | "warning" = "warning";
   const requiredDisclaimer = t("status.required_disclaimer");
   let actionLabel: string | null = null;
   let actionDisabled = true;
@@ -164,6 +165,7 @@ export function ForecastTab({
   if (refreshing) {
     primaryBannerClass = "border-sky-200 bg-sky-50";
     primaryTextClass = "text-sky-900";
+    primaryIcon = "loading";
     primaryMessage = t("status.calculating_in_background");
     actionLabel = t("actions.calculating");
     actionDisabled = true;
@@ -171,12 +173,14 @@ export function ForecastTab({
   } else if (workerPreparing) {
     primaryBannerClass = "border-blue-200 bg-blue-50";
     primaryTextClass = "text-blue-900";
+    primaryIcon = "loading";
     primaryMessage = t("status.preparing_engine");
     actionLabel = t("actions.preparing");
     actionDisabled = true;
   } else if (failed) {
     primaryBannerClass = "border-red-200 bg-red-50";
     primaryTextClass = "text-red-900";
+    primaryIcon = "error";
     primaryMessage = mlRefreshError
       ? t("status.failed_with_error", { error: mlRefreshError })
       : t("status.failed");
@@ -194,11 +198,12 @@ export function ForecastTab({
     primaryMessage = t("status.outdated_auto");
     actionLabel = mlWorkerReady ? t("actions.refresh_now") : t("actions.preparing");
     actionDisabled = !mlWorkerReady;
-  } else if (manualMode && upToDate) {
+  } else if (upToDate) {
     primaryBannerClass = "border-emerald-200 bg-emerald-50";
     primaryTextClass = "text-emerald-900";
+    primaryIcon = "success";
     primaryMessage = t("status.up_to_date");
-    actionLabel = t("actions.up_to_date");
+    actionLabel = manualMode ? t("actions.up_to_date") : null;
     actionDisabled = true;
   }
 
@@ -206,8 +211,12 @@ export function ForecastTab({
     <div className="space-y-6">
       {!bannerDismissed && (
         <Alert className={`${primaryBannerClass} relative`}>
-          {refreshing ? (
+          {primaryIcon === "loading" ? (
             <Loader2 className="h-4 w-4 animate-spin text-sky-700" />
+          ) : primaryIcon === "success" ? (
+            <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+          ) : primaryIcon === "error" ? (
+            <AlertTriangle className="h-4 w-4 text-red-600" />
           ) : (
             <AlertTriangle className="h-4 w-4 text-yellow-600" />
           )}

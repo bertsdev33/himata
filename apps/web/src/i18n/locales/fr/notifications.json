@@ -6,5 +6,6 @@
   "empty": "Aucune notification",
   "import_group": "{{name}} ({{count}})",
   "forecast_failed": "Prévision ML échouée",
-  "forecast_stale": "Prévision ML obsolète"
+  "forecast_stale": "Prévision ML obsolète",
+  "close": "Fermer"
 }
